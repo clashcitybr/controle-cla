@@ -1,0 +1,17 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #121212;
+    color: white;
+    padding: 20px;
+}
+button {
+    padding: 10px 15px;
+    background: #2ecc71;
+    border: none;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+button:hover {
+    opacity: 0.8;
+}
