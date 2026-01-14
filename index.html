@@ -7,9 +7,66 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="form-box">
+    <h3>🔒 Modo Administrador</h3>
+    <input type="password" id="adminPassword" placeholder="Senha de administrador">
+    <button onclick="loginAdmin()">Entrar</button>
+    <p id="adminMsg"></p>
+</div>
+
     <H1>Controle de membros</H1>
-    <button id="btnAddPlayer">Adicionar Jogador</button>
-    <button id="btnAttack">Registrar ataques</button>
+    <div class="form-box admin-only">
+    <h3 class="form-box">➕ Adicionar Jogador</h3>
+
+    <input type="text" id="inputNome" placeholder="Nome do jogador">
+    <input type="number" id="inputCV" placeholder="Centro de Vila (CV)">
+
+    <button id="btnConfirmAdd">Adicionar</button>
+
+    <p id="formMsg"></p>
+</div>
+<div class="form-box admin-only">
+    <h3 >⚔️ Registrar Ataque</h3>
+
+    <select id="selectAtaque"></select>
+    <input type="number" id="inputEstrelasAtaque" placeholder="Estrelas (0 a 3)">
+    <button id="btnAttack">Registrar Ataque</button>
+</div>
+
+<div class="form-box form-box admin-only">
+    <h3>🛡️ Registrar Defesa</h3>
+
+    <select id="selectDefesa"></select>
+    <input type="number" id="inputEstrelasDefesa" placeholder="Estrelas sofridas (0 a 3)">
+    <button id="btnDefense">Registrar Defesa</button>
+</div>
+
+<p id="actionMsg"></p>
+<div id="guerraInfo" class="guerra-info"></div>
+
+
+<h2>🔥 MVP da Guerra</h2>
+<div id="mvpBox"></div>
+
+    <h2>📊 Rankings</h2>
+
+<div class="ranking-buttons">
+    <button onclick="rankingAtaque()">🏆 Ataque</button>
+    <button onclick="rankingDefesa()">🛡️ Defesa</button>
+    <button onclick="rankingGeral()">👑 Geral</button>
+</div>
+
+<div id="rankingBox"></div>
+<div class="form-box admin-only">
+    <h3>⚔️ Nova Guerra</h3>
+    <input type="text" id="inputAdversario" placeholder="Clã adversário">
+    <input type="date" id="inputData">
+    <button onclick="criarGuerra()">Iniciar Guerra</button>
+</div>
+
+
+
+
     <div id="playerList"></div>
     <script src="script.js"></script>
     
