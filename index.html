@@ -166,6 +166,15 @@
             font-weight: 800;
         }
 
+        .bagre-badge {
+            background: #eb5c09;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
         .rank-number {
             font-weight: 800;
             color: var(--secondary);
@@ -238,12 +247,12 @@
                     <thead>
                         <tr>
                             <th>Rank</th>
-                            <th>Jogador</th> 
+                            <th>Jogador</th>
                             <th>Média ⭐</th>
                             <th>Média %</th>
                             <th>CV</th>
                             <th>Guerras</th>
-                           
+
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -266,6 +275,7 @@
     </footer>
 
     <script>
+        // 1. LINK DA PLANILHA (CSV PUBLICADO)
         // 1. LINK DA PLANILHA (CSV PUBLICADO)
         const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSiUmjut5jrsU0_71z_k-l_enGQ8owypWsyAHd3Xxp8KGkhG9GDI8awbPTvaNY7z6Clz0XpLs5IUGkI/pub?output=csv";
 
@@ -301,37 +311,81 @@
                     ...p,
                     mediaE: p.totalE / p.qtd,
                     mediaP: p.totalP / p.qtd
-                })).sort((a, b) => b.mediaE - a.mediaE || b.mediaP - a.mediaP);
+                })).sort((a, b) => {
+                    // 1º Critério: Média de Estrelas (Maior para menor)
+                    if (b.mediaE !== a.mediaE) {
+                        return b.mediaE - a.mediaE;
+                    }
+                    // 2º Critério: Média de Porcentagem (Maior para menor)
+                    if (b.mediaP !== a.mediaP) {
+                        return b.mediaP - a.mediaP;
+                    }
+                    // 3º Critério: Quantidade de Guerras (Maior para menor)
+                    if (b.qtd !== a.qtd) {
+                        return b.qtd - a.qtd;
+                    }
+                    // 4º Critério: Nível do CV (Maior para menor)
+                    // Usamos parseInt para garantir que a comparação seja numérica
+                    return parseInt(b.cv) - parseInt(a.cv);
+                });
 
                 renderizar(ranking);
             } catch (e) {
+                console.error(e);
                 document.getElementById('corpoRanking').innerHTML = "<tr><td colspan='7'>Erro ao carregar dados.</td></tr>";
             }
         }
 
         function renderizar(dados) {
-            const corpo = document.getElementById('corpoRanking');
-            corpo.innerHTML = "";
-            dados.forEach((p, i) => {
-                const status = i < 15 ? '<span class="titular-badge">TITULAR CWL</span>' : '<span class="reserva-badge">RESERVA</span>';
-                const rankClass = i < 3 ? 'top-3' : 'rank-number';
-                const medalhas = ["🥇", "🥈", "🥉"];
-                const rankLabel = i < 3 ? medalhas[i] : (i + 1) + "º";
+    const corpo = document.getElementById('corpoRanking');
+    if (!corpo) return;
 
-                corpo.innerHTML += `
-                    <tr>
-                        <td class="${rankClass}">${rankLabel}</td>
-                        <td><strong>${p.nome}</strong></td>
-                         <td style="color: #c08d00; font-weight: bold;">⭐ ${p.mediaE.toFixed(2)}</td>
-                        <td>${p.mediaP.toFixed(1)}%</td>
-                        <td><span class="cv-tag">CV ${p.cv}</span></td>
-                        <td>${p.qtd}</td>
-                       
-                        <td>${status}</td>
-                    </tr>`;
-            });
+    let htmlFinal = "";
+    let rankReal = 1; // O número que será exibido
+
+    dados.forEach((p, i) => {
+        // Lógica de Empate:
+        // Se não for o primeiro da lista, verifica se empatou com o anterior em TODOS os critérios
+        if (i > 0) {
+            const anterior = dados[i - 1];
+            const empatou = p.mediaE === anterior.mediaE && 
+                            p.mediaP === anterior.mediaP && 
+                            p.qtd === anterior.qtd && 
+                            p.cv === anterior.cv;
+            
+            // Se NÃO empatou, o rank vira a posição real (i + 1)
+            // Se empatou, ele mantém o rankReal anterior
+            if (!empatou) {
+                rankReal = i + 1;
+            }
         }
 
+        // Status baseado no rankReal (ou no índice i se preferir manter o corte fixo de 10/20)
+        const status = rankReal <= 10 
+            ? '<span class="titular-badge">ELITE</span>' 
+            : rankReal <= 20 
+                ? '<span class="reserva-badge">Na Média</span>' 
+                : '<span class="bagre-badge">BAGRE</span>';
+
+        // Estilo das Medalhas
+        const medalhas = ["🥇", "🥈", "🥉"];
+        const rankLabel = rankReal <= 3 ? medalhas[rankReal - 1] : rankReal + "º";
+        const rankClass = rankReal <= 3 ? 'top-3' : 'rank-number';
+
+        htmlFinal += `
+            <tr>
+                <td class="${rankClass}">${rankLabel}</td>
+                <td><strong>${p.nome}</strong></td>
+                <td style="color: #c08d00; font-weight: bold;">⭐ ${p.mediaE.toFixed(2)}</td>
+                <td>${p.mediaP.toFixed(1)}%</td>
+                <td><span class="cv-tag">CV ${p.cv}</span></td>
+                <td>${p.qtd}</td>
+                <td>${status}</td>
+            </tr>`;
+    });
+
+    corpo.innerHTML = htmlFinal;
+}
         // Animação de Scroll
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -341,6 +395,7 @@
 
         document.querySelectorAll('.scroll-anim').forEach((el) => observer.observe(el));
 
+        // Inicia o carregamento
         carregarDados();
     </script>
 </body>
