@@ -1,247 +1,216 @@
-/* RESET BÁSICO */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+:root {
+            --primary: #f9d246;
+            --secondary: #077187;
+            --dark: #11032c;
+            --light: #ffffff;
+            --accent: #6aa5ed;
+            --glass: rgba(255, 255, 255, 0.92);
+        }
 
-/* BODY */
-body {
-    font-family: 'Segoe UI', 'Arial', 'sans-serif';
-    background: radial-gradient(circle at top, #1b1b1b, #0d0d0d);
-    color: #f1f1f1;
-    padding: 20px;
-}
-@font-face {
-    font-family: 'MinhaFonte';
-    src: url(fonts/Clash_Bold.otf) format('opentype');
-    font-weight: normal;
-    font-style: normal;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* TÍTULOS */
-h1 {
-    font-family: 'MinhaFonte','Segoe UI', 'Arial', 'sans-serif';
-    text-align: center;
-    margin-bottom: 25px;
-    font-size: 32px;
-    color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-}
+        body {
+            font-family: 'Lexend', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            line-height: 1.6;
+        }
 
-h2 {
-    font-family: 'MinhaFonte','Segoe UI', 'Arial', 'sans-serif';
-    margin: 20px 0 10px;
-    color: #ff9800;
-}
+        /* --- NAV --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: flex-end;
+            gap: 20px;
+        }
 
-h3 {
-    font-family: 'MinhaFonte','Segoe UI', 'Arial', 'sans-serif';
-    margin-bottom: 10px;
-    color: #4caf50;
-}
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
 
-/* BOTÕES */
-button {
-    font-family: 'MinhaFonte','Segoe UI', 'Arial', 'sans-serif';
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    background: linear-gradient(135deg, #4caf50, #2ecc71);
-    color: #000;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
+        nav a:hover {
+            color: var(--primary);
+        }
 
-button:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.6);
-}
+        /* --- HEADER --- */
+        header {
+            height: 40vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.71), rgba(0, 0, 0, 0.326)),
+                url('img/hallo.webp') center/cover no-repeat;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding-top: 60px;
+        }
 
-/* FORM BOX */
-.form-box {
-    background: linear-gradient(135deg, #1f1f1f, #2a2a2a);
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    max-width: 320px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-}
+        header h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            text-shadow: 2px 4px 10px rgba(0, 0, 0, 0.5);
+        }
 
-/* INPUTS */
-.form-box input,
-.form-box select {
-    width: 100%;
-    padding: 9px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: none;
-    outline: none;
-    background: #121212;
-    color: #fff;
-}
+        /* --- RANKING SECTION --- */
+        .ranking-section {
+            padding: 60px 5%;
+            background: linear-gradient(to bottom, #e0eafc, #cfdef3);
+            min-height: 80vh;
+        }
 
-.form-box input::placeholder {
-    color: #aaa;
-}
+        .ranking-card {
+            background: var(--glass);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 1100px;
+            margin: 20px auto 40px;
+            /* Sobe o card para cima do header */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
 
-/* MENSAGENS */
-#formMsg,
-#adminMsg,
-#actionMsg {
-    font-size: 14px;
-    margin-top: 6px;
-}
+        h2.title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--secondary);
+            font-weight: 800;
+        }
 
+        .table-container {
+            overflow-x: auto;
+        }
 
-/* MVP */
-#mvpBox {
-    padding: 20px;
-    background: linear-gradient(135deg, #ff9800, #ff5722);
-    border-radius: 15px;
-    color: #fff;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.848);
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
 
-.mvp-name {
-    font-family: 'MinhaFonte', 'Segoe UI', 'Arial', 'sans-serif';
-    font-size: 22px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
+        th {
+            background: var(--secondary);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
 
-.mvp-player {
-    font-family: 'MinhaFonte', 'Segoe UI', 'Arial', 'sans-serif';
-    font-size: 20px;
-    margin-top: 6px;
-    color: #ffd700;
-}
+        th:first-child {
+            border-radius: 10px 0 0 10px;
+        }
 
-.mvp-info {
-    margin-top: 10px;
-    font-size: 15px;
-}
+        th:last-child {
+            border-radius: 0 10px 10px 0;
+        }
 
-/* RANKINGS */
-.ranking-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-size: 0.95rem;
+        }
 
-#rankingBox {
-    padding: 15px;
-    background: #1f1f1f;
-    border-radius: 12px;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
-}
+        tr:hover td {
+            background: rgba(249, 210, 70, 0.1);
+        }
 
-.ranking-item {
-    padding: 10px;
-    margin-bottom: 8px;
-    background: linear-gradient(135deg, #2a2a2a, #1e1e1e);
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+        .cv-tag {
+            background: var(--dark);
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
 
-.ranking-item:nth-child(1) {
-    background: linear-gradient(135deg, #ffd700, #ff9800);
-    color: #000;
-    font-weight: bold;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-}
+        .titular-badge {
+            background: #22c55e;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
 
-/* LISTA DE JOGADORES */
-#playerList {
-    margin-top: 20px;
-}
+        .reserva-badge {
+            background: #94a3b8;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
 
-.player-card {
-    background: #1a1a1a;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
+        .bagre-badge {
+            background: #eb5c09;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
 
-/* ADMIN */
-.admin-only {
-    display: none;
-}
-.pro-player {
-    border: 2px solid gold;
-    background: linear-gradient(135deg, #ffd700, #ff9800);
-    color: #000;
-}
+        .rank-number {
+            font-weight: 800;
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
 
-.bagre {
-    border: 2px solid #2196f3;
-    background: linear-gradient(135deg, #1565c0, #0d47a1);
-}
-.guerra-info {
-    font-family: 'MinhaFonte','Segoe UI', 'Arial', 'sans-serif';
-    margin: 20px 0;
-    padding: 15px;
-    background: linear-gradient(135deg, #2196f3, #00bcd4);
-    border-radius: 12px;
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-    color: #fff;
-    box-shadow: 0 0 15px rgba(0, 188, 212, 0.5);
-}
+        .top-3 {
+            color: #d4af37;
+            font-size: 1.3rem;
+        }
 
+        /* --- FOOTER --- */
+        footer {
+            background: #000;
+            color: white;
+            padding: 40px 5%;
+            text-align: center;
+            margin-top: 40px;
+        }
 
-/* RESPONSIVO */
-@media (max-width: 600px) {
-    .ranking-buttons {
-        flex-direction: column;
-    }
+        /* ANIMATION */
+        .scroll-anim {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
 
-    .form-box {
-        max-width: 100%;
-    }
-}
-/* PRO PLAYER */
-.pro-player {
-    background: linear-gradient(135deg, #ffd700, #ff9800) !important;
-    color: #000;
-    font-weight: bold;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
-    border: 2px solid #fff3b0;
-}
+        .scroll-anim.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-.pro-player::after {
-    content: " 👑 PRO-PLAYER";
-    font-size: 13px;
-    font-weight: bold;
-}
+        @media (max-width: 768px) {
+            nav {
+                justify-content: center;
+                font-size: 0.7rem;
+            }
 
-/* BAGRE */
-.bagre {
-    background: linear-gradient(135deg, #b71c1c, #ff5252) !important;
-    color: #fff;
-    font-weight: bold;
-    box-shadow: 0 0 15px rgba(255, 82, 82, 0.7);
-    border: 2px dashed #ffaaaa;
-}
+            .ranking-card {
+                padding: 15px;
+                margin-top: -40px;
+            }
 
-.bagre::after {
-    content: " 🐟 BAGRE";
-    font-size: 13px;
-    font-weight: bold;
-}
-.pro-player {
-    border: 2px solid gold;
-    background: linear-gradient(135deg, #ffd700, #ff9800);
-    color: #000;
-}
-
-.bagre {
-    border: 2px solid #2196f3;
-    background: linear-gradient(135deg, #1565c0, #0d47a1);
-}
+            td,
+            th {
+                padding: 10px 5px;
+                font-size: 0.8rem;
+            }
+        }
