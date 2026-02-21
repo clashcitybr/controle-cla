@@ -22,9 +22,65 @@
         <p class="scroll-anim" style="color: var(--primary); font-weight: 600;">Seleção Oficial para a Liga de Clãs</p>
     </header>
 
+
+
     <section id="ranking" class="ranking-section">
-      
-  
+
+       <div class="podium-container scroll-anim">
+    <div class="podium-card silver">
+        <div class="podium-rank-badge">2º</div>
+        <div class="podium-info">
+            <h3 id="nomeRank2">--</h3>
+            <div class="podium-stats-detail">
+                <p id="estrelasRank2">⭐ 0.00</p>
+                <p id="percRank2">🎯 0%</p>
+                <p id="guerrasRank2">⚔️ 0 Guerras</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="podium-card gold">
+        <div class="podium-rank-badge">1º</div>
+        <div class="podium-info">
+            <h2 id="nomeRank1">--</h2>
+            <div class="podium-stats-detail">
+                <p id="estrelasRank1" style="font-size: 1.1rem;">⭐ 0.00</p>
+                <p id="percRank1">🎯 0%</p>
+                <p id="guerrasRank1">⚔️ 0 Guerras</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="podium-card bronze">
+        <div class="podium-rank-badge">3º</div>
+        <div class="podium-info">
+            <h3 id="nomeRank3">--</h3>
+            <div class="podium-stats-detail">
+                <p id="estrelasRank3">⭐ 0.00</p>
+                <p id="percRank3">🎯 0%</p>
+                <p id="guerrasRank3">⚔️ 0 Guerras</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <div class="controles-container scroll-anim">
+            <div class="menu-abas">
+                <button class="aba-btn active" onclick="mudarOrdem('qtd')">⚔️ Por Guerras</button>
+                <button class="aba-btn" onclick="mudarOrdem('mediaE')">⭐ Por Estrelas</button>
+                <button class="aba-btn" onclick="mudarOrdem('mediaP')">🎯 Por %</button>
+            </div>
+
+            <div class="filtros-extras">
+                <select id="filtroCV" onchange="filtrarTudo()">
+                    <option value="todos">Todos os CVs</option>
+                    <option value="18">Apenas CV 18</option>
+                    <option value="17">Apenas CV 17</option>
+                    <option value="16">Apenas CV 16</option>
+                </select>
+                <input type="text" id="inputBusca" placeholder="🔍 Buscar jogador..." onkeyup="filtrarTudo()">
+            </div>
+        </div>
         <div class="ranking-card scroll-anim">
             <h2 class="title">📊 RANKING MENSAL ACUMULADO</h2>
 
@@ -48,33 +104,33 @@
                     </tbody>
                 </table>
             </div>
- 
+
 
             <p style="margin-top: 20px; font-size: 0.8rem; color: #666; text-align: center;">
                 * Dados atualizados automaticamente via Google Sheets após cada guerra.
             </p>
         </div>
-     <div class="legenda-container scroll-anim">
-    <div class="legenda-titulo">📌 CRITÉRIOS DE DESEMPATE</div>
-    <div class="legenda-grid">
-        <div class="legenda-item">
-            <span class="legenda-rank">1º</span>
-            <span class="legenda-texto">⚔️ <strong>Guerras</strong></span>
+        <div class="criterios-container scroll-anim">
+            <div class="criterios-titulo">📌 Critérios de Desempate</div>
+            <div class="criterios-lista">
+                <div class="criterio-item">
+                    <div class="criterio-rank">1º</div>
+                    <div class="criterio-texto">⚔️ Guerras</div>
+                </div>
+                <div class="criterio-item">
+                    <div class="criterio-rank">2º</div>
+                    <div class="criterio-texto">⭐ Estrelas</div>
+                </div>
+                <div class="criterio-item">
+                    <div class="criterio-rank">3º</div>
+                    <div class="criterio-texto">🎯 % Destruição</div>
+                </div>
+                <div class="criterio-item">
+                    <div class="criterio-rank">4º</div>
+                    <div class="criterio-texto">🏰 Centro de Vila</div>
+                </div>
+            </div>
         </div>
-        <div class="legenda-item">
-            <span class="legenda-rank">2º</span>
-            <span class="legenda-texto">⭐ <strong>Estrelas</strong></span>
-        </div>
-        <div class="legenda-item">
-            <span class="legenda-rank">3º</span>
-            <span class="legenda-texto">🎯 <strong>% Destruição</strong></span>
-        </div>
-        <div class="legenda-item">
-            <span class="legenda-rank">4º</span>
-            <span class="legenda-texto">🏰 <strong>Centro de Vila</strong></span>
-        </div>
-    </div>
-</div>
     </section>
 
 
@@ -83,121 +139,181 @@
     </footer>
 
     <script>
-        // 1. LINK DA PLANILHA (CSV PUBLICADO)
-        const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSiUmjut5jrsU0_71z_k-l_enGQ8owypWsyAHd3Xxp8KGkhG9GDI8awbPTvaNY7z6Clz0XpLs5IUGkI/pub?output=csv";
 
-        async function carregarDados() {
-            try {
-                const resposta = await fetch(urlCSV);
-                const csv = await resposta.text();
-                const linhas = csv.split(/\r?\n/).slice(1);
+      // 1. CONFIGURAÇÕES E VARIÁVEIS GERAIS
+let dadosGlobais = []; 
+let ordemAtual = 'qtd'; 
+const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSiUmjut5jrsU0_71z_k-l_enGQ8owypWsyAHd3Xxp8KGkhG9GDI8awbPTvaNY7z6Clz0XpLs5IUGkI/pub?output=csv";
 
-                let jogadores = {};
+// 2. CARREGAMENTO E PROCESSAMENTO
+async function carregarDados() {
+    try {
+        const resposta = await fetch(urlCSV);
+        const csv = await resposta.text();
+        const linhas = csv.split(/\r?\n/).slice(1);
+        let jogadores = {};
 
-                linhas.forEach(linha => {
-                    const col = linha.split(',');
-                    if (col.length < 7) return;
+        linhas.forEach(linha => {
+            const col = linha.split(',');
+            if (col.length < 7) return;
 
-                    const nome = col[1].trim();
-                    const cv = col[2].trim();
-                    const e1 = parseInt(col[3]) || 0;
-                    const p1 = parseInt(col[4]) || 0;
-                    const e2 = parseInt(col[5]) || 0;
-                    const p2 = parseInt(col[6]) || 0;
+            const nome = col[1].trim();
+            const cv = col[2].trim();
+            const e1 = parseInt(col[3]) || 0;
+            const p1 = parseInt(col[4]) || 0;
+            const e2 = parseInt(col[5]) || 0;
+            const p2 = parseInt(col[6]) || 0;
 
-                    if (!jogadores[nome]) {
-                        jogadores[nome] = { nome, cv, totalE: 0, totalP: 0, qtd: 0 };
-                    }
-                    jogadores[nome].cv = cv;
-                    jogadores[nome].totalE += (e1 + e2);
-                    jogadores[nome].totalP += (p1 + p2) / 2;
-                    jogadores[nome].qtd += 1;
-                });
-
-                const ranking = Object.values(jogadores).map(p => ({
-                    ...p,
-                    mediaE: p.totalE / p.qtd,
-                    mediaP: p.totalP / p.qtd
-                })).sort((a, b) => {
-                    // 1º Critério: Quantidade de Guerras (Prioridade Máxima)
-                    if (b.qtd !== a.qtd) return b.qtd - a.qtd;
-
-                    // 2º Critério: Média de Estrelas
-                    if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
-
-                    // 3º Critério: Média de Porcentagem
-                    if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
-
-                    // 4º Critério: Nível do CV
-                    return parseInt(b.cv) - parseInt(a.cv);
-                });
-
-                renderizar(ranking);
-            } catch (e) {
-                console.error("Erro ao processar dados:", e);
-                document.getElementById('corpoRanking').innerHTML = "<tr><td colspan='7'>Erro ao carregar dados.</td></tr>";
+            if (!jogadores[nome]) {
+                jogadores[nome] = { nome, cv, totalE: 0, totalP: 0, qtd: 0 };
             }
+            jogadores[nome].cv = cv;
+            jogadores[nome].totalE += (e1 + e2);
+            jogadores[nome].totalP += (p1 + p2) / 2;
+            jogadores[nome].qtd += 1;
+        });
+
+        dadosGlobais = Object.values(jogadores).map(p => ({
+            ...p,
+            mediaE: p.totalE / p.qtd,
+            mediaP: p.totalP / p.qtd
+        }));
+
+        atualizarCardsEstatisticas(dadosGlobais);
+        filtrarTudo();
+
+    } catch (e) {
+        console.error("Erro ao carregar:", e);
+        const corpo = document.getElementById('corpoRanking');
+        if (corpo) corpo.innerHTML = "<tr><td colspan='7'>Erro ao carregar dados. Verifique a conexão.</td></tr>";
+    }
+}
+
+// 3. FILTRAGEM E ORDENAÇÃO
+function mudarOrdem(novaOrdem) {
+    ordemAtual = novaOrdem;
+    document.querySelectorAll('.aba-btn').forEach(btn => {
+        btn.classList.remove('active');
+        // Verifica se o texto do botão ou o atributo bate com a ordem
+        if (btn.innerText.toLowerCase().includes(novaOrdem.toLowerCase()) || 
+            btn.getAttribute('onclick')?.includes(novaOrdem)) {
+            btn.classList.add('active');
         }
+    });
+    filtrarTudo();
+}
 
-        function renderizar(dados) {
-            const corpo = document.getElementById('corpoRanking');
-            if (!corpo) return;
+function filtrarTudo() {
+    const busca = document.getElementById('inputBusca')?.value.toUpperCase() || "";
+    const cvSelecionado = document.getElementById('filtroCV')?.value || "todos";
 
-            let htmlFinal = "";
-            let rankReal = 1;
+    let listaFiltrada = dadosGlobais.filter(p => {
+        const matchesBusca = p.nome.toUpperCase().includes(busca);
+        const matchesCV = cvSelecionado === "todos" || p.cv === cvSelecionado;
+        return matchesBusca && matchesCV;
+    });
 
-            dados.forEach((p, i) => {
-                // Lógica de Empate: verifica se o atual é idêntico ao anterior em todos os critérios
-                if (i > 0) {
-                    const anterior = dados[i - 1];
-                    const empatou = p.qtd === anterior.qtd &&
-                        p.mediaE === anterior.mediaE &&
-                        p.mediaP === anterior.mediaP &&
-                        p.cv === anterior.cv;
+    listaFiltrada.sort((a, b) => {
+        if (ordemAtual === 'qtd') {
+            if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+            if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+            return b.mediaP - a.mediaP;
+        }
+        if (ordemAtual === 'mediaE') {
+            if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+            if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+            return b.qtd - a.qtd;
+        }
+        return b.mediaP - a.mediaP;
+    });
 
-                    if (!empatou) {
-                        rankReal = i + 1;
-                    }
-                }
+    renderizar(listaFiltrada);
+}
 
-                // Definição do Status baseado na posição
-                const status = rankReal <= 10
-                    ? '<span class="titular-badge">ELITE</span>'
-                    : rankReal <= 21
-                        ? '<span class="reserva-badge">Na Média</span>'
-                        : '<span class="bagre-badge">BAGRE</span>';
+// 4. RENDERIZAÇÃO (PÓDIO E TABELA)
+function renderizar(dados) {
+    const corpo = document.getElementById('corpoRanking');
+    if (!corpo) return;
 
-                // Ícones de medalha para o Top 3
-                const medalhas = ["🥇", "🥈", "🥉"];
-                const rankLabel = rankReal <= 3 ? medalhas[rankReal - 1] : rankReal + "º";
-                const rankClass = rankReal <= 3 ? 'top-3' : 'rank-number';
+    // Atualização do Pódio
+    for (let i = 1; i <= 3; i++) {
+        const player = dados[i - 1];
+        const nomeEl = document.getElementById(`nomeRank${i}`);
+        const estEl = document.getElementById(`estrelasRank${i}`);
+        const perEl = document.getElementById(`percRank${i}`);
+        const gueEl = document.getElementById(`guerrasRank${i}`);
 
-                htmlFinal += `
+        if (player) {
+            if (nomeEl) nomeEl.innerText = player.nome;
+            if (estEl) estEl.innerText = `⭐ ${player.mediaE.toFixed(2)}`;
+            if (perEl) perEl.innerText = `🎯 ${player.mediaP.toFixed(1)}%`;
+            if (gueEl) gueEl.innerText = `⚔️ ${player.qtd} Guerras`;
+        } else {
+            if (nomeEl) nomeEl.innerText = "--";
+            if (estEl) estEl.innerText = "⭐ 0.00";
+            if (perEl) perEl.innerText = "🎯 0%";
+            if (gueEl) gueEl.innerText = "⚔️ 0";
+        }
+    }
+
+    // Atualização do MVP (Sempre o 1º da lista filtrada)
+    const mvpNome = document.getElementById('mvpNome');
+    if (mvpNome) mvpNome.innerText = dados[0] ? dados[0].nome : "---";
+
+    // Construção da Tabela
+    let htmlFinal = "";
+    dados.forEach((p, i) => {
+        const corBarra = p.mediaE >= 5.5 ? '#22c55e' : (p.mediaE >= 4.5 ? '#f9d246' : '#eb5c09');
+        const statusClass = p.mediaE >= 5.5 ? 'titular-badge' : (p.mediaE >= 4.5 ? 'reserva-badge' : 'bagre-badge');
+        const statusTxt = p.mediaE >= 5.5 ? 'ELITE' : (p.mediaE >= 4.5 ? 'NA MÉDIA' : 'BAGRE');
+        
+        const medalhas = ["🥇", "🥈", "🥉"];
+        const rankLabel = i < 3 ? medalhas[i] : (i + 1) + "º";
+
+        htmlFinal += `
             <tr>
-                <td class="${rankClass}">${rankLabel}</td>
+                <td class="${i < 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
                 <td><strong>${p.nome}</strong></td>
-                <td style="color: #c08d00; font-weight: bold;">⭐ ${p.mediaE.toFixed(2)}</td>
+                <td>
+                    <div style="font-weight: bold; margin-bottom: 2px;">⭐ ${p.mediaE.toFixed(2)}</div>
+                    <div class="progresso-container">
+                        <div class="progresso-barra" style="width: ${(p.mediaE / 6) * 100}%; background: ${corBarra};"></div>
+                    </div>
+                </td>
                 <td>${p.mediaP.toFixed(1)}%</td>
                 <td><span class="cv-tag">CV ${p.cv}</span></td>
                 <td>${p.qtd}</td>
-                <td>${status}</td>
+                <td><span class="${statusClass}">${statusTxt}</span></td>
             </tr>`;
-            });
+    });
 
-            corpo.innerHTML = htmlFinal;
-        }
+    corpo.innerHTML = htmlFinal;
+}
 
-        // Configuração da Animação de Scroll e Inicialização
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('show');
-            });
-        }, { threshold: 0.1 });
+// 5. FUNÇÕES AUXILIARES E INICIALIZAÇÃO
+function atualizarCardsEstatisticas(dados) {
+    const totalMembros = document.getElementById('totalMembros');
+    const melhorPlayer = document.getElementById('melhorPlayer');
+    
+    if (totalMembros) totalMembros.innerText = dados.length;
+    if (melhorPlayer) {
+        const top = [...dados].sort((a,b) => b.mediaE - a.mediaE)[0];
+        melhorPlayer.innerText = top ? top.nome : "--";
+    }
+}
 
-        document.querySelectorAll('.scroll-anim').forEach((el) => observer.observe(el));
+document.addEventListener('DOMContentLoaded', () => {
+    carregarDados();
+    
+    // Observer para animações de scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('show');
+        });
+    }, { threshold: 0.1 });
 
-        // Chama a função principal para carregar os dados da planilha
-        carregarDados();
+    document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
+});
     </script>
 </body>
 </html>
