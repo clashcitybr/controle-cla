@@ -90,10 +90,11 @@
                         <tr>
                             <th>Rank</th>
                             <th>Jogador</th>
-                            <th>Guerras</th>
+                           
                             <th>Média ⭐</th>
                             <th>Média %</th>
                             <th>CV</th>
+                            <th>Guerras</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -265,7 +266,7 @@ function renderizar(dados) {
     dados.forEach((p, i) => {
         const corBarra = p.mediaE >= 5.5 ? '#22c55e' : (p.mediaE >= 4.5 ? '#f9d246' : '#eb5c09');
         const statusClass = p.mediaE >= 5.5 ? 'titular-badge' : (p.mediaE >= 4.5 ? 'reserva-badge' : 'bagre-badge');
-        const statusTxt = p.mediaE >= 5.5 ? 'ELITE' : (p.mediaE >= 4.5 ? 'NA MÉDIA' : 'BAGRE');
+        const statusTxt = p.mediaE >= 5.5 ? 'ELITE' : (p.mediaE >= 4.5 ? 'MÉDIA' : 'BAGRE');
         
         const medalhas = ["🥇", "🥈", "🥉"];
         const rankLabel = i < 3 ? medalhas[i] : (i + 1) + "º";
@@ -281,7 +282,7 @@ function renderizar(dados) {
                     </div>
                 </td>
                 <td>${p.mediaP.toFixed(1)}%</td>
-                <td><span class="cv-tag">CV ${p.cv}</span></td>
+                <td><span class="cv-tag">${p.cv}</span></td>
                 <td>${p.qtd}</td>
                 <td><span class="${statusClass}">${statusTxt}</span></td>
             </tr>`;
