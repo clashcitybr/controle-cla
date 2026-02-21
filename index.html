@@ -23,6 +23,8 @@
     </header>
 
     <section id="ranking" class="ranking-section">
+      
+  
         <div class="ranking-card scroll-anim">
             <h2 class="title">📊 RANKING MENSAL ACUMULADO</h2>
 
@@ -32,11 +34,10 @@
                         <tr>
                             <th>Rank</th>
                             <th>Jogador</th>
+                            <th>Guerras</th>
                             <th>Média ⭐</th>
                             <th>Média %</th>
                             <th>CV</th>
-                            <th>Guerras</th>
-
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -47,12 +48,35 @@
                     </tbody>
                 </table>
             </div>
+ 
 
             <p style="margin-top: 20px; font-size: 0.8rem; color: #666; text-align: center;">
                 * Dados atualizados automaticamente via Google Sheets após cada guerra.
             </p>
         </div>
+     <div class="legenda-container scroll-anim">
+    <div class="legenda-titulo">📌 CRITÉRIOS DE DESEMPATE</div>
+    <div class="legenda-grid">
+        <div class="legenda-item">
+            <span class="legenda-rank">1º</span>
+            <span class="legenda-texto">⚔️ <strong>Guerras</strong></span>
+        </div>
+        <div class="legenda-item">
+            <span class="legenda-rank">2º</span>
+            <span class="legenda-texto">⭐ <strong>Estrelas</strong></span>
+        </div>
+        <div class="legenda-item">
+            <span class="legenda-rank">3º</span>
+            <span class="legenda-texto">🎯 <strong>% Destruição</strong></span>
+        </div>
+        <div class="legenda-item">
+            <span class="legenda-rank">4º</span>
+            <span class="legenda-texto">🏰 <strong>Centro de Vila</strong></span>
+        </div>
+    </div>
+</div>
     </section>
+
 
     <footer>
         <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
@@ -95,67 +119,60 @@
                     mediaE: p.totalE / p.qtd,
                     mediaP: p.totalP / p.qtd
                 })).sort((a, b) => {
-                    // 1º Critério: Média de Estrelas (Maior para menor)
-                    if (b.mediaE !== a.mediaE) {
-                        return b.mediaE - a.mediaE;
-                    }
-                    // 2º Critério: Média de Porcentagem (Maior para menor)
-                    if (b.mediaP !== a.mediaP) {
-                        return b.mediaP - a.mediaP;
-                    }
-                    // 3º Critério: Quantidade de Guerras (Maior para menor)
-                    if (b.qtd !== a.qtd) {
-                        return b.qtd - a.qtd;
-                    }
-                    // 4º Critério: Nível do CV (Maior para menor)
-                    // Usamos parseInt para garantir que a comparação seja numérica
+                    // 1º Critério: Quantidade de Guerras (Prioridade Máxima)
+                    if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+
+                    // 2º Critério: Média de Estrelas
+                    if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+
+                    // 3º Critério: Média de Porcentagem
+                    if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+
+                    // 4º Critério: Nível do CV
                     return parseInt(b.cv) - parseInt(a.cv);
                 });
 
                 renderizar(ranking);
             } catch (e) {
-                console.error(e);
+                console.error("Erro ao processar dados:", e);
                 document.getElementById('corpoRanking').innerHTML = "<tr><td colspan='7'>Erro ao carregar dados.</td></tr>";
             }
         }
 
         function renderizar(dados) {
-    const corpo = document.getElementById('corpoRanking');
-    if (!corpo) return;
+            const corpo = document.getElementById('corpoRanking');
+            if (!corpo) return;
 
-    let htmlFinal = "";
-    let rankReal = 1; // O número que será exibido
+            let htmlFinal = "";
+            let rankReal = 1;
 
-    dados.forEach((p, i) => {
-        // Lógica de Empate:
-        // Se não for o primeiro da lista, verifica se empatou com o anterior em TODOS os critérios
-        if (i > 0) {
-            const anterior = dados[i - 1];
-            const empatou = p.mediaE === anterior.mediaE && 
-                            p.mediaP === anterior.mediaP && 
-                            p.qtd === anterior.qtd && 
-                            p.cv === anterior.cv;
-            
-            // Se NÃO empatou, o rank vira a posição real (i + 1)
-            // Se empatou, ele mantém o rankReal anterior
-            if (!empatou) {
-                rankReal = i + 1;
-            }
-        }
+            dados.forEach((p, i) => {
+                // Lógica de Empate: verifica se o atual é idêntico ao anterior em todos os critérios
+                if (i > 0) {
+                    const anterior = dados[i - 1];
+                    const empatou = p.qtd === anterior.qtd &&
+                        p.mediaE === anterior.mediaE &&
+                        p.mediaP === anterior.mediaP &&
+                        p.cv === anterior.cv;
 
-        // Status baseado no rankReal (ou no índice i se preferir manter o corte fixo de 10/20)
-        const status = rankReal <= 10 
-            ? '<span class="titular-badge">ELITE</span>' 
-            : rankReal <= 21 
-                ? '<span class="reserva-badge">Na Média</span>' 
-                : '<span class="bagre-badge">BAGRE</span>';
+                    if (!empatou) {
+                        rankReal = i + 1;
+                    }
+                }
 
-        // Estilo das Medalhas
-        const medalhas = ["🥇", "🥈", "🥉"];
-        const rankLabel = rankReal <= 3 ? medalhas[rankReal - 1] : rankReal + "º";
-        const rankClass = rankReal <= 3 ? 'top-3' : 'rank-number';
+                // Definição do Status baseado na posição
+                const status = rankReal <= 10
+                    ? '<span class="titular-badge">ELITE</span>'
+                    : rankReal <= 21
+                        ? '<span class="reserva-badge">Na Média</span>'
+                        : '<span class="bagre-badge">BAGRE</span>';
 
-        htmlFinal += `
+                // Ícones de medalha para o Top 3
+                const medalhas = ["🥇", "🥈", "🥉"];
+                const rankLabel = rankReal <= 3 ? medalhas[rankReal - 1] : rankReal + "º";
+                const rankClass = rankReal <= 3 ? 'top-3' : 'rank-number';
+
+                htmlFinal += `
             <tr>
                 <td class="${rankClass}">${rankLabel}</td>
                 <td><strong>${p.nome}</strong></td>
@@ -165,11 +182,12 @@
                 <td>${p.qtd}</td>
                 <td>${status}</td>
             </tr>`;
-    });
+            });
 
-    corpo.innerHTML = htmlFinal;
-}
-        // Animação de Scroll
+            corpo.innerHTML = htmlFinal;
+        }
+
+        // Configuração da Animação de Scroll e Inicialização
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) entry.target.classList.add('show');
@@ -178,9 +196,8 @@
 
         document.querySelectorAll('.scroll-anim').forEach((el) => observer.observe(el));
 
-        // Inicia o carregamento
+        // Chama a função principal para carregar os dados da planilha
         carregarDados();
     </script>
 </body>
-
 </html>
