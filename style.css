@@ -377,7 +377,7 @@ tr:hover td {
 }
 
 /* --- RESPONSIVIDADE --- */
-@media (max-width: 600px) {
+@media (max-width: 700px) {
     /* Diminui o padding geral da seção para ganhar espaço nas bordas */
     .ranking-section {
         padding: 20px 2%;
