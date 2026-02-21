@@ -78,7 +78,6 @@ header h1 {
 
 .legenda-titulo {
     color: var(--dark);
-    /* Amarelo do seu site */
     font-weight: 800;
     font-size: 1rem;
     margin-bottom: 15px;
