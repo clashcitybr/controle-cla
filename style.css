@@ -377,6 +377,44 @@ tr:hover td {
 }
 
 /* --- RESPONSIVIDADE --- */
+@media (max-width: 600px) {
+    /* Diminui o padding geral da seção para ganhar espaço nas bordas */
+    .ranking-section {
+        padding: 20px 2%;
+    }
+
+    /* Reduz o tamanho da fonte e o espaço interno das células */
+    td, th {
+        padding: 8px 4px !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Diminui o tamanho da tag de CV para não empurrar a coluna */
+    .cv-tag {
+        padding: 2px 4px;
+        font-size: 0.65rem;
+    }
+
+    /* Reduz a largura da barra de progresso para economizar espaço horizontal */
+    .progresso-container {
+        width: 45px !important;
+        height: 5px;
+    }
+
+    /* Ajusta os nomes para não ocuparem muito espaço */
+    td strong {
+        font-size: 0.8rem;
+        display: block;
+        max-width: 80px; /* Limita a largura do nome */
+        overflow: hidden;
+        text-overflow: ellipsis; /* Adiciona "..." se o nome for muito longo */
+        white-space: nowrap;
+    }
+
+    /* OPCIONAL: Esconder colunas menos importantes no celular */
+    /* Se ainda estiver com scroll, descomente a linha abaixo para esconder o Status */
+    /* td:last-child, th:last-child { display: none; } */
+}
 @media (max-width: 768px) {
     .podium-container {
         flex-direction: column;
