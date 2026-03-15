@@ -216,17 +216,29 @@ function filtrarTudo() {
     });
 
     listaFiltrada.sort((a, b) => {
+        // Extrai apenas o número do CV (ex: "CV 15" vira 15)
+        const cvA = parseInt(a.cv.replace(/\D/g, '')) || 0;
+        const cvB = parseInt(b.cv.replace(/\D/g, '')) || 0;
+
         if (ordemAtual === 'qtd') {
             if (b.qtd !== a.qtd) return b.qtd - a.qtd;
             if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
-            return b.mediaP - a.mediaP;
+            if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+            return cvB - cvA; // Último desempate: CV maior ganha
         }
+        
         if (ordemAtual === 'mediaE') {
             if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
             if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
-            return b.qtd - a.qtd;
+            if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+            return cvB - cvA; // Último desempate: CV maior ganha
         }
-        return b.mediaP - a.mediaP;
+
+        // Caso seja por média de Porcentagem (mediaP)
+        if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+        if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+        if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+        return cvB - cvA;
     });
 
     renderizar(listaFiltrada);
@@ -237,7 +249,8 @@ function renderizar(dados) {
     const corpo = document.getElementById('corpoRanking');
     if (!corpo) return;
 
-    // Atualização do Pódio
+    // --- ATUALIZAÇÃO DO PÓDIO (CARDS SUPERIORES) ---
+    // Mesmo com empate na tabela, os cards pegam os 3 primeiros da lista ordenada
     for (let i = 1; i <= 3; i++) {
         const player = dados[i - 1];
         const nomeEl = document.getElementById(`nomeRank${i}`);
@@ -258,23 +271,44 @@ function renderizar(dados) {
         }
     }
 
-    // Atualização do MVP (Sempre o 1º da lista filtrada)
+    // Atualização do MVP
     const mvpNome = document.getElementById('mvpNome');
     if (mvpNome) mvpNome.innerText = dados[0] ? dados[0].nome : "---";
 
-    // Construção da Tabela
+    // --- CONSTRUÇÃO DA TABELA (COM LÓGICA DE EMPATE) ---
     let htmlFinal = "";
+    let rankAtual = 1;
+
     dados.forEach((p, i) => {
+        // Lógica de Empate Técnico
+        if (i > 0) {
+            const anterior = dados[i - 1];
+            
+            // Extraímos apenas os números dos CVs para comparar
+            const cvAtual = parseInt(p.cv.replace(/\D/g, '')) || 0;
+            const cvAnterior = parseInt(anterior.cv.replace(/\D/g, '')) || 0;
+
+            const ehIgual = p.mediaE === anterior.mediaE && 
+                            p.mediaP === anterior.mediaP && 
+                            p.qtd === anterior.qtd &&
+                            cvAtual === cvAnterior;
+
+            // Se não for idêntico ao anterior, o rank assume a posição real (i + 1)
+            if (!ehIgual) {
+                rankAtual = i + 1;
+            }
+        }
+
         const corBarra = p.mediaE >= 5.5 ? '#22c55e' : (p.mediaE >= 4.5 ? '#f9d246' : '#eb5c09');
         const statusClass = p.mediaE >= 5.5 ? 'titular-badge' : (p.mediaE >= 4.5 ? 'reserva-badge' : 'bagre-badge');
         const statusTxt = p.mediaE >= 5.5 ? 'ELITE' : (p.mediaE >= 4.5 ? 'MÉDIA' : 'BAGRE');
         
         const medalhas = ["🥇", "🥈", "🥉"];
-        const rankLabel = i < 3 ? medalhas[i] : (i + 1) + "º";
+        const rankLabel = rankAtual <= 3 ? medalhas[rankAtual - 1] : rankAtual + "º";
 
         htmlFinal += `
             <tr>
-                <td class="${i < 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
+                <td class="${rankAtual <= 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
                 <td><strong>${p.nome}</strong></td>
                 <td>
                     <div style="font-weight: bold; margin-bottom: 2px;">⭐ ${p.mediaE.toFixed(2)}</div>
