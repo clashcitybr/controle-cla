@@ -19,7 +19,7 @@
 
     <header>
         <h1 class="scroll-anim">Desempenho de Guerra</h1>
-        <p class="scroll-anim" style="color: var(--primary); font-weight: 600;">Seleção Oficial para a Liga de Clãs</p>
+        <p class="scroll-anim" style="color: var(--primary); font-weight: 600;">Desempenho Individual</p>
     </header>
 
     <section id="ranking" class="ranking-section">
@@ -174,9 +174,8 @@
         let dadosGlobais = [];
         let ordemAtual = 'mediaE'; // Padrão: Ordenar por Média de Estrelas
 
-        // ENDEREÇO DA SUA API LOCAL
-        const API_URL = "http://localhost:3333/membros";
-
+        // ENDEREÇO DA SUA API LOCAL REDIRECIONADO PARA A INTERNET
+        const API_URL = "https://cork-dice-gala.ngrok-free.dev/membros";
         // 2. CARREGAMENTO DOS DADOS DO MONGODB
         async function carregarDados() {
             try {
@@ -246,8 +245,7 @@
             const corpo = document.getElementById('corpoRanking');
             if (!corpo) return;
 
-            // REGRA ESTRATÉGICA: O Pódio sempre deve mostrar o Top 3 por melhor MÉDIA DE ESTRELAS
-            // Criamos uma cópia isolada ordenada por mediaE para o pódio não bagunçar ao mudar de aba
+            // Cópia isolada ordenada por mediaE para o pódio não bagunçar ao mudar de aba
             const dadosPodio = [...dados].sort((a, b) => b.mediaE - a.mediaE);
 
             // --- ATUALIZAÇÃO DO PÓDIO (TOP 3 POR EFICIÊNCIA DE ESTRELAS) ---
@@ -360,7 +358,8 @@
             document.getElementById('listaHerois').innerHTML = "";
 
             try {
-                const resposta = await fetch(`http://localhost:3333/jogador/${tag}`);
+                // ROTA DE DETALHES DO JOGADOR REDIRECIONADA PARA A INTERNET
+                const resposta = await fetch(`https://cork-dice-gala.ngrok-free.dev/jogador/${tag}`);
                 const data = await resposta.json();
 
                 document.getElementById('profNome').innerText = data.name || "Não encontrado";
