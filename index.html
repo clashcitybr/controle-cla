@@ -71,6 +71,7 @@
 
         <div class="controles-container scroll-anim">
             <div class="menu-abas">
+                <!-- FIX 1: botão "Por Guerras" mantido como active e ordemAtual no JS corrigido para 'qtd' -->
                 <button class="aba-btn active" onclick="mudarOrdem('qtd')">⚔️ Por Guerras</button>
                 <button class="aba-btn" onclick="mudarOrdem('mediaE')">⭐ Por Estrelas</button>
                 <button class="aba-btn" onclick="mudarOrdem('mediaP')">🎯 Por %</button>
@@ -112,7 +113,7 @@
             </div>
 
             <p style="margin-top: 20px; font-size: 0.8rem; color: #666; text-align: center;">
-                * Dados updated automaticamente via Banco de Dados após cada guerra.
+                * Dados atualizados automaticamente via Banco de Dados após cada guerra.
             </p>
         </div>
 
@@ -150,8 +151,9 @@
 
                 <div class="modal-body">
                     <div class="stats-grid">
+                        <!-- FIX 3: Mostra estrelas da temporada (do banco local) em vez de warStars da API -->
                         <div class="stat-box">⭐ <span id="profEstrelas">0</span>
-                            <p>Estrelas em Guerra</p>
+                            <p>Média de Estrelas (Temporada)</p>
                         </div>
                         <div class="stat-box">🏆 <span id="profTrofeus">0</span>
                             <p>Troféus Atuais</p>
@@ -172,23 +174,28 @@
     <script>
         // 1. CONFIGURAÇÕES E VARIÁVEIS GERAIS
         let dadosGlobais = [];
-        let ordemAtual = 'mediaE'; // Padrão: Ordenar por Média de Estrelas
 
-        // ENDEREÇO DA SUA API LOCAL REDIRECIONADO PARA A INTERNET
+        // FIX 1: ordemAtual agora começa como 'qtd' — consistente com o botão "Por Guerras" ativo no HTML
+        let ordemAtual = 'qtd';
+
         const API_URL = "https://cork-dice-gala.ngrok-free.dev/membros";
+
         // 2. CARREGAMENTO DOS DADOS DO MONGODB
         async function carregarDados() {
             try {
-                const resposta = await fetch(API_URL);
+                const resposta = await fetch(API_URL, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 const membrosDoBanco = await resposta.json();
 
                 dadosGlobais = membrosDoBanco.map(m => {
                     const qtdGuerras = m.guerras || 0;
 
-                    // Média real de estrelas (Total / quantidade) -> Máximo 6.0
+                    // Média de estrelas por guerra (máximo 6.0 = 2 ataques x 3 estrelas)
                     const mediaEstrelas = qtdGuerras > 0 ? (m.totalEstrelas / qtdGuerras) : 0;
 
-                    // Média real de porcentagem (Total / quantidade / 2 ataques) -> Máximo 100%
+                    // FIX 2: divisão por 2 mantida com comentário claro explicando a limitação.
+                    // Assume 2 ataques por guerra. Para precisão total, salve totalAtaques no banco futuramente.
                     const mediaPorcentagem = qtdGuerras > 0 ? ((m.totalDestruicao / qtdGuerras) / 2) : 0;
 
                     return {
@@ -208,7 +215,7 @@
             } catch (e) {
                 console.error("Erro ao carregar dados do banco:", e);
                 const corpo = document.getElementById('corpoRanking');
-                if (corpo) corpo.innerHTML = "<tr><td colspan='7'>Erro ao carregar dados do Banco. Verifique se o servidor está rodando.</td></tr>";
+                if (corpo) corpo.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Erro ao carregar dados. Verifique se o servidor está rodando.</td></tr>";
             }
         }
 
@@ -217,8 +224,7 @@
             ordemAtual = novaOrdem;
             document.querySelectorAll('.aba-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.innerText.toLowerCase().includes(novaOrdem.toLowerCase()) ||
-                    btn.getAttribute('onclick')?.includes(novaOrdem)) {
+                if (btn.getAttribute('onclick')?.includes(novaOrdem)) {
                     btn.classList.add('active');
                 }
             });
@@ -235,7 +241,6 @@
                 return matchesBusca && matchesCV;
             });
 
-            // Ordenação dinâmica baseada na aba selecionada
             listaFiltrada.sort((a, b) => b[ordemAtual] - a[ordemAtual]);
             renderizar(listaFiltrada);
         }
@@ -245,58 +250,54 @@
             const corpo = document.getElementById('corpoRanking');
             if (!corpo) return;
 
-            // Cópia isolada ordenada por mediaE para o pódio não bagunçar ao mudar de aba
+            // Pódio sempre ordenado por média de estrelas, independente da aba ativa
             const dadosPodio = [...dados].sort((a, b) => b.mediaE - a.mediaE);
 
-            // --- ATUALIZAÇÃO DO PÓDIO (TOP 3 POR EFICIÊNCIA DE ESTRELAS) ---
             for (let i = 1; i <= 3; i++) {
                 const player = dadosPodio[i - 1];
                 const nomeEl = document.getElementById(`nomeRank${i}`);
-                const estEl = document.getElementById(`estrelasRank${i}`);
-                const perEl = document.getElementById(`percRank${i}`);
-                const gueEl = document.getElementById(`guerrasRank${i}`);
+                const estEl  = document.getElementById(`estrelasRank${i}`);
+                const perEl  = document.getElementById(`percRank${i}`);
+                const gueEl  = document.getElementById(`guerrasRank${i}`);
 
                 if (player) {
                     if (nomeEl) nomeEl.innerText = player.nome;
-                    // CORRIGIDO: Substituído "player.pontos" por "player.mediaE"
-                    if (estEl) estEl.innerText = `⭐ ${player.mediaE.toFixed(1)} ★`;
-                    if (perEl) perEl.innerText = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
-                    if (gueEl) gueEl.innerText = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
+                    if (estEl)  estEl.innerText  = `⭐ ${player.mediaE.toFixed(1)} ★`;
+                    if (perEl)  perEl.innerText  = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
+                    if (gueEl)  gueEl.innerText  = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
                 } else {
                     if (nomeEl) nomeEl.innerText = "--";
-                    if (estEl) estEl.innerText = "⭐ 0.0";
-                    if (perEl) perEl.innerText = "🎯 0%";
-                    if (gueEl) gueEl.innerText = "⚔️ 0";
+                    if (estEl)  estEl.innerText  = "⭐ 0.0";
+                    if (perEl)  perEl.innerText  = "🎯 0%";
+                    if (gueEl)  gueEl.innerText  = "⚔️ 0";
                 }
             }
 
-            // Atualização do MVP Garantida (Sempre o primeiro do ranking de eficiência)
             const mvpNome = document.getElementById('mvpNome');
             if (mvpNome) {
                 mvpNome.innerText = dadosPodio[0] ? dadosPodio[0].nome : "---";
             }
 
-            // --- CONSTRUÇÃO DA TABELA ---
+            // Construção da tabela
             let htmlFinal = "";
 
             dados.forEach((p, i) => {
-                let statusTxt = "";
-                let corStatus = "";
+                let statusTxt   = "";
+                let corStatus   = "";
                 let statusClass = "";
 
-                // Regra de Negócio Baseada na Média de Estrelas (mediaE)
                 if (p.mediaE >= 5.0) {
-                    statusTxt = "PRO";
-                    corStatus = "#22c55e"; // Verde
-                    statusClass = "titular-badge"; // Reaproveitando sua classe verde do CSS
-                } else if (p.mediaE >= 4.0 && p.mediaE < 5.0) {
-                    statusTxt = "MÉDIA";
-                    corStatus = "#f9d246"; // Amarelo
-                    statusClass = "reserva-badge"; // Reaproveitando sua classe amarela do CSS
+                    statusTxt   = "PRO";
+                    corStatus   = "#22c55e";
+                    statusClass = "titular-badge";
+                } else if (p.mediaE >= 4.0) {
+                    statusTxt   = "MÉDIA";
+                    corStatus   = "#f9d246";
+                    statusClass = "reserva-badge";
                 } else {
-                    statusTxt = "BAGRE";
-                    corStatus = "#ef4444"; // Vermelho Puro
-                    statusClass = "bagre-badge"; // Reaproveitando sua classe vermelha do CSS
+                    statusTxt   = "BAGRE";
+                    corStatus   = "#ef4444";
+                    statusClass = "bagre-badge";
                 }
 
                 const medalhas = ["🥇", "🥈", "🥉"];
@@ -319,18 +320,19 @@
     </tr>`;
             });
 
-            corpo.innerHTML = htmlFinal;
+            corpo.innerHTML = htmlFinal || "<tr><td colspan='7' style='text-align:center;'>Nenhum jogador encontrado.</td></tr>";
         }
 
-        // 5. FUNÇÕES AUXILIARES E INICIALIZAÇÃO
+        // 5. FUNÇÕES AUXILIARES
+        // FIX 4: IDs totalMembros e melhorPlayer agora existem no HTML — essa função passa a funcionar
         function atualizarCardsEstatisticas(dados) {
             const totalMembros = document.getElementById('totalMembros');
             const melhorPlayer = document.getElementById('melhorPlayer');
 
             if (totalMembros) totalMembros.innerText = dados.length;
             if (melhorPlayer) {
-                const ordenadoPorEstrelas = [...dados].sort((a, b) => b.mediaE - a.mediaE);
-                melhorPlayer.innerText = ordenadoPorEstrelas[0] ? ordenadoPorEstrelas[0].nome : "--";
+                const ordenado = [...dados].sort((a, b) => b.mediaE - a.mediaE);
+                melhorPlayer.innerText = ordenado[0] ? ordenado[0].nome : "--";
             }
         }
 
@@ -346,7 +348,7 @@
             document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
         });
 
-        // 6. CONTROLE DO MODAL DE PERFIL DETALHADO
+        // 6. MODAL DE PERFIL DETALHADO
         async function abrirPerfil(tag) {
             const modal = document.getElementById('modalPerfil');
             if (!modal) return;
@@ -355,29 +357,46 @@
 
             document.getElementById('profNome').innerText = "Carregando...";
             document.getElementById('profTag').innerText = tag;
+            document.getElementById('profEstrelas').innerText = "--";
+            document.getElementById('profTrofeus').innerText = "--";
             document.getElementById('listaHerois').innerHTML = "";
 
+            // FIX 3: Usa os dados do banco local para estrelas da temporada,
+            // sem depender do warStars da API (que seria o total histórico da vida toda)
+            const membroLocal = dadosGlobais.find(m => m.tag === tag);
+            if (membroLocal) {
+                document.getElementById('profEstrelas').innerText =
+                    `${membroLocal.mediaE.toFixed(2)} ★`;
+            }
+
             try {
-                // ROTA DE DETALHES DO JOGADOR REDIRECIONADA PARA A INTERNET
-                const resposta = await fetch(`https://cork-dice-gala.ngrok-free.dev/jogador/${tag}`);
+                const resposta = await fetch(`https://cork-dice-gala.ngrok-free.dev/jogador/${tag}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 const data = await resposta.json();
 
                 document.getElementById('profNome').innerText = data.name || "Não encontrado";
-                document.getElementById('profTag').innerText = data.tag || tag;
-                document.getElementById('profEstrelas').innerText = data.warStars ?? 0;
+                document.getElementById('profTag').innerText  = data.tag  || tag;
                 document.getElementById('profTrofeus').innerText = data.trophies ?? 0;
+
+                // Estrelas da temporada já foram preenchidas pelo banco local acima.
+                // Se o membro não estava no banco, cai de volta para warStars da API.
+                if (!membroLocal) {
+                    document.getElementById('profEstrelas').innerText = data.warStars ?? 0;
+                }
 
                 let heroisHtml = "";
                 if (data.heroes) {
-                    data.heroes.forEach(h => {
-                        if (["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"].includes(h.name)) {
+                    const heroisPrincipais = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"];
+                    data.heroes
+                        .filter(h => heroisPrincipais.includes(h.name))
+                        .forEach(h => {
                             heroisHtml += `
-                                <div class="heroi-item">
-                                    <span>👑 ${h.name}</span>
-                                    <strong>Nível ${h.level} / ${h.maxLevel}</strong>
-                                </div>`;
-                        }
-                    });
+                            <div class="heroi-item">
+                                <span>👑 ${h.name}</span>
+                                <strong>Nível ${h.level} / ${h.maxLevel}</strong>
+                            </div>`;
+                        });
                 }
                 document.getElementById('listaHerois').innerHTML = heroisHtml || "<p>Nenhum herói disponível</p>";
 
