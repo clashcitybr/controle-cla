@@ -15,7 +15,6 @@
     <nav>
         <a href="https://clashcitybr.github.io">Home</a>
         <a href="https://clashcitybr.github.io/liga">Liga</a>
-        <a href="historico.html">Histórico</a>
     </nav>
 
     <header>
@@ -206,6 +205,20 @@
             </div>
         </div>
     </section>
+
+    <!-- BOTÃO ADMIN DE SINCRONIZAÇÃO -->
+    <div style="position:fixed; bottom:20px; right:20px; z-index:999;">
+        <button id="btnSincronizar" onclick="sincronizarManual()"
+            style="background:#11032c; border:2px solid var(--primary); color:var(--primary);
+                   font-family:Lexend; font-weight:700; font-size:0.85rem;
+                   padding:10px 16px; border-radius:50px; cursor:pointer;
+                   box-shadow:0 4px 15px rgba(0,0,0,0.4); transition:all 0.3s;">
+            🔄 Sincronizar
+        </button>
+        <div id="msgSincronizar" style="display:none; margin-top:8px; text-align:center;
+             background:#1a1a2e; border-radius:10px; padding:6px 12px;
+             font-size:0.8rem; font-weight:600;"></div>
+    </div>
 
     <footer>
         <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
@@ -496,6 +509,44 @@
         function fecharModal(event) {
             if (event.target.id === "modalPerfil") {
                 document.getElementById('modalPerfil').style.display = 'none';
+            }
+        }
+
+        // BOTÃO ADMIN — SINCRONIZAÇÃO MANUAL
+        async function sincronizarManual() {
+            const btn = document.getElementById('btnSincronizar');
+            const msg = document.getElementById('msgSincronizar');
+
+            btn.disabled = true;
+            btn.innerText = '⏳ Sincronizando...';
+            msg.style.display = 'none';
+
+            try {
+                const resposta = await fetch('https://cork-dice-gala.ngrok-free.dev/sincronizar-guerra', {
+                    method: 'POST',
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const data = await resposta.json();
+
+                if (resposta.ok) {
+                    msg.style.display = 'block';
+                    msg.style.color = '#22c55e';
+                    msg.innerText = '✅ ' + (data.mensagem || 'Sincronizado!');
+                    // Recarrega os dados do ranking
+                    await carregarDados();
+                } else {
+                    msg.style.display = 'block';
+                    msg.style.color = '#ef4444';
+                    msg.innerText = '❌ ' + (data.mensagem || data.erro || 'Erro ao sincronizar');
+                }
+            } catch (e) {
+                msg.style.display = 'block';
+                msg.style.color = '#ef4444';
+                msg.innerText = '❌ Servidor offline';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '🔄 Sincronizar';
+                setTimeout(() => { msg.style.display = 'none'; }, 4000);
             }
         }
     </script>
