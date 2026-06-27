@@ -355,8 +355,21 @@
         };
 
         const emojisHerois = {
-            "Barbarian King":"👑","Archer Queen":"🏹",
-            "Grand Warden":"📖","Royal Champion":"🗡️"
+            "Barbarian King":  "👑",
+            "Archer Queen":    "🏹",
+            "Grand Warden":    "📖",
+            "Royal Champion":  "🗡️",
+            "Minion Prince":   "😈",
+            "Dragon Duke":     "🐉"
+        };
+
+        const traducoesHerois = {
+            "Barbarian King":  "Rei Bárbaro",
+            "Archer Queen":    "Rainha Arqueira",
+            "Grand Warden":    "Grande Guardião",
+            "Royal Champion":  "Campeã Real",
+            "Minion Prince":   "Príncipe Lacaio",
+            "Dragon Duke":     "Duque Dragão"
         };
 
         const traducoesEquipamentos = {
@@ -367,7 +380,6 @@
             "Rage Vial":            "Frasco de Fúria",
             "Earthquake Boots":     "Botas Sísmicas",
             "Vampstache":           "Vampigode",
-            "Giant Gauntlet":       "Manopla Gigante",
             "Fireball":             "Bola de Fogo",
             "Rocket Spear":         "Lança Foguete",
             // Rainha Arqueira
@@ -389,27 +401,33 @@
             "Hog Rider Puppet":     "Fantoche Cavaleiro",
             "Lavaloon Puppet":      "Fantoche Lavaloon",
             // Campeã Real
-            "Royal Champion":       "Campeã Real",
-            "Seeking Shield":       "Escudo Buscador",
-            "Hog Rider Puppet":     "Fantoche Cavaleiro",
-            "Rocket Spear":         "Lança Foguete",
             "Henchmen Puppet":      "Fantoche Capanga",
             "Dark Crown":           "Coroa das Trevas",
             "Meteor Staff":         "Cajado Meteoro",
             "Frost Flake":          "Floco de Gelo",
-            "Spiky Ball":           "Bola Espinhosa",
             "Rocket Backpack":      "Mochila Foguete",
             "Monolith Arrow":       "Flecha Monólito",
-            "Barbarian Puppet":     "Fantoche Bárbaro",
-            "Rage Vial":            "Frasco de Fúria",
-            "Archer Puppet":        "Fantoche Arqueira",
-            "Invisibility Vial":    "Frasco de Invisibilidade",
-            "Giant Arrow":          "Flecha Gigante",
-            "Healer Puppet":        "Fantoche Curandeira",
+            // Príncipe Lacaio
+            "Noble Iron":           "Ferro Nobre",
+            "Metal Pants":          "Calças de Metal",
+            "Dark Orb":             "Orbe das Trevas",
+            "Electro Fangs":        "Presas Elétricas",
+            "Stun Blaster":         "Atordoador",
+            "Fire Heart":           "Coração de Fogo",
+            "Flame Blower":         "Soprador de Chamas",
+            // Duque Dragão
+            "Fury Gauntlet":        "Manopla da Fúria",
+            "Dragon Claws":         "Garras do Dragão",
+            "Wind Bow":             "Arco do Vento",
+            "Smoldering Horn":      "Chifre Ardente",
         };
 
         function traduzirEquipamento(nome) {
             return traducoesEquipamentos[nome] || nome;
+        }
+
+        function traduzirHeroi(nome) {
+            return traducoesHerois[nome] || nome;
         }
 
         let grafico = null;
@@ -490,22 +508,24 @@
         }
 
         function renderHerois(herois) {
-            const principais = ["Barbarian King","Archer Queen","Grand Warden","Royal Champion"];
+            const principais = ["Barbarian King","Archer Queen","Grand Warden","Royal Champion","Minion Prince","Dragon Duke"];
             const container  = document.getElementById('heroisList');
 
             if (!herois) { container.innerHTML = "<p style='opacity:0.6;'>Nenhum herói disponível</p>"; return; }
 
             let html = "";
             herois.filter(h => principais.includes(h.name)).forEach(h => {
-                const pct = Math.round((h.level / h.maxLevel) * 100);
-                const cor = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
+                const pct    = Math.round((h.level / h.maxLevel) * 100);
+                const cor    = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
+                const emoji  = emojisHerois[h.name] || '👑';
+                const nomeP  = traduzirHeroi(h.name);
                 html += `
                 <div class="heroi-card">
                     <div class="heroi-card-header">
-                        <span style="font-weight:700; font-size:1rem;">${emojisHerois[h.name] || '👑'} ${h.name}</span>
+                        <span style="font-weight:700; font-size:1rem;">${emoji} ${nomeP}</span>
                         <strong style="color:${cor};">Nível ${h.level} / ${h.maxLevel} (${pct}%)</strong>
                     </div>
-                    <div style="background:#333;border-radius:10px;height:8px;overflow:hidden;">
+                    <div style="background:#eee;border-radius:10px;height:8px;overflow:hidden;">
                         <div style="width:${pct}%;height:100%;background:${cor};border-radius:10px;transition:width 0.8s;"></div>
                     </div>
                 </div>`;
