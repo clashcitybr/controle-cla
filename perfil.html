@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
+    <title>Clash City BR - Perfil do Jogador</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        .perfil-header {
+            background: linear-gradient(135deg, #11032c, #1a0a3d);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 900px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .perfil-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #000;
+            flex-shrink: 0;
+        }
+        .perfil-info h1 {
+            margin: 0 0 6px 0;
+            font-size: 1.8rem;
+        }
+        .perfil-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .perfil-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .perfil-section {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .perfil-section h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #1a1a2e;
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card .valor {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .stat-card .label {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        .heroi-card {
+            background: #1a1a2e;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 10px;
+        }
+        .heroi-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .equip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+        }
+        .equip-card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 12px;
+        }
+        .historico-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .historico-table th {
+            background: #1a1a2e;
+            padding: 10px;
+            text-align: left;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .historico-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+        }
+        .historico-table tr:hover td {
+            background: rgba(255,255,255,0.03);
+        }
+        .chart-container {
+            background: #1a1a2e;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .btn-compartilhar {
+            background: var(--primary);
+            color: #000;
+            font-weight: 800;
+            font-family: Lexend;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+        .btn-compartilhar:hover { opacity: 0.8; }
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="https://clashcitybr.github.io">Home</a>
+        <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="https://clashcitybr.github.io/controle-cla/">Desempenho</a>
+        <a href="https://clashcitybr.github.io/controle-cla/historico">Histórico</a>
+    </nav>
+
+    <div id="loadingState" class="loading-state">
+        <p style="font-size:2rem;">⏳</p>
+        <p>Carregando perfil...</p>
+    </div>
+
+    <div id="conteudoPerfil" style="display:none;">
+
+        <!-- CABEÇALHO DO PERFIL -->
+        <div class="perfil-header">
+            <div class="perfil-avatar" id="avatarInicial">?</div>
+            <div class="perfil-info" style="flex:1;">
+                <h1 id="perfilNome">--</h1>
+                <div class="perfil-badges">
+                    <span class="perfil-badge" id="perfilTag">#--</span>
+                    <span class="perfil-badge" id="perfilCV">CV --</span>
+                    <span class="perfil-badge" id="perfilNivel">Nível --</span>
+                    <span class="perfil-badge" id="perfilLiga">--</span>
+                </div>
+            </div>
+            <button class="btn-compartilhar" onclick="compartilhar()">📤 Compartilhar</button>
+        </div>
+
+        <!-- STATS DA TEMPORADA ATUAL -->
+        <div class="perfil-section">
+            <h2>📊 Temporada Atual</h2>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="valor" id="statMediaEstrelas">--</div>
+                    <div class="label">⭐ Média de Estrelas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="valor" id="statMediaPct">--</div>
+                    <div class="label">🎯 Média de Destruição</div>
+                </div>
+                <div class="stat-card">
+                    <div class="valor" id="statGuerras">--</div>
+                    <div class="label">⚔️ Guerras</div>
+                </div>
+                <div class="stat-card">
+                    <div class="valor" id="statTrofeus">--</div>
+                    <div class="label">🏆 Troféus</div>
+                </div>
+                <div class="stat-card">
+                    <div class="valor" id="statRecorde">--</div>
+                    <div class="label">🎖️ Recorde</div>
+                </div>
+                <div class="stat-card">
+                    <div class="valor" id="statDoacoes">--</div>
+                    <div class="label">📦 Doações</div>
+                </div>
+                <div class="stat-card">
+                    <div class="valor" id="statWarStars">--</div>
+                    <div class="label">🌟 Estrelas Históricas</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HERÓIS -->
+        <div class="perfil-section">
+            <h2>👑 Heróis</h2>
+            <div id="heroisList"></div>
+        </div>
+
+        <!-- EQUIPAMENTOS -->
+        <div class="perfil-section">
+            <h2>🛡️ Equipamentos Ativos</h2>
+            <div class="equip-grid" id="equipList"></div>
+        </div>
+
+        <!-- GRÁFICO DE EVOLUÇÃO -->
+        <div class="perfil-section" id="secaoGrafico" style="display:none;">
+            <h2>📈 Evolução por Temporada</h2>
+            <div class="chart-container">
+                <canvas id="graficoEvolucao" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- HISTÓRICO DE TEMPORADAS -->
+        <div class="perfil-section" id="secaoHistorico" style="display:none;">
+            <h2>📅 Histórico de Temporadas</h2>
+            <div style="overflow-x:auto; background:#1a1a2e; border-radius:14px; padding:10px;">
+                <table class="historico-table">
+                    <thead>
+                        <tr>
+                            <th>Temporada</th>
+                            <th>Posição</th>
+                            <th>Média ⭐</th>
+                            <th>Média %</th>
+                            <th>Guerras</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicoBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="erroState" style="display:none;" class="loading-state">
+        <p style="font-size:2rem;">😕</p>
+        <p>Jogador não encontrado.</p>
+        <a href="https://clashcitybr.github.io/controle-cla/" style="color:var(--primary);">← Voltar ao ranking</a>
+    </div>
+
+    <footer style="margin-top:40px;">
+        <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
+    </footer>
+
+    <script>
+        const BACKEND_URL = "https://cork-dice-gala.ngrok-free.dev";
+        const FETCH_OPTS  = { headers: { 'ngrok-skip-browser-warning': 'true' } };
+
+        const mesesNomes = {
+            '01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril',
+            '05':'Maio','06':'Junho','07':'Julho','08':'Agosto',
+            '09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'
+        };
+
+        const emojisHerois = {
+            "Barbarian King":"👑","Archer Queen":"🏹",
+            "Grand Warden":"📖","Royal Champion":"🗡️"
+        };
+
+        let grafico = null;
+
+        function getTag() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('tag');
+        }
+
+        async function inicializar() {
+            const tag = getTag();
+            if (!tag) {
+                mostrarErro();
+                return;
+            }
+
+            document.title = `Clash City BR - Perfil`;
+
+            try {
+                // Busca dados em paralelo
+                const [resJogador, resMembros, resHistorico] = await Promise.all([
+                    fetch(`${BACKEND_URL}/jogador/${encodeURIComponent(tag)}`, FETCH_OPTS),
+                    fetch(`${BACKEND_URL}/membros`, FETCH_OPTS),
+                    fetch(`${BACKEND_URL}/historico`, FETCH_OPTS)
+                ]);
+
+                const jogador   = await resJogador.json();
+                const membros   = await resMembros.json();
+                const historico = await resHistorico.json();
+
+                if (!jogador.name) { mostrarErro(); return; }
+
+                document.title = `Clash City BR - ${jogador.name}`;
+
+                // Dados do banco local
+                const membroLocal = membros.find(m => m.tag === tag);
+
+                renderCabecalho(jogador);
+                renderStats(jogador, membroLocal);
+                renderHerois(jogador.heroes);
+                renderEquipamentos(jogador.heroEquipment);
+                renderHistorico(tag, historico);
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('conteudoPerfil').style.display = 'block';
+
+            } catch (e) {
+                console.error(e);
+                mostrarErro();
+            }
+        }
+
+        function renderCabecalho(j) {
+            const inicial = j.name?.charAt(0).toUpperCase() || '?';
+            document.getElementById('avatarInicial').innerText = inicial;
+            document.getElementById('perfilNome').innerText  = j.name;
+            document.getElementById('perfilTag').innerText   = j.tag;
+            document.getElementById('perfilCV').innerText    = `CV ${j.townHallLevel}`;
+            document.getElementById('perfilNivel').innerText = `Nível ${j.expLevel}`;
+            document.getElementById('perfilLiga').innerText  = j.league?.name || 'Sem Liga';
+        }
+
+        function renderStats(j, membroLocal) {
+            const mediaE = membroLocal && membroLocal.guerras > 0
+                ? (membroLocal.totalEstrelas / membroLocal.guerras).toFixed(2)
+                : '--';
+            const mediaP = membroLocal && membroLocal.guerras > 0
+                ? ((membroLocal.totalDestruicao / membroLocal.guerras) / 2).toFixed(1) + '%'
+                : '--';
+
+            document.getElementById('statMediaEstrelas').innerText = mediaE !== '--' ? `${mediaE} ★` : '--';
+            document.getElementById('statMediaPct').innerText      = mediaP;
+            document.getElementById('statGuerras').innerText       = membroLocal?.guerras ?? '--';
+            document.getElementById('statTrofeus').innerText       = j.trophies?.toLocaleString('pt-BR') ?? '--';
+            document.getElementById('statRecorde').innerText       = j.bestTrophies?.toLocaleString('pt-BR') ?? '--';
+            document.getElementById('statDoacoes').innerText       = j.donations?.toLocaleString('pt-BR') ?? '--';
+            document.getElementById('statWarStars').innerText      = j.warStars?.toLocaleString('pt-BR') ?? '--';
+        }
+
+        function renderHerois(herois) {
+            const principais = ["Barbarian King","Archer Queen","Grand Warden","Royal Champion"];
+            const container  = document.getElementById('heroisList');
+
+            if (!herois) { container.innerHTML = "<p style='opacity:0.6;'>Nenhum herói disponível</p>"; return; }
+
+            let html = "";
+            herois.filter(h => principais.includes(h.name)).forEach(h => {
+                const pct = Math.round((h.level / h.maxLevel) * 100);
+                const cor = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
+                html += `
+                <div class="heroi-card">
+                    <div class="heroi-card-header">
+                        <span style="font-weight:700; font-size:1rem;">${emojisHerois[h.name] || '👑'} ${h.name}</span>
+                        <strong style="color:${cor};">Nível ${h.level} / ${h.maxLevel} (${pct}%)</strong>
+                    </div>
+                    <div style="background:#333;border-radius:10px;height:8px;overflow:hidden;">
+                        <div style="width:${pct}%;height:100%;background:${cor};border-radius:10px;transition:width 0.8s;"></div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html || "<p style='opacity:0.6;'>Nenhum herói disponível</p>";
+        }
+
+        function renderEquipamentos(equipamentos) {
+            const container = document.getElementById('equipList');
+
+            if (!equipamentos) { container.innerHTML = "<p style='opacity:0.6;'>Nenhum equipamento</p>"; return; }
+
+            let html = "";
+            equipamentos.filter(e => e.village === 'home').forEach(e => {
+                const pct      = Math.round((e.level / e.maxLevel) * 100);
+                const raridade = e.maxLevel >= 27 ? '#f9d246' : e.maxLevel >= 18 ? '#a855f7' : '#64748b';
+                html += `
+                <div class="equip-card" style="border:1px solid ${raridade};">
+                    <div style="color:${raridade};font-weight:700;margin-bottom:4px;">${e.name}</div>
+                    <div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Nv ${e.level} / ${e.maxLevel}</div>
+                    <div style="background:#333;border-radius:6px;height:5px;overflow:hidden;">
+                        <div style="width:${pct}%;height:100%;background:${raridade};border-radius:6px;"></div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html || "<p style='opacity:0.6;'>Nenhum equipamento disponível</p>";
+        }
+
+        function renderHistorico(tag, temporadas) {
+            if (!temporadas || temporadas.length === 0) return;
+
+            // Filtra temporadas onde o jogador aparece
+            const participacoes = temporadas
+                .map(t => {
+                    const entrada = t.snapshot?.find(p => p.tag === tag);
+                    if (!entrada) return null;
+                    return { mes: t.mes, ...entrada };
+                })
+                .filter(Boolean)
+                .sort((a, b) => b.mes.localeCompare(a.mes));
+
+            if (participacoes.length === 0) return;
+
+            // Gráfico
+            const labels  = participacoes.map(p => {
+                const [ano, mes] = p.mes.split('-');
+                return `${mesesNomes[mes]} ${ano}`;
+            }).reverse();
+            const valores = participacoes.map(p => p.mediaEstrelas).reverse();
+
+            document.getElementById('secaoGrafico').style.display = 'block';
+
+            if (grafico) grafico.destroy();
+            grafico = new Chart(document.getElementById('graficoEvolucao'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Média de Estrelas',
+                        data: valores,
+                        borderColor: '#f9d246',
+                        backgroundColor: 'rgba(249,210,70,0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#f9d246',
+                        pointRadius: 5,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#fff', font: { family: 'Lexend' } } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#aaa', font: { family: 'Lexend' } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: {
+                            min: 0, max: 6,
+                            ticks: { color: '#aaa', font: { family: 'Lexend' } },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+
+            // Tabela de histórico
+            const medalhas = ["🥇","🥈","🥉"];
+            let html = "";
+            participacoes.forEach(p => {
+                const [ano, mes] = p.mes.split('-');
+                const nomeTemporada = `${mesesNomes[mes]} ${ano}`;
+                const rankLabel = p.posicao <= 3 ? medalhas[p.posicao - 1] : `${p.posicao}º`;
+
+                let statusTxt, corStatus;
+                if (p.mediaEstrelas >= 5.0)      { statusTxt = "PRO";   corStatus = "#22c55e"; }
+                else if (p.mediaEstrelas >= 4.0)  { statusTxt = "MÉDIA"; corStatus = "#f9d246"; }
+                else                              { statusTxt = "BAGRE"; corStatus = "#ef4444"; }
+
+                html += `
+                <tr>
+                    <td>${nomeTemporada}</td>
+                    <td>${rankLabel}</td>
+                    <td>⭐ ${p.mediaEstrelas.toFixed(2)}</td>
+                    <td>${p.mediaPorcentagem.toFixed(1)}%</td>
+                    <td>${p.guerras}</td>
+                    <td><span style="background:${corStatus};color:#000;font-weight:800;padding:3px 10px;border-radius:20px;font-size:0.75rem;">${statusTxt}</span></td>
+                </tr>`;
+            });
+
+            document.getElementById('historicoBody').innerHTML = html;
+            document.getElementById('secaoHistorico').style.display = 'block';
+        }
+
+        function mostrarErro() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('erroState').style.display = 'block';
+        }
+
+        function compartilhar() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: 'Perfil Clash City BR', url });
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copiado para a área de transferência!');
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', inicializar);
+    </script>
+</body>
+
+</html>

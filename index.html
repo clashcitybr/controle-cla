@@ -15,6 +15,7 @@
     <nav>
         <a href="https://clashcitybr.github.io">Home</a>
         <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="historico.html">Historico</a>
     </nav>
 
     <header>
@@ -140,7 +141,7 @@
         </div>
 
         <div id="modalPerfil" class="modal-overlay" onclick="fecharModal(event)">
-            <div class="modal-content">
+            <div class="modal-content" style="max-width:420px;">
                 <span class="modal-close"
                     onclick="document.getElementById('modalPerfil').style.display='none'">&times;</span>
 
@@ -157,8 +158,8 @@
 
                 <div class="modal-body">
 
-                    <!-- STATS PRINCIPAIS -->
-                    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:20px;">
+                    <!-- STATS RESUMIDOS -->
+                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
                         <div class="stat-box">
                             ⭐ <span id="profEstrelas">--</span>
                             <p>Média Temporada</p>
@@ -168,38 +169,28 @@
                             <p>Troféus Atuais</p>
                         </div>
                         <div class="stat-box">
-                            🎯 <span id="profRecordeTrofeus">--</span>
-                            <p>Recorde de Troféus</p>
+                            ⚔️ <span id="profGuerras">--</span>
+                            <p>Guerras</p>
                         </div>
                         <div class="stat-box">
-                            ⚔️ <span id="profGuerras">--</span>
-                            <p>Guerras (Temporada)</p>
-                        </div>
-                    </div>
-
-                    <!-- DOAÇÕES -->
-                    <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
-                        <div class="stat-box" style="flex:1; min-width:120px;">
-                            📦 <span id="profDoacoes">--</span>
-                            <p>Doações</p>
-                        </div>
-                        <div class="stat-box" style="flex:1; min-width:120px;">
-                            📩 <span id="profDoacoesRecebidas">--</span>
-                            <p>Recebidas</p>
-                        </div>
-                        <div class="stat-box" style="flex:1; min-width:120px;">
                             🌟 <span id="profWarStars">--</span>
                             <p>Estrelas Históricas</p>
                         </div>
                     </div>
 
-                    <!-- HERÓIS -->
+                    <!-- HERÓIS RESUMIDOS -->
                     <h3 style="margin-bottom:10px;">👑 Heróis</h3>
                     <div id="listaHerois" class="herois-container" style="margin-bottom:20px;"></div>
 
-                    <!-- EQUIPAMENTOS -->
-                    <h3 style="margin-bottom:10px;">🛡️ Equipamentos Ativos</h3>
-                    <div id="listaEquipamentos" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                    <!-- BOTÃO PERFIL COMPLETO -->
+                    <a id="linkPerfilCompleto" href="#"
+                        style="display:block; text-align:center; background:var(--primary); color:#000;
+                               font-weight:800; font-size:1rem; padding:12px; border-radius:12px;
+                               text-decoration:none; transition:opacity 0.2s;"
+                        onmouseover="this.style.opacity='0.8'"
+                        onmouseout="this.style.opacity='1'">
+                        Ver Perfil Completo →
+                    </a>
 
                 </div>
             </div>
@@ -401,7 +392,7 @@
             document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
         });
 
-        // 6. MODAL DE PERFIL DETALHADO
+        // 6. MODAL DE PERFIL RESUMIDO
         async function abrirPerfil(tag) {
             const modal = document.getElementById('modalPerfil');
             if (!modal) return;
@@ -415,15 +406,16 @@
             document.getElementById('profNivel').innerText = "Nível --";
             document.getElementById('profEstrelas').innerText = "--";
             document.getElementById('profTrofeus').innerText = "--";
-            document.getElementById('profRecordeTrofeus').innerText = "--";
             document.getElementById('profGuerras').innerText = "--";
-            document.getElementById('profDoacoes').innerText = "--";
-            document.getElementById('profDoacoesRecebidas').innerText = "--";
             document.getElementById('profWarStars').innerText = "--";
             document.getElementById('listaHerois').innerHTML = "";
-            document.getElementById('listaEquipamentos').innerHTML = "";
 
-            // Dados do banco local (estrelas e guerras da temporada)
+            // Link pro perfil completo
+            const tagEncoded = encodeURIComponent(tag);
+            document.getElementById('linkPerfilCompleto').href =
+                `https://clashcitybr.github.io/controle-cla/perfil?tag=${tagEncoded}`;
+
+            // Dados do banco local
             const membroLocal = dadosGlobais.find(m => m.tag === tag);
             if (membroLocal) {
                 document.getElementById('profEstrelas').innerText = `${membroLocal.mediaE.toFixed(2)} ★`;
@@ -437,30 +429,23 @@
                 });
                 const data = await resposta.json();
 
-                // Dados básicos
-                document.getElementById('profNome').innerText      = data.name || "Não encontrado";
-                document.getElementById('profTag').innerText       = data.tag  || tag;
-                document.getElementById('profCV').innerText        = `CV ${data.townHallLevel ?? '--'}`;
-                document.getElementById('profNivel').innerText     = `Nível ${data.expLevel ?? '--'}`;
-                document.getElementById('profTrofeus').innerText   = data.trophies?.toLocaleString('pt-BR') ?? '--';
-                document.getElementById('profRecordeTrofeus').innerText = data.bestTrophies?.toLocaleString('pt-BR') ?? '--';
-                document.getElementById('profDoacoes').innerText   = data.donations?.toLocaleString('pt-BR') ?? '--';
-                document.getElementById('profDoacoesRecebidas').innerText = data.donationsReceived?.toLocaleString('pt-BR') ?? '--';
-                document.getElementById('profWarStars').innerText  = data.warStars?.toLocaleString('pt-BR') ?? '--';
+                document.getElementById('profNome').innerText  = data.name || "Não encontrado";
+                document.getElementById('profTag').innerText   = data.tag  || tag;
+                document.getElementById('profCV').innerText    = `CV ${data.townHallLevel ?? '--'}`;
+                document.getElementById('profNivel').innerText = `Nível ${data.expLevel ?? '--'}`;
+                document.getElementById('profTrofeus').innerText = data.trophies?.toLocaleString('pt-BR') ?? '--';
+                document.getElementById('profWarStars').innerText = data.warStars?.toLocaleString('pt-BR') ?? '--';
 
-                // Estrelas da temporada — banco local tem prioridade
                 if (!membroLocal) {
                     document.getElementById('profEstrelas').innerText = data.warStars ?? '--';
-                    document.getElementById('profGuerras').innerText  = '--';
+                    document.getElementById('profGuerras').innerText = '--';
                 }
 
-                // Heróis
+                // Heróis resumidos
                 const heroisPrincipais = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"];
                 const emojisHerois = {
-                    "Barbarian King":  "👑",
-                    "Archer Queen":    "🏹",
-                    "Grand Warden":    "📖",
-                    "Royal Champion":  "🗡️"
+                    "Barbarian King": "👑", "Archer Queen": "🏹",
+                    "Grand Warden": "📖", "Royal Champion": "🗡️"
                 };
 
                 let heroisHtml = "";
@@ -471,34 +456,18 @@
                             const pct = Math.round((h.level / h.maxLevel) * 100);
                             const cor = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
                             heroisHtml += `
-                            <div class="heroi-item" style="margin-bottom:10px;">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                                    <span>${emojisHerois[h.name] || '👑'} ${h.name}</span>
-                                    <strong style="color:${cor};">Nível ${h.level} / ${h.maxLevel}</strong>
+                            <div class="heroi-item" style="margin-bottom:8px;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                                    <span>${emojisHerois[h.name]} ${h.name}</span>
+                                    <strong style="color:${cor};">Nv ${h.level}/${h.maxLevel}</strong>
                                 </div>
-                                <div style="background:#333;border-radius:10px;height:6px;overflow:hidden;">
-                                    <div style="width:${pct}%;height:100%;background:${cor};border-radius:10px;transition:width 0.5s;"></div>
+                                <div style="background:#333;border-radius:10px;height:5px;overflow:hidden;">
+                                    <div style="width:${pct}%;height:100%;background:${cor};border-radius:10px;"></div>
                                 </div>
                             </div>`;
                         });
                 }
-                document.getElementById('listaHerois').innerHTML = heroisHtml || "<p style='opacity:0.6;'>Nenhum herói disponível</p>";
-
-                // Equipamentos ativos
-                let equipHtml = "";
-                if (data.heroEquipment) {
-                    data.heroEquipment
-                        .filter(e => e.village === 'home')
-                        .forEach(e => {
-                            const raridade = e.maxLevel >= 27 ? '#f9d246' : e.maxLevel >= 18 ? '#a855f7' : '#64748b';
-                            equipHtml += `
-                            <div style="background:#1a1a2e;border:1px solid ${raridade};border-radius:8px;padding:6px 10px;font-size:0.8rem;">
-                                <div style="color:${raridade};font-weight:700;">${e.name}</div>
-                                <div style="opacity:0.7;">Nv ${e.level}/${e.maxLevel}</div>
-                            </div>`;
-                        });
-                }
-                document.getElementById('listaEquipamentos').innerHTML = equipHtml || "<p style='opacity:0.6;'>Nenhum equipamento disponível</p>";
+                document.getElementById('listaHerois').innerHTML = heroisHtml || "<p style='opacity:0.6;'>Nenhum herói</p>";
 
             } catch (e) {
                 document.getElementById('profNome').innerText = "Erro ao carregar perfil";
