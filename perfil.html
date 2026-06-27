@@ -59,6 +59,7 @@
             background: rgba(255,255,255,0.15);
             color: #fff;
             padding: 4px 12px;
+            border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
             backdrop-filter: blur(4px);
@@ -98,6 +99,7 @@
         }
         .stat-card {
             background: #fff;
+            border-radius: 16px;
             padding: 18px 12px;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
@@ -204,7 +206,6 @@
         /* WRAPPER DAS SEÇÕES */
         .secoes-wrapper {
             background: #f0f2f5;
-            border-radius: 30px 30px 0 0;
             margin-top: -20px;
             position: relative;
             z-index: 1;
@@ -358,6 +359,59 @@
             "Grand Warden":"📖","Royal Champion":"🗡️"
         };
 
+        const traducoesEquipamentos = {
+            // Rei Bárbaro
+            "Giant Gauntlet":       "Manopla Gigante",
+            "Spiky Ball":           "Bola Espinhosa",
+            "Barbarian Puppet":     "Fantoche Bárbaro",
+            "Rage Vial":            "Frasco de Fúria",
+            "Earthquake Boots":     "Botas Sísmicas",
+            "Vampstache":           "Vampigode",
+            "Giant Gauntlet":       "Manopla Gigante",
+            "Fireball":             "Bola de Fogo",
+            "Rocket Spear":         "Lança Foguete",
+            // Rainha Arqueira
+            "Archer Puppet":        "Fantoche Arqueira",
+            "Invisibility Vial":    "Frasco de Invisibilidade",
+            "Giant Arrow":          "Flecha Gigante",
+            "Healer Puppet":        "Fantoche Curandeira",
+            "Frozen Arrow":         "Flecha Congelante",
+            "Magic Mirror":         "Espelho Mágico",
+            "Electro Boots":        "Botas Elétricas",
+            "Seeking Shield":       "Escudo Buscador",
+            // Grande Guardião
+            "Eternal Tome":         "Tomo Eterno",
+            "Life Gem":             "Gema da Vida",
+            "Rage Gem":             "Gema de Fúria",
+            "Healing Tome":         "Tomo de Cura",
+            "Haste Vial":           "Frasco de Pressa",
+            "Royal Gem":            "Gema Real",
+            "Hog Rider Puppet":     "Fantoche Cavaleiro",
+            "Lavaloon Puppet":      "Fantoche Lavaloon",
+            // Campeã Real
+            "Royal Champion":       "Campeã Real",
+            "Seeking Shield":       "Escudo Buscador",
+            "Hog Rider Puppet":     "Fantoche Cavaleiro",
+            "Rocket Spear":         "Lança Foguete",
+            "Henchmen Puppet":      "Fantoche Capanga",
+            "Dark Crown":           "Coroa das Trevas",
+            "Meteor Staff":         "Cajado Meteoro",
+            "Frost Flake":          "Floco de Gelo",
+            "Spiky Ball":           "Bola Espinhosa",
+            "Rocket Backpack":      "Mochila Foguete",
+            "Monolith Arrow":       "Flecha Monólito",
+            "Barbarian Puppet":     "Fantoche Bárbaro",
+            "Rage Vial":            "Frasco de Fúria",
+            "Archer Puppet":        "Fantoche Arqueira",
+            "Invisibility Vial":    "Frasco de Invisibilidade",
+            "Giant Arrow":          "Flecha Gigante",
+            "Healer Puppet":        "Fantoche Curandeira",
+        };
+
+        function traduzirEquipamento(nome) {
+            return traducoesEquipamentos[nome] || nome;
+        }
+
         let grafico = null;
 
         function getTag() {
@@ -469,9 +523,10 @@
             equipamentos.filter(e => e.village === 'home').forEach(e => {
                 const pct      = Math.round((e.level / e.maxLevel) * 100);
                 const raridade = e.maxLevel >= 27 ? '#f9d246' : e.maxLevel >= 18 ? '#a855f7' : '#64748b';
+                const nomePT   = traduzirEquipamento(e.name);
                 html += `
                 <div class="equip-card" style="border:1px solid ${raridade};">
-                    <div style="color:${raridade};font-weight:700;margin-bottom:4px;">${e.name}</div>
+                    <div style="color:${raridade};font-weight:700;margin-bottom:4px;">${nomePT}</div>
                     <div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Nv ${e.level} / ${e.maxLevel}</div>
                     <div style="background:#333;border-radius:6px;height:5px;overflow:hidden;">
                         <div style="width:${pct}%;height:100%;background:${raridade};border-radius:6px;"></div>
