@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
+    <title>Clash City BR - Histórico de Temporadas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <nav>
+        <a href="https://clashcitybr.github.io">Home</a>
+        <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="https://clashcitybr.github.io/controle-cla/">Desempenho</a>
+    </nav>
+
+    <header>
+        <h1 class="scroll-anim">📅 Histórico de Temporadas</h1>
+        <p class="scroll-anim" style="color: var(--primary); font-weight: 600;">Ranking mensal arquivado</p>
+    </header>
+
+    <section class="ranking-section">
+
+        <!-- SELETOR DE TEMPORADA -->
+        <div class="controles-container scroll-anim" style="justify-content:center;">
+            <select id="seletorTemporada" onchange="carregarTemporada(this.value)"
+                style="padding:10px 20px; border-radius:10px; border:none; background:#1a1a2e; color:#fff; font-family:Lexend; font-size:1rem; cursor:pointer;">
+                <option value="">Selecione uma temporada...</option>
+            </select>
+        </div>
+
+        <!-- MVP DA TEMPORADA -->
+        <div id="mvpContainer" class="mvp-container scroll-anim" style="display:none;">
+            <div class="mvp-card">
+                <span class="mvp-badge">🏆 MVP DA TEMPORADA</span>
+                <h2 id="mvpNome">--</h2>
+                <p id="mvpStats" style="color:var(--primary); font-weight:600;">--</p>
+            </div>
+        </div>
+
+        <!-- TABELA DE RANKING -->
+        <div id="rankingContainer" class="ranking-card scroll-anim" style="display:none;">
+            <h2 class="title" id="tituloTemporada">📊 RANKING</h2>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Jogador</th>
+                            <th>Média ⭐</th>
+                            <th>Média %</th>
+                            <th>CV</th>
+                            <th>Guerras</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoHistorico">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ESTADO VAZIO -->
+        <div id="estadoVazio" class="ranking-card scroll-anim" style="text-align:center; padding:60px 20px;">
+            <p style="font-size:3rem;">📭</p>
+            <p style="opacity:0.6;">Nenhuma temporada arquivada ainda.<br>O histórico aparece automaticamente no início de cada mês.</p>
+        </div>
+
+    </section>
+
+    <footer>
+        <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
+    </footer>
+
+    <script>
+        const BACKEND_URL = "https://cork-dice-gala.ngrok-free.dev";
+        const FETCH_OPTS = { headers: { 'ngrok-skip-browser-warning': 'true' } };
+
+        const mesesNomes = {
+            '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março',
+            '04': 'Abril',   '05': 'Maio',      '06': 'Junho',
+            '07': 'Julho',   '08': 'Agosto',    '09': 'Setembro',
+            '10': 'Outubro', '11': 'Novembro',  '12': 'Dezembro'
+        };
+
+        async function inicializar() {
+            try {
+                const resposta = await fetch(`${BACKEND_URL}/historico`, FETCH_OPTS);
+                const temporadas = await resposta.json();
+
+                const seletor = document.getElementById('seletorTemporada');
+
+                if (!temporadas || temporadas.length === 0) {
+                    document.getElementById('estadoVazio').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('estadoVazio').style.display = 'none';
+
+                temporadas.forEach(t => {
+                    const [ano, mes] = t.mes.split('-');
+                    const option = document.createElement('option');
+                    option.value = t.mes;
+                    option.innerText = `${mesesNomes[mes]} ${ano}`;
+                    seletor.appendChild(option);
+                });
+
+                // Carrega a mais recente automaticamente
+                seletor.value = temporadas[0].mes;
+                carregarTemporada(temporadas[0].mes);
+
+            } catch (e) {
+                console.error("Erro ao carregar histórico:", e);
+                document.getElementById('estadoVazio').style.display = 'block';
+            }
+        }
+
+        async function carregarTemporada(mes) {
+            if (!mes) return;
+
+            try {
+                const resposta = await fetch(`${BACKEND_URL}/historico/${mes}`, FETCH_OPTS);
+                const temporada = await resposta.json();
+
+                const [ano, mesNum] = mes.split('-');
+                const nomeTemporada = `${mesesNomes[mesNum]} ${ano}`;
+
+                document.getElementById('tituloTemporada').innerText = `📊 RANKING — ${nomeTemporada}`;
+
+                const snapshot = temporada.snapshot;
+
+                // MVP
+                if (snapshot.length > 0) {
+                    const mvp = snapshot[0];
+                    document.getElementById('mvpNome').innerText = mvp.nome;
+                    document.getElementById('mvpStats').innerText =
+                        `⭐ ${mvp.mediaEstrelas.toFixed(1)} ★ • 🎯 ${mvp.mediaPorcentagem.toFixed(1)}% • ⚔️ ${mvp.guerras} guerras`;
+                    document.getElementById('mvpContainer').style.display = 'block';
+                }
+
+                // Tabela
+                const medalhas = ["🥇", "🥈", "🥉"];
+                let html = "";
+
+                snapshot.forEach((p, i) => {
+                    let statusTxt, corStatus, statusClass;
+
+                    if (p.mediaEstrelas >= 5.0) {
+                        statusTxt = "PRO"; corStatus = "#22c55e"; statusClass = "titular-badge";
+                    } else if (p.mediaEstrelas >= 4.0) {
+                        statusTxt = "MÉDIA"; corStatus = "#f9d246"; statusClass = "reserva-badge";
+                    } else {
+                        statusTxt = "BAGRE"; corStatus = "#ef4444"; statusClass = "bagre-badge";
+                    }
+
+                    const rankLabel = i < 3 ? medalhas[i] : `${i + 1}º`;
+
+                    html += `
+                    <tr>
+                        <td class="${i < 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
+                        <td><strong>${p.nome}</strong></td>
+                        <td>
+                            <div style="font-weight:bold;margin-bottom:2px;">⭐ ${p.mediaEstrelas.toFixed(1)}</div>
+                            <div class="progresso-container">
+                                <div class="progresso-barra" style="width:${(p.mediaEstrelas / 6) * 100}%;background:${corStatus};"></div>
+                            </div>
+                        </td>
+                        <td>${p.mediaPorcentagem.toFixed(1)}%</td>
+                        <td><span class="cv-tag">CV ${p.cv}</span></td>
+                        <td>${p.guerras}</td>
+                        <td><span class="${statusClass}" style="background:${corStatus};color:#000;font-weight:800;">${statusTxt}</span></td>
+                    </tr>`;
+                });
+
+                document.getElementById('corpoHistorico').innerHTML = html;
+                document.getElementById('rankingContainer').style.display = 'block';
+
+            } catch (e) {
+                console.error("Erro ao carregar temporada:", e);
+            }
+        }
+
+        // Animação scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('show');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
+
+        window.addEventListener('DOMContentLoaded', inicializar);
+    </script>
+</body>
+
+</html>

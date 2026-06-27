@@ -15,6 +15,7 @@
     <nav>
         <a href="https://clashcitybr.github.io">Home</a>
         <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="historico.html">Histórico</a>
     </nav>
 
     <header>
@@ -145,23 +146,62 @@
                     onclick="document.getElementById('modalPerfil').style.display='none'">&times;</span>
 
                 <div class="modal-header">
-                    <h2 id="profNome">Carregando...</h2>
-                    <span id="profTag" class="cv-tag">#000000</span>
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <div>
+                            <h2 id="profNome" style="margin:0;">Carregando...</h2>
+                            <span id="profTag" class="cv-tag">#000000</span>
+                            <span id="profCV" class="cv-tag" style="margin-left:6px;">CV --</span>
+                        </div>
+                        <span id="profNivel" style="background:var(--primary);color:#000;font-weight:800;padding:4px 10px;border-radius:20px;font-size:0.85rem;">Nível --</span>
+                    </div>
                 </div>
 
                 <div class="modal-body">
-                    <div class="stats-grid">
-                        <!-- FIX 3: Mostra estrelas da temporada (do banco local) em vez de warStars da API -->
-                        <div class="stat-box">⭐ <span id="profEstrelas">0</span>
-                            <p>Média de Estrelas (Temporada)</p>
+
+                    <!-- STATS PRINCIPAIS -->
+                    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:20px;">
+                        <div class="stat-box">
+                            ⭐ <span id="profEstrelas">--</span>
+                            <p>Média Temporada</p>
                         </div>
-                        <div class="stat-box">🏆 <span id="profTrofeus">0</span>
+                        <div class="stat-box">
+                            🏆 <span id="profTrofeus">--</span>
                             <p>Troféus Atuais</p>
+                        </div>
+                        <div class="stat-box">
+                            🎯 <span id="profRecordeTrofeus">--</span>
+                            <p>Recorde de Troféus</p>
+                        </div>
+                        <div class="stat-box">
+                            ⚔️ <span id="profGuerras">--</span>
+                            <p>Guerras (Temporada)</p>
                         </div>
                     </div>
 
-                    <h3>👑 Heróis</h3>
-                    <div id="listaHerois" class="herois-container"></div>
+                    <!-- DOAÇÕES -->
+                    <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+                        <div class="stat-box" style="flex:1; min-width:120px;">
+                            📦 <span id="profDoacoes">--</span>
+                            <p>Doações</p>
+                        </div>
+                        <div class="stat-box" style="flex:1; min-width:120px;">
+                            📩 <span id="profDoacoesRecebidas">--</span>
+                            <p>Recebidas</p>
+                        </div>
+                        <div class="stat-box" style="flex:1; min-width:120px;">
+                            🌟 <span id="profWarStars">--</span>
+                            <p>Estrelas Históricas</p>
+                        </div>
+                    </div>
+
+                    <!-- HERÓIS -->
+                    <h3 style="margin-bottom:10px;">👑 Heróis</h3>
+                    <div id="listaHerois" class="herois-container" style="margin-bottom:20px;"></div>
+
+                    <!-- EQUIPAMENTOS -->
+                    <h3 style="margin-bottom:10px;">🛡️ Equipamentos Ativos</h3>
+                    <div id="listaEquipamentos" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+
                 </div>
             </div>
         </div>
@@ -355,18 +395,27 @@
 
             modal.style.display = 'flex';
 
+            // Reset
             document.getElementById('profNome').innerText = "Carregando...";
             document.getElementById('profTag').innerText = tag;
+            document.getElementById('profCV').innerText = "CV --";
+            document.getElementById('profNivel').innerText = "Nível --";
             document.getElementById('profEstrelas').innerText = "--";
             document.getElementById('profTrofeus').innerText = "--";
+            document.getElementById('profRecordeTrofeus').innerText = "--";
+            document.getElementById('profGuerras').innerText = "--";
+            document.getElementById('profDoacoes').innerText = "--";
+            document.getElementById('profDoacoesRecebidas').innerText = "--";
+            document.getElementById('profWarStars').innerText = "--";
             document.getElementById('listaHerois').innerHTML = "";
+            document.getElementById('listaEquipamentos').innerHTML = "";
 
-            // FIX 3: Usa os dados do banco local para estrelas da temporada,
-            // sem depender do warStars da API (que seria o total histórico da vida toda)
+            // Dados do banco local (estrelas e guerras da temporada)
             const membroLocal = dadosGlobais.find(m => m.tag === tag);
             if (membroLocal) {
-                document.getElementById('profEstrelas').innerText =
-                    `${membroLocal.mediaE.toFixed(2)} ★`;
+                document.getElementById('profEstrelas').innerText = `${membroLocal.mediaE.toFixed(2)} ★`;
+                document.getElementById('profGuerras').innerText = membroLocal.qtd;
+                document.getElementById('profCV').innerText = membroLocal.cv;
             }
 
             try {
@@ -375,30 +424,68 @@
                 });
                 const data = await resposta.json();
 
-                document.getElementById('profNome').innerText = data.name || "Não encontrado";
-                document.getElementById('profTag').innerText  = data.tag  || tag;
-                document.getElementById('profTrofeus').innerText = data.trophies ?? 0;
+                // Dados básicos
+                document.getElementById('profNome').innerText      = data.name || "Não encontrado";
+                document.getElementById('profTag').innerText       = data.tag  || tag;
+                document.getElementById('profCV').innerText        = `CV ${data.townHallLevel ?? '--'}`;
+                document.getElementById('profNivel').innerText     = `Nível ${data.expLevel ?? '--'}`;
+                document.getElementById('profTrofeus').innerText   = data.trophies?.toLocaleString('pt-BR') ?? '--';
+                document.getElementById('profRecordeTrofeus').innerText = data.bestTrophies?.toLocaleString('pt-BR') ?? '--';
+                document.getElementById('profDoacoes').innerText   = data.donations?.toLocaleString('pt-BR') ?? '--';
+                document.getElementById('profDoacoesRecebidas').innerText = data.donationsReceived?.toLocaleString('pt-BR') ?? '--';
+                document.getElementById('profWarStars').innerText  = data.warStars?.toLocaleString('pt-BR') ?? '--';
 
-                // Estrelas da temporada já foram preenchidas pelo banco local acima.
-                // Se o membro não estava no banco, cai de volta para warStars da API.
+                // Estrelas da temporada — banco local tem prioridade
                 if (!membroLocal) {
-                    document.getElementById('profEstrelas').innerText = data.warStars ?? 0;
+                    document.getElementById('profEstrelas').innerText = data.warStars ?? '--';
+                    document.getElementById('profGuerras').innerText  = '--';
                 }
+
+                // Heróis
+                const heroisPrincipais = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"];
+                const emojisHerois = {
+                    "Barbarian King":  "👑",
+                    "Archer Queen":    "🏹",
+                    "Grand Warden":    "📖",
+                    "Royal Champion":  "🗡️"
+                };
 
                 let heroisHtml = "";
                 if (data.heroes) {
-                    const heroisPrincipais = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"];
                     data.heroes
                         .filter(h => heroisPrincipais.includes(h.name))
                         .forEach(h => {
+                            const pct = Math.round((h.level / h.maxLevel) * 100);
+                            const cor = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
                             heroisHtml += `
-                            <div class="heroi-item">
-                                <span>👑 ${h.name}</span>
-                                <strong>Nível ${h.level} / ${h.maxLevel}</strong>
+                            <div class="heroi-item" style="margin-bottom:10px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                    <span>${emojisHerois[h.name] || '👑'} ${h.name}</span>
+                                    <strong style="color:${cor};">Nível ${h.level} / ${h.maxLevel}</strong>
+                                </div>
+                                <div style="background:#333;border-radius:10px;height:6px;overflow:hidden;">
+                                    <div style="width:${pct}%;height:100%;background:${cor};border-radius:10px;transition:width 0.5s;"></div>
+                                </div>
                             </div>`;
                         });
                 }
-                document.getElementById('listaHerois').innerHTML = heroisHtml || "<p>Nenhum herói disponível</p>";
+                document.getElementById('listaHerois').innerHTML = heroisHtml || "<p style='opacity:0.6;'>Nenhum herói disponível</p>";
+
+                // Equipamentos ativos
+                let equipHtml = "";
+                if (data.heroEquipment) {
+                    data.heroEquipment
+                        .filter(e => e.village === 'home')
+                        .forEach(e => {
+                            const raridade = e.maxLevel >= 27 ? '#f9d246' : e.maxLevel >= 18 ? '#a855f7' : '#64748b';
+                            equipHtml += `
+                            <div style="background:#1a1a2e;border:1px solid ${raridade};border-radius:8px;padding:6px 10px;font-size:0.8rem;">
+                                <div style="color:${raridade};font-weight:700;">${e.name}</div>
+                                <div style="opacity:0.7;">Nv ${e.level}/${e.maxLevel}</div>
+                            </div>`;
+                        });
+                }
+                document.getElementById('listaEquipamentos').innerHTML = equipHtml || "<p style='opacity:0.6;'>Nenhum equipamento disponível</p>";
 
             } catch (e) {
                 document.getElementById('profNome').innerText = "Erro ao carregar perfil";
