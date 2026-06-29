@@ -437,6 +437,13 @@
                     document.getElementById('profGuerras').innerText = '--';
                 }
 
+                // Heróis resumidos
+                const heroisPrincipais = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"];
+                const emojisHerois = {
+                    "Barbarian King": "👑", "Archer Queen": "🏹",
+                    "Grand Warden": "📖", "Royal Champion": "🗡️"
+                };
+
                 let heroisHtml = "";
                 if (data.heroes) {
                     data.heroes
