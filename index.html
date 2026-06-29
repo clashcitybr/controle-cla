@@ -409,7 +409,6 @@
             document.getElementById('profTrofeus').innerText = "--";
             document.getElementById('profGuerras').innerText = "--";
             document.getElementById('profWarStars').innerText = "--";
-            document.getElementById('listaHerois').innerHTML = "";
 
             // Link pro perfil completo
             const tagEncoded = encodeURIComponent(tag);
@@ -441,35 +440,6 @@
                     document.getElementById('profEstrelas').innerText = data.warStars ?? '--';
                     document.getElementById('profGuerras').innerText = '--';
                 }
-
-                // Heróis resumidos
-                const heroisPrincipais = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"];
-                const emojisHerois = {
-                    "Barbarian King": "👑", "Archer Queen": "🏹",
-                    "Grand Warden": "📖", "Royal Champion": "🗡️"
-                };
-
-                let heroisHtml = "";
-                if (data.heroes) {
-                    data.heroes
-                        .filter(h => heroisPrincipais.includes(h.name))
-                        .forEach(h => {
-                            const pct = Math.round((h.level / h.maxLevel) * 100);
-                            const cor = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
-                            heroisHtml += `
-                            <div class="heroi-item" style="margin-bottom:8px;">
-                                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                                    <span>${emojisHerois[h.name]} ${h.name}</span>
-                                    <strong style="color:${cor};">Nv ${h.level}/${h.maxLevel}</strong>
-                                </div>
-                                <div style="background:#333;border-radius:10px;height:5px;overflow:hidden;">
-                                    <div style="width:${pct}%;height:100%;background:${cor};border-radius:10px;"></div>
-                                </div>
-                            </div>`;
-                        });
-                }
-                document.getElementById('listaHerois').innerHTML = heroisHtml || "<p style='opacity:0.6;'>Nenhum herói</p>";
-
             } catch (e) {
                 document.getElementById('profNome').innerText = "Erro ao carregar perfil";
                 console.error("Falha ao consumir rota de perfil do jogador:", e);
