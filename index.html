@@ -271,15 +271,17 @@
             filtrarTudo();
         }
 
-      
-            listaFiltrada.sort((a, b) => {
-                if (b.qtd !== a.qtd) return b.qtd - a.qtd;         // 1º Guerras
-                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE; // 2º Estrelas
-                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP; // 3º % Destruição
-                return parseInt(b.cv) - parseInt(a.cv);             // 4º CV
-            });
-            renderizar(listaFiltrada);
-        }
+
+        listaFiltrada.sort((a, b) => {
+            if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+            if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+            if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+            const cvA = parseInt(a.cv.replace('CV ', ''));
+            const cvB = parseInt(b.cv.replace('CV ', ''));
+            return cvB - cvA;
+        });
+        renderizar(listaFiltrada);
+
 
         // 4. RENDERIZAÇÃO (PÓDIO E TABELA DINÂMICA)
         function renderizar(dados) {
