@@ -271,17 +271,27 @@
             filtrarTudo();
         }
 
+        function filtrarTudo() {
+            const busca = document.getElementById('inputBusca')?.value.toUpperCase() || "";
+            const cvSelecionado = document.getElementById('filtroCV')?.value || "todos";
 
-        listaFiltrada.sort((a, b) => {
-            if (b.qtd !== a.qtd) return b.qtd - a.qtd;
-            if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
-            if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
-            const cvA = parseInt(a.cv.replace('CV ', ''));
-            const cvB = parseInt(b.cv.replace('CV ', ''));
-            return cvB - cvA;
-        });
-        renderizar(listaFiltrada);
+            let listaFiltrada = dadosGlobais.filter(p => {
+                const matchesBusca = p.nome.toUpperCase().includes(busca);
+                const matchesCV = cvSelecionado === "todos" || p.cv.includes(cvSelecionado);
+                return matchesBusca && matchesCV;
+            });
 
+            listaFiltrada.sort((a, b) => {
+                if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+                const cvA = parseInt(a.cv.replace('CV ', ''));
+                const cvB = parseInt(b.cv.replace('CV ', ''));
+                return cvB - cvA;
+            });
+
+            renderizar(listaFiltrada);
+        }
 
         // 4. RENDERIZAÇÃO (PÓDIO E TABELA DINÂMICA)
         function renderizar(dados) {
