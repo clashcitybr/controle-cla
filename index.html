@@ -152,14 +152,17 @@
                             <span id="profTag" class="cv-tag">#000000</span>
                             <span id="profCV" class="cv-tag" style="margin-left:6px;">CV --</span>
                         </div>
-                        <span id="profNivel" style="background:var(--primary);color:#000;font-weight:800;padding:4px 10px;border-radius:20px;font-size:0.85rem;">Nível --</span>
+                        <span id="profNivel"
+                            style="background:var(--primary);color:#000;font-weight:800;padding:4px 10px;border-radius:20px;font-size:0.85rem;">Nível
+                            --</span>
                     </div>
                 </div>
 
                 <div class="modal-body">
 
                     <!-- STATS RESUMIDOS -->
-                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
+                    <div class="stats-grid"
+                        style="grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
                         <div class="stat-box">
                             ⭐ <span id="profEstrelas">--</span>
                             <p>Média Temporada</p>
@@ -179,11 +182,9 @@
                     </div>
 
                     <!-- BOTÃO PERFIL COMPLETO -->
-                    <a id="linkPerfilCompleto" href="#"
-                        style="display:block; text-align:center; background:var(--primary); color:#000;
+                    <a id="linkPerfilCompleto" href="#" style="display:block; text-align:center; background:var(--primary); color:#000;
                                font-weight:800; font-size:1rem; padding:12px; border-radius:12px;
-                               text-decoration:none; transition:opacity 0.2s;"
-                        onmouseover="this.style.opacity='0.8'"
+                               text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'"
                         onmouseout="this.style.opacity='1'">
                         Ver Perfil Completo →
                     </a>
@@ -195,8 +196,7 @@
 
     <!-- BOTÃO ADMIN DE SINCRONIZAÇÃO -->
     <div style="position:fixed; bottom:20px; right:20px; z-index:999;">
-        <button id="btnSincronizar" onclick="sincronizarManual()"
-            style="background:#11032c; border:2px solid var(--primary); color:var(--primary);
+        <button id="btnSincronizar" onclick="sincronizarManual()" style="background:#11032c; border:2px solid var(--primary); color:var(--primary);
                    font-family:Lexend; font-weight:700; font-size:0.85rem;
                    padding:10px 16px; border-radius:50px; cursor:pointer;
                    box-shadow:0 4px 15px rgba(0,0,0,0.4); transition:all 0.3s;">
@@ -281,7 +281,12 @@
                 return matchesBusca && matchesCV;
             });
 
-            listaFiltrada.sort((a, b) => b[ordemAtual] - a[ordemAtual]);
+            listaFiltrada.sort((a, b) => {
+                if (b.qtd !== a.qtd) return b.qtd - a.qtd;         // 1º Guerras
+                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE; // 2º Estrelas
+                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP; // 3º % Destruição
+                return parseInt(b.cv) - parseInt(a.cv);             // 4º CV
+            });
             renderizar(listaFiltrada);
         }
 
@@ -296,20 +301,20 @@
             for (let i = 1; i <= 3; i++) {
                 const player = dadosPodio[i - 1];
                 const nomeEl = document.getElementById(`nomeRank${i}`);
-                const estEl  = document.getElementById(`estrelasRank${i}`);
-                const perEl  = document.getElementById(`percRank${i}`);
-                const gueEl  = document.getElementById(`guerrasRank${i}`);
+                const estEl = document.getElementById(`estrelasRank${i}`);
+                const perEl = document.getElementById(`percRank${i}`);
+                const gueEl = document.getElementById(`guerrasRank${i}`);
 
                 if (player) {
                     if (nomeEl) nomeEl.innerText = player.nome;
-                    if (estEl)  estEl.innerText  = `⭐ ${player.mediaE.toFixed(1)} ★`;
-                    if (perEl)  perEl.innerText  = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
-                    if (gueEl)  gueEl.innerText  = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
+                    if (estEl) estEl.innerText = `⭐ ${player.mediaE.toFixed(1)} ★`;
+                    if (perEl) perEl.innerText = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
+                    if (gueEl) gueEl.innerText = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
                 } else {
                     if (nomeEl) nomeEl.innerText = "--";
-                    if (estEl)  estEl.innerText  = "⭐ 0.0";
-                    if (perEl)  perEl.innerText  = "🎯 0%";
-                    if (gueEl)  gueEl.innerText  = "⚔️ 0";
+                    if (estEl) estEl.innerText = "⭐ 0.0";
+                    if (perEl) perEl.innerText = "🎯 0%";
+                    if (gueEl) gueEl.innerText = "⚔️ 0";
                 }
             }
 
@@ -322,21 +327,21 @@
             let htmlFinal = "";
 
             dados.forEach((p, i) => {
-                let statusTxt   = "";
-                let corStatus   = "";
+                let statusTxt = "";
+                let corStatus = "";
                 let statusClass = "";
 
                 if (p.mediaE >= 5.0) {
-                    statusTxt   = "PRO";
-                    corStatus   = "#22c55e";
+                    statusTxt = "PRO";
+                    corStatus = "#22c55e";
                     statusClass = "titular-badge";
                 } else if (p.mediaE >= 4.0) {
-                    statusTxt   = "MÉDIA";
-                    corStatus   = "#f9d246";
+                    statusTxt = "MÉDIA";
+                    corStatus = "#f9d246";
                     statusClass = "reserva-badge";
                 } else {
-                    statusTxt   = "BAGRE";
-                    corStatus   = "#ef4444";
+                    statusTxt = "BAGRE";
+                    corStatus = "#ef4444";
                     statusClass = "bagre-badge";
                 }
 
@@ -425,9 +430,9 @@
                 });
                 const data = await resposta.json();
 
-                document.getElementById('profNome').innerText  = data.name || "Não encontrado";
-                document.getElementById('profTag').innerText   = data.tag  || tag;
-                document.getElementById('profCV').innerText    = `CV ${data.townHallLevel ?? '--'}`;
+                document.getElementById('profNome').innerText = data.name || "Não encontrado";
+                document.getElementById('profTag').innerText = data.tag || tag;
+                document.getElementById('profCV').innerText = `CV ${data.townHallLevel ?? '--'}`;
                 document.getElementById('profNivel').innerText = `Nível ${data.expLevel ?? '--'}`;
                 document.getElementById('profTrofeus').innerText = data.trophies?.toLocaleString('pt-BR') ?? '--';
                 document.getElementById('profWarStars').innerText = data.warStars?.toLocaleString('pt-BR') ?? '--';
