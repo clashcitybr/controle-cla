@@ -178,10 +178,6 @@
                         </div>
                     </div>
 
-                    <!-- HERÓIS RESUMIDOS -->
-                    <h3 style="margin-bottom:10px;">👑 Heróis</h3>
-                    <div id="listaHerois" class="herois-container" style="margin-bottom:20px;"></div>
-
                     <!-- BOTÃO PERFIL COMPLETO -->
                     <a id="linkPerfilCompleto" href="#"
                         style="display:block; text-align:center; background:var(--primary); color:#000;
@@ -440,13 +436,6 @@
                     document.getElementById('profEstrelas').innerText = data.warStars ?? '--';
                     document.getElementById('profGuerras').innerText = '--';
                 }
-
-                // Heróis resumidos
-                const heroisPrincipais = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"];
-                const emojisHerois = {
-                    "Barbarian King": "👑", "Archer Queen": "🏹",
-                    "Grand Warden": "📖", "Royal Champion": "🗡️"
-                };
 
                 let heroisHtml = "";
                 if (data.heroes) {
