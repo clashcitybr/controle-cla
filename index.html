@@ -424,7 +424,7 @@
             }
 
             try {
-                const resposta = await fetch(`https://cork-dice-gala.ngrok-free.dev/jogador/${tag}`, {
+                const resposta = await fetch(`https://cork-dice-gala.ngrok-free.dev/jogador/${encodeURIComponent(tag)}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await resposta.json();
