@@ -281,14 +281,15 @@
                 return matchesBusca && matchesCV;
             });
 
-            listaFiltrada.sort((a, b) => {
-                if (b.qtd !== a.qtd) return b.qtd - a.qtd;
-                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
-                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
-                const cvA = parseInt(a.cv.replace('CV ', ''));
-                const cvB = parseInt(b.cv.replace('CV ', ''));
-                return cvB - cvA;
-            });
+         listaFiltrada.sort((a, b) => {
+    if (b[ordemAtual] !== a[ordemAtual]) return b[ordemAtual] - a[ordemAtual];
+    if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+    if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+    if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+    const cvA = parseInt(a.cv.replace('CV ', ''));
+    const cvB = parseInt(b.cv.replace('CV ', ''));
+    return cvB - cvA;
+});
 
             renderizar(listaFiltrada);
         }
