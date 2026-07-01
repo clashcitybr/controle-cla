@@ -111,7 +111,10 @@
                         </tr>
                     </tbody>
                 </table>
+               
             </div>
+             <!-- CARDS MOBILE — visíveis só no celular -->
+                <div class="ranking-cards-mobile" id="rankingCardsMobile"></div>
 
             <p style="margin-top: 20px; font-size: 0.8rem; color: #666; text-align: center;">
                 * Dados atualizados automaticamente via Banco de Dados após cada guerra.
@@ -281,15 +284,15 @@
                 return matchesBusca && matchesCV;
             });
 
-         listaFiltrada.sort((a, b) => {
-    if (b[ordemAtual] !== a[ordemAtual]) return b[ordemAtual] - a[ordemAtual];
-    if (b.qtd !== a.qtd) return b.qtd - a.qtd;
-    if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
-    if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
-    const cvA = parseInt(a.cv.replace('CV ', ''));
-    const cvB = parseInt(b.cv.replace('CV ', ''));
-    return cvB - cvA;
-});
+            listaFiltrada.sort((a, b) => {
+                if (b[ordemAtual] !== a[ordemAtual]) return b[ordemAtual] - a[ordemAtual];
+                if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+                const cvA = parseInt(a.cv.replace('CV ', ''));
+                const cvB = parseInt(b.cv.replace('CV ', ''));
+                return cvB - cvA;
+            });
 
             renderizar(listaFiltrada);
         }
@@ -368,6 +371,41 @@
         <td><span class="${statusClass}" style="background: ${corStatus}; color: #000; font-weight: 800;">${statusTxt}</span></td>
     </tr>`;
             });
+            // CARDS MOBILE
+const containerMobile = document.getElementById('rankingCardsMobile');
+if (containerMobile) {
+    let htmlMobile = "";
+    dados.forEach((p, i) => {
+        let corStatus, statusTxt;
+        if (p.mediaE >= 5.0)      { corStatus = "#22c55e"; statusTxt = "PRO"; }
+        else if (p.mediaE >= 4.0) { corStatus = "#f9d246"; statusTxt = "MÉDIA"; }
+        else                      { corStatus = "#ef4444"; statusTxt = "BAGRE"; }
+
+        const medalhas = ["🥇","🥈","🥉"];
+        const rankLabel = i < 3 ? medalhas[i] : `${i+1}º`;
+
+        htmlMobile += `
+        <div class="mobile-card" onclick="abrirPerfil('${p.tag}')">
+            <div class="mobile-rank">${rankLabel}</div>
+            <div class="mobile-info">
+                <div class="mobile-nome">${p.nome}</div>
+                <div class="mobile-stats">
+                    <span>${p.cv}</span>
+                    <span>⚔️ ${p.qtd}</span>
+                    <span>🎯 ${p.mediaP.toFixed(1)}%</span>
+                </div>
+            </div>
+            <div class="mobile-right">
+                <div class="mobile-estrelas">⭐ ${p.mediaE.toFixed(1)}</div>
+                <div class="mobile-barra">
+                    <div class="mobile-barra-fill" style="width:${(p.mediaE/6)*100}%;background:${corStatus};"></div>
+                </div>
+                <span class="mobile-status" style="background:${corStatus};">${statusTxt}</span>
+            </div>
+        </div>`;
+    });
+    containerMobile.innerHTML = htmlMobile;
+}
 
             corpo.innerHTML = htmlFinal || "<tr><td colspan='7' style='text-align:center;'>Nenhum jogador encontrado.</td></tr>";
         }
