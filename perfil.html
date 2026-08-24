@@ -618,13 +618,24 @@
             container.innerHTML = html || "<p style='opacity:0.6;'>Nenhum equipamento disponível</p>";
         }
 
+        // Super Tropas não têm evolução própria — usam o mesmo nível da
+        // tropa normal (só ficam "ativas" por um tempo com Elixir das
+        // Trevas). A API retorna elas como se fossem upáveis (Nv 1/X fixo),
+        // o que é enganoso aqui. Por isso ficam fora dessa lista.
+        const superTropas = new Set([
+            "Super Barbarian", "Super Archer", "Super Giant", "Sneaky Goblin",
+            "Super Wall Breaker", "Rocket Balloon", "Super Wizard", "Super Dragon",
+            "Inferno Dragon", "Super Minion", "Super Valkyrie", "Super Witch",
+            "Ice Hound", "Super Bowler", "Super Miner", "Super Hog Rider", "Super Yeti"
+        ]);
+
         function renderTropas(tropas) {
             const container = document.getElementById('tropasList');
 
             if (!tropas) { container.innerHTML = "<p style='opacity:0.6;'>Nenhuma tropa disponível</p>"; return; }
 
             const doJogador = tropas
-                .filter(t => t.village === 'home' && t.level > 0)
+                .filter(t => t.village === 'home' && t.level > 0 && !superTropas.has(t.name))
                 // Menos evoluídas primeiro — destaca o que vale mais a pena upar
                 .sort((a, b) => (a.level / a.maxLevel) - (b.level / b.maxLevel));
 
