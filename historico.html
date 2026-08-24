@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
     <title>Clash City BR - Histórico de Temporadas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
 </head>
 
 <body>
@@ -74,11 +77,12 @@
     </section>
 
     <footer>
-        <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
     </footer>
+    <script>document.getElementById('ano-atual').textContent = new Date().getFullYear();</script>
 
     <script>
-        const BACKEND_URL = "https://cork-dice-gala.ngrok-free.dev";
+        // BACKEND_URL agora vem de config.js (compartilhado entre as 3 páginas)
         const FETCH_OPTS = { headers: { 'ngrok-skip-browser-warning': 'true' } };
 
         const mesesNomes = {

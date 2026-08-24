@@ -6,6 +6,7 @@
     --light: #ffffff;
     --bg-body: #f0f2f5;
     --glass: rgba(255, 255, 255, 0.95);
+    --accent: #6aa5ed;
 }
 
 * {

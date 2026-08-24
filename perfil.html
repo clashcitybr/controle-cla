@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
     <title>Clash City BR - Perfil do Jogador</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
     <style>
         /* Override do body para tema misto */
         body {
@@ -228,7 +231,7 @@
         <a href="https://clashcitybr.github.io">Home</a>
         <a href="https://clashcitybr.github.io/liga">Liga</a>
         <a href="https://clashcitybr.github.io/controle-cla/">Desempenho</a>
-        <a href="https://clashcitybr.github.io/controle-cla/historico">Histórico</a>
+        <a href="https://clashcitybr.github.io/controle-cla/historico.html">Histórico</a>
     </nav>
 
     <div id="loadingState" class="loading-state">
@@ -303,6 +306,12 @@
                 <div class="equip-grid" id="equipList"></div>
             </div>
 
+            <!-- TROPAS -->
+            <div class="perfil-section">
+                <h2>🐺 Tropas</h2>
+                <div class="equip-grid" id="tropasList"></div>
+            </div>
+
             <!-- GRÁFICO DE EVOLUÇÃO -->
             <div class="perfil-section" id="secaoGrafico" style="display:none;">
                 <h2>📈 Evolução por Temporada</h2>
@@ -341,11 +350,12 @@
     </div>
 
     <footer style="margin-top:40px;">
-        <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
     </footer>
+    <script>document.getElementById('ano-atual').textContent = new Date().getFullYear();</script>
 
     <script>
-        const BACKEND_URL = "https://cork-dice-gala.ngrok-free.dev";
+        // BACKEND_URL agora vem de config.js (compartilhado entre as 3 páginas)
         const FETCH_OPTS  = { headers: { 'ngrok-skip-browser-warning': 'true' } };
 
         const mesesNomes = {
@@ -426,11 +436,59 @@
             return traducoesEquipamentos[nome] || nome;
         }
 
+        // Traduções melhor-esforço — nomes muito novos que não estiverem
+        // aqui aparecem em inglês mesmo (fallback abaixo), não quebra nada.
+        const traducoesTropas = {
+            // Elixir
+            "Barbarian":        "Bárbaro",
+            "Archer":           "Arqueira",
+            "Giant":            "Gigante",
+            "Goblin":           "Goblin",
+            "Wall Breaker":     "Quebra-Muralhas",
+            "Balloon":          "Balão",
+            "Wizard":           "Mago",
+            "Healer":           "Curandeira",
+            "Dragon":           "Dragão",
+            "P.E.K.K.A":        "P.E.K.K.A",
+            "Baby Dragon":      "Bebê Dragão",
+            "Miner":            "Mineiro",
+            "Electro Dragon":   "Dragão Elétrico",
+            "Yeti":             "Yeti",
+            "Electro Titan":    "Titã Elétrico",
+            // Elixir das Trevas
+            "Minion":           "Minion",
+            "Hog Rider":        "Cavaleiro de Javali",
+            "Valkyrie":         "Valquíria",
+            "Golem":            "Golem",
+            "Witch":            "Bruxa",
+            "Lava Hound":       "Cão de Lava",
+            "Bowler":           "Arremessador",
+            "Ice Golem":        "Golem de Gelo",
+            "Headhunter":       "Caçadora de Recompensas",
+            "Apprentice Warden":"Guardiã Aprendiz",
+            "Druid":            "Druida",
+            "Furnace":          "Fornalha",
+            // Máquinas de Cerco
+            "Wall Wrecker":     "Destruidor de Muralhas",
+            "Battle Blimp":     "Dirigível de Batalha",
+            "Stone Slammer":    "Britadeira de Pedra",
+            "Siege Barracks":   "Quartel de Cerco",
+            "Log Launcher":     "Lançador de Toras",
+            "Flame Flinger":    "Lançador de Chamas",
+            "Battle Drill":     "Perfuratriz de Batalha",
+        };
+
+        function traduzirTropa(nome) {
+            return traducoesTropas[nome] || nome;
+        }
+
         function traduzirHeroi(nome) {
             return traducoesHerois[nome] || nome;
         }
 
         let grafico = null;
+        let ultimoJogador = null;
+        let ultimoMembroLocal = null;
 
         function getTag() {
             const params = new URLSearchParams(window.location.search);
@@ -464,11 +522,14 @@
 
                 // Dados do banco local
                 const membroLocal = membros.find(m => m.tag === tag);
+                ultimoJogador = jogador;
+                ultimoMembroLocal = membroLocal;
 
                 renderCabecalho(jogador);
                 renderStats(jogador, membroLocal);
                 renderHerois(jogador.heroes);
                 renderEquipamentos(jogador.heroEquipment);
+                renderTropas(jogador.troops);
                 renderHistorico(tag, historico);
 
                 document.getElementById('loadingState').style.display = 'none';
@@ -555,6 +616,34 @@
             });
 
             container.innerHTML = html || "<p style='opacity:0.6;'>Nenhum equipamento disponível</p>";
+        }
+
+        function renderTropas(tropas) {
+            const container = document.getElementById('tropasList');
+
+            if (!tropas) { container.innerHTML = "<p style='opacity:0.6;'>Nenhuma tropa disponível</p>"; return; }
+
+            const doJogador = tropas
+                .filter(t => t.village === 'home' && t.level > 0)
+                // Menos evoluídas primeiro — destaca o que vale mais a pena upar
+                .sort((a, b) => (a.level / a.maxLevel) - (b.level / b.maxLevel));
+
+            let html = "";
+            doJogador.forEach(t => {
+                const pct   = Math.round((t.level / t.maxLevel) * 100);
+                const cor   = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
+                const nomeP = traduzirTropa(t.name);
+                html += `
+                <div class="equip-card" style="border:1px solid ${cor};">
+                    <div style="color:${cor};font-weight:700;margin-bottom:4px;">${nomeP}</div>
+                    <div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Nv ${t.level} / ${t.maxLevel}</div>
+                    <div style="background:#333;border-radius:6px;height:5px;overflow:hidden;">
+                        <div style="width:${pct}%;height:100%;background:${cor};border-radius:6px;"></div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html || "<p style='opacity:0.6;'>Nenhuma tropa disponível</p>";
         }
 
         function renderHistorico(tag, temporadas) {
@@ -649,14 +738,184 @@
             document.getElementById('erroState').style.display = 'block';
         }
 
-        function compartilhar() {
-            const url = window.location.href;
-            if (navigator.share) {
-                navigator.share({ title: 'Perfil Clash City BR', url });
-            } else {
-                navigator.clipboard.writeText(url).then(() => {
-                    alert('Link copiado para a área de transferência!');
-                });
+        // ============================================================
+        // CARTÃO DE DESEMPENHO — gera uma imagem pra compartilhar no
+        // status do WhatsApp (estilo "Spotify Wrapped")
+        // ============================================================
+        async function gerarCartaoDesempenho() {
+            const j = ultimoJogador;
+            const m = ultimoMembroLocal;
+            if (!j) return null;
+
+            const mediaE = m && m.guerras > 0 ? (m.totalEstrelas / m.guerras) : 0;
+            const mediaP = m && m.guerras > 0 ? ((m.totalDestruicao / m.guerras) / 2) : 0;
+            const guerras = m?.guerras ?? 0;
+
+            // Garante que a fonte Lexend já carregou antes de desenhar texto
+            try {
+                await Promise.all([
+                    document.fonts.load('800 64px Lexend'),
+                    document.fonts.load('700 30px Lexend'),
+                    document.fonts.load('600 26px Lexend'),
+                    document.fonts.load('400 22px Lexend'),
+                ]);
+            } catch (e) { /* segue mesmo se falhar, usa fonte padrão */ }
+
+            const W = 1080, H = 1180;
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+
+            // Fundo em degradê (mesma paleta do site)
+            const grad = ctx.createLinearGradient(0, 0, W, H);
+            grad.addColorStop(0, '#11032c');
+            grad.addColorStop(0.55, '#1a0a3d');
+            grad.addColorStop(1, '#077187');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Círculos decorativos translúcidos
+            ctx.globalAlpha = 0.08;
+            ctx.fillStyle = '#f9d246';
+            ctx.beginPath(); ctx.arc(W - 60, 120, 220, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(60, H - 160, 260, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 1;
+
+            // Wordmark
+            ctx.fillStyle = '#f9d246';
+            ctx.font = '800 34px Lexend, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('CLASH CITY BR', 70, 100);
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.font = '400 22px Lexend, sans-serif';
+            ctx.fillText('Desempenho de Guerra', 70, 132);
+
+            // Avatar circular com inicial
+            const cx = 150, cy = 250, r = 70;
+            const avatarGrad = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+            avatarGrad.addColorStop(0, '#f9d246');
+            avatarGrad.addColorStop(1, '#f97316');
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = avatarGrad;
+            ctx.fill();
+            ctx.fillStyle = '#11032c';
+            ctx.font = '800 60px Lexend, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText((j.name?.charAt(0) || '?').toUpperCase(), cx, cy + 4);
+            ctx.textBaseline = 'alphabetic';
+
+            // Nome + tag/CV
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#fff';
+            ctx.font = '800 46px Lexend, sans-serif';
+            ctx.fillText(j.name || 'Jogador', 250, 235);
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.font = '600 24px Lexend, sans-serif';
+            ctx.fillText(`${j.tag || ''}  •  CV ${j.townHallLevel ?? '--'}`, 250, 272);
+
+            // Estrela grande — destaque principal do card
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '600 26px Lexend, sans-serif';
+            ctx.fillText('MÉDIA DE ESTRELAS POR GUERRA', W / 2, 470);
+            ctx.fillStyle = '#f9d246';
+            ctx.font = '800 140px Lexend, sans-serif';
+            ctx.fillText(`${mediaE.toFixed(2)} ★`, W / 2, 610);
+
+            // Grid de 4 stats secundárias
+            const stats = [
+                { label: 'GUERRAS', valor: `${guerras}` },
+                { label: 'MÉDIA DESTRUIÇÃO', valor: `${mediaP.toFixed(1)}%` },
+                { label: 'TROFÉUS', valor: `${(j.trophies ?? 0).toLocaleString('pt-BR')}` },
+                { label: 'ESTRELAS HISTÓRICAS', valor: `${(j.warStars ?? 0).toLocaleString('pt-BR')}` },
+            ];
+            const gridTop = 700, gridH = 190, colW = W / 2;
+            stats.forEach((s, i) => {
+                const col = i % 2, row = Math.floor(i / 2);
+                const bx = col * colW + 60, by = gridTop + row * gridH, bw = colW - 120, bh = gridH - 30;
+                ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                roundRect(ctx, bx, by, bw, bh, 20);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.font = '800 44px Lexend, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(s.valor, bx + bw / 2, by + 90);
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.font = '600 18px Lexend, sans-serif';
+                ctx.fillText(s.label, bx + bw / 2, by + 130);
+            });
+
+            // Rodapé — CTA orgânico pra quem ver no status
+            ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            ctx.font = '400 22px Lexend, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('clashcitybr.github.io', W / 2, H - 60);
+            ctx.fillStyle = '#f9d246';
+            ctx.font = '700 26px Lexend, sans-serif';
+            ctx.fillText('Junte-se à família ⚔️', W / 2, H - 25);
+
+            return canvas;
+        }
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        async function compartilhar() {
+            const btn = document.querySelector('.btn-compartilhar');
+            const textoOriginal = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = '⏳ Gerando...';
+
+            try {
+                const canvas = await gerarCartaoDesempenho();
+                if (!canvas) throw new Error('Sem dados do jogador ainda.');
+
+                canvas.toBlob(async (blob) => {
+                    const nomeArquivo = `${(ultimoJogador?.name || 'jogador').replace(/[^a-z0-9]/gi, '_')}-clashcitybr.png`;
+                    const arquivo = new File([blob], nomeArquivo, { type: 'image/png' });
+
+                    // No celular: abre direto o menu de compartilhar (WhatsApp, Instagram, etc.)
+                    if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+                        try {
+                            await navigator.share({
+                                files: [arquivo],
+                                title: 'Meu desempenho no Clash City BR',
+                                text: 'Confira meu desempenho de guerra! ⚔️'
+                            });
+                            return;
+                        } catch (e) {
+                            if (e.name === 'AbortError') return; // usuário cancelou o compartilhamento
+                            // se falhar por outro motivo, cai pro download abaixo
+                        }
+                    }
+
+                    // Desktop / navegadores sem Web Share API: baixa a imagem
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = nomeArquivo;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 'image/png');
+
+            } catch (e) {
+                console.error('Erro ao gerar cartão:', e);
+                alert('Não foi possível gerar a imagem agora. Tenta de novo em alguns segundos.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = textoOriginal;
             }
         }
 

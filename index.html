@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
     <title>Clash City BR - Desempenho de Guerra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
 </head>
 
 <body>
@@ -211,8 +214,9 @@
     </div>
 
     <footer>
-        <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
     </footer>
+    <script>document.getElementById('ano-atual').textContent = new Date().getFullYear();</script>
 
     <script>
         // 1. CONFIGURAÇÕES E VARIÁVEIS GERAIS
@@ -221,7 +225,7 @@
         // FIX 1: ordemAtual agora começa como 'qtd' — consistente com o botão "Por Guerras" ativo no HTML
         let ordemAtual = 'qtd';
 
-        const API_URL = "https://cork-dice-gala.ngrok-free.dev/membros";
+        const API_URL = `${BACKEND_URL}/membros`;
 
         // 2. CARREGAMENTO DOS DADOS DO MONGODB
         async function carregarDados() {
@@ -461,7 +465,7 @@
             // Link pro perfil completo
             const tagEncoded = encodeURIComponent(tag);
             document.getElementById('linkPerfilCompleto').href =
-                `https://clashcitybr.github.io/controle-cla/perfil?tag=${tagEncoded}`;
+                `https://clashcitybr.github.io/controle-cla/perfil.html?tag=${tagEncoded}`;
 
             // Dados do banco local
             const membroLocal = dadosGlobais.find(m => m.tag === tag);
@@ -472,7 +476,7 @@
             }
 
             try {
-                const resposta = await fetch(`https://cork-dice-gala.ngrok-free.dev/jogador/${encodeURIComponent(tag)}`, {
+                const resposta = await fetch(`${BACKEND_URL}/jogador/${encodeURIComponent(tag)}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await resposta.json();
@@ -510,7 +514,7 @@
             msg.style.display = 'none';
 
             try {
-                const resposta = await fetch('https://cork-dice-gala.ngrok-free.dev/sincronizar-guerra', {
+                const resposta = await fetch(`${BACKEND_URL}/sincronizar-guerra`, {
                     method: 'POST',
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
