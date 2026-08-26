@@ -32,6 +32,35 @@
             flex-wrap: wrap;
             box-shadow: 0 8px 30px rgba(0,0,0,0.3);
             color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Círculos decorativos translúcidos — dão profundidade sem precisar de imagem */
+        .perfil-header::before,
+        .perfil-header::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .perfil-header::before {
+            width: 300px;
+            height: 300px;
+            top: -140px;
+            right: -60px;
+            background: rgba(249,210,70,0.08);
+        }
+        .perfil-header::after {
+            width: 220px;
+            height: 220px;
+            bottom: -120px;
+            left: 12%;
+            background: rgba(106,165,237,0.10);
+        }
+        .perfil-avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
+            z-index: 1;
         }
         .perfil-avatar {
             width: 90px;
@@ -47,6 +76,29 @@
             flex-shrink: 0;
             border: 3px solid rgba(255,255,255,0.25);
             box-shadow: 0 4px 20px rgba(249,210,70,0.4);
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+        /* Selo do Centro de Vila — canto do avatar, cor muda por nível (efeito "emblema") */
+        .perfil-th-badge {
+            position: absolute;
+            bottom: -6px;
+            right: -8px;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: #fff;
+            border: 2px solid #1a0a3d;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            transform: rotate(-4deg);
+        }
+        .perfil-info {
+            position: relative;
+            z-index: 1;
         }
         .perfil-info h1 {
             margin: 0 0 6px 0;
@@ -67,6 +119,9 @@
             font-size: 0.8rem;
             font-weight: 600;
             backdrop-filter: blur(4px);
+        }
+        .perfil-badge-liga {
+            border: 1px solid rgba(255,255,255,0.3);
         }
 
         /* SEÇÕES — fundo claro */
@@ -153,6 +208,22 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+        }
+        .heroi-nome-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .heroi-icone {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.18);
         }
 
         /* EQUIPAMENTOS */
@@ -296,14 +367,16 @@
 
         <!-- CABEÇALHO DO PERFIL -->
         <div class="perfil-header">
-            <div class="perfil-avatar" id="avatarInicial">?</div>
+            <div class="perfil-avatar-wrap">
+                <div class="perfil-avatar" id="avatarInicial">?</div>
+                <div class="perfil-th-badge" id="thBadge" title="Nível do Centro de Vila">CV--</div>
+            </div>
             <div class="perfil-info" style="flex:1;">
                 <h1 id="perfilNome">--</h1>
                 <div class="perfil-badges">
                     <span class="perfil-badge" id="perfilTag">#--</span>
-                    <span class="perfil-badge" id="perfilCV">CV --</span>
                     <span class="perfil-badge" id="perfilNivel">Nível --</span>
-                    <span class="perfil-badge" id="perfilLiga">--</span>
+                    <span class="perfil-badge perfil-badge-liga" id="perfilLiga">--</span>
                     <span class="perfil-badge" id="perfilTendencia" style="display:none;"></span>
                 </div>
             </div>
@@ -604,14 +677,63 @@
             }
         }
 
+        // Cor do selo de CV por faixa de nível — dá uma leitura visual rápida
+        // de "quão avançado" é o Centro de Vila, tipo escudo de rank.
+        function corPorCV(nivel) {
+            if (nivel >= 16) return ['#f9d246', '#f97316'];
+            if (nivel >= 13) return ['#a855f7', '#6d28d9'];
+            if (nivel >= 10) return ['#3b82f6', '#1d4ed8'];
+            if (nivel >= 7)  return ['#22c55e', '#15803d'];
+            return ['#94a3b8', '#475569'];
+        }
+
+        // Cores e ícones aproximados de cada liga do jogo, com tradução PT.
+        const ligasInfo = {
+            'Legend League':   { nome: 'Liga Lendária', cores: ['#1a1a2e', '#f9d246'], icone: '👑' },
+            'Titan League':    { nome: 'Liga Titã',     cores: ['#7c2d12', '#f97316'], icone: '🔥' },
+            'Champion League': { nome: 'Liga Campeã',   cores: ['#581c87', '#c084fc'], icone: '💜' },
+            'Master League':   { nome: 'Liga Mestre',   cores: ['#1e3a8a', '#60a5fa'], icone: '💎' },
+            'Crystal League':  { nome: 'Liga Cristal',  cores: ['#0e7490', '#22d3ee'], icone: '🔷' },
+            'Gold League':     { nome: 'Liga Ouro',     cores: ['#92400e', '#f9d246'], icone: '🥇' },
+            'Silver League':   { nome: 'Liga Prata',    cores: ['#475569', '#cbd5e1'], icone: '🥈' },
+            'Bronze League':   { nome: 'Liga Bronze',   cores: ['#78350f', '#b45309'], icone: '🥉' },
+        };
+
+        function traduzirLiga(nomeIngles) {
+            if (!nomeIngles) return { nome: 'Sem Liga', cores: ['#475569', '#64748b'], icone: '⚪' };
+            // "Titan League I" → separa o numeral romano do nome base
+            const m = nomeIngles.match(/^(.+?)(\s+[IVX]+)?$/);
+            const base = m ? m[1].trim() : nomeIngles;
+            const numeral = m && m[2] ? m[2].trim() : '';
+            const info = ligasInfo[base];
+            if (!info) return { nome: nomeIngles, cores: ['#475569', '#64748b'], icone: '⚪' };
+            return { nome: numeral ? `${info.nome} ${numeral}` : info.nome, cores: info.cores, icone: info.icone };
+        }
+
         function renderCabecalho(j) {
             const inicial = j.name?.charAt(0).toUpperCase() || '?';
-            document.getElementById('avatarInicial').innerText = inicial;
+            const avatar  = document.getElementById('avatarInicial');
+
+            avatar.innerText = inicial;
             document.getElementById('perfilNome').innerText  = j.name;
             document.getElementById('perfilTag').innerText   = j.tag;
-            document.getElementById('perfilCV').innerText    = `CV ${j.townHallLevel}`;
             document.getElementById('perfilNivel').innerText = `Nível ${j.expLevel}`;
-            document.getElementById('perfilLiga').innerText  = j.league?.name || 'Sem Liga';
+
+            // Selo de CV com cor por faixa de nível
+            const thBadge = document.getElementById('thBadge');
+            const [corCvA, corCvB] = corPorCV(j.townHallLevel || 1);
+            thBadge.style.background = `linear-gradient(135deg, ${corCvA}, ${corCvB})`;
+            thBadge.innerText = `CV${j.townHallLevel ?? '-'}`;
+
+            // Badge da liga com cor, ícone e tradução
+            const liga = traduzirLiga(j.league?.name);
+            const ligaBadge = document.getElementById('perfilLiga');
+            ligaBadge.innerText = `${liga.icone} ${liga.nome}`;
+            ligaBadge.style.background = `linear-gradient(135deg, ${liga.cores[0]}, ${liga.cores[1]})`;
+
+            // O anel do avatar acompanha a cor da liga do jogador
+            avatar.style.boxShadow   = `0 4px 20px ${liga.cores[1]}66`;
+            avatar.style.borderColor = `${liga.cores[1]}55`;
 
             const btnVerJogo = document.getElementById('btnVerJogo');
             if (j.tag) {
@@ -689,6 +811,16 @@
             badge.style.display = 'inline-block';
         }
 
+        // Cor temática de cada herói, usada no ícone circular do card
+        const coresHerois = {
+            "Barbarian King":  ['#ef4444', '#991b1b'],
+            "Archer Queen":    ['#22c55e', '#15803d'],
+            "Grand Warden":    ['#a855f7', '#6d28d9'],
+            "Royal Champion":  ['#ec4899', '#be185d'],
+            "Minion Prince":   ['#7c3aed', '#4c1d95'],
+            "Dragon Duke":     ['#f97316', '#c2410c']
+        };
+
         function renderHerois(herois) {
             const principais = ["Barbarian King","Archer Queen","Grand Warden","Royal Champion","Minion Prince","Dragon Duke"];
             const container  = document.getElementById('heroisList');
@@ -701,10 +833,14 @@
                 const cor    = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
                 const emoji  = emojisHerois[h.name] || '👑';
                 const nomeP  = traduzirHeroi(h.name);
+                const [corIconA, corIconB] = coresHerois[h.name] || ['#6aa5ed', '#077187'];
                 html += `
                 <div class="heroi-card">
                     <div class="heroi-card-header">
-                        <span style="font-weight:700; font-size:1rem;">${emoji} ${nomeP}</span>
+                        <div class="heroi-nome-wrap">
+                            <div class="heroi-icone" style="background:linear-gradient(135deg, ${corIconA}, ${corIconB});">${emoji}</div>
+                            <span style="font-weight:700; font-size:1rem;">${nomeP}</span>
+                        </div>
                         <strong style="color:${cor};">Nível ${h.level} / ${h.maxLevel} (${pct}%)</strong>
                     </div>
                     <div style="background:#eee;border-radius:10px;height:8px;overflow:hidden;">
