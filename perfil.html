@@ -45,6 +45,7 @@
             font-weight: 800;
             color: #fff;
             flex-shrink: 0;
+            border: 3px solid rgba(255,255,255,0.25);
             box-shadow: 0 4px 20px rgba(249,210,70,0.4);
         }
         .perfil-info h1 {
@@ -117,6 +118,26 @@
             font-size: 0.7rem;
             color: #666;
             margin-top: 4px;
+        }
+        .stat-card .comparativo {
+            font-size: 0.68rem;
+            font-weight: 700;
+            margin-top: 6px;
+            min-height: 14px;
+        }
+        .stat-card, .heroi-card, .equip-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .stat-card:hover, .heroi-card:hover, .equip-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        #conteudoPerfil {
+            animation: fadeInUp 0.5s ease;
         }
 
         /* HERÓIS — cards brancos */
@@ -199,6 +220,34 @@
             box-shadow: 0 6px 20px rgba(249,210,70,0.5);
         }
 
+        /* BOTÃO VER NO JOGO */
+        .btn-ver-jogo {
+            background: transparent;
+            color: #fff;
+            font-weight: 700;
+            font-family: Lexend, sans-serif;
+            border: 2px solid rgba(255,255,255,0.35);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-ver-jogo:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.6);
+            transform: translateY(-2px);
+        }
+        .perfil-acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         /* ESTADO DE LOADING/ERRO */
         .loading-state {
             text-align: center;
@@ -219,8 +268,12 @@
         .tabela-wrapper {
             background: #fff;
             border-radius: 14px;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
             box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        }
+        .historico-table {
+            min-width: 560px;
         }
     </style>
 </head>
@@ -251,9 +304,13 @@
                     <span class="perfil-badge" id="perfilCV">CV --</span>
                     <span class="perfil-badge" id="perfilNivel">Nível --</span>
                     <span class="perfil-badge" id="perfilLiga">--</span>
+                    <span class="perfil-badge" id="perfilTendencia" style="display:none;"></span>
                 </div>
             </div>
-            <button class="btn-compartilhar" onclick="compartilhar()">📤 Compartilhar</button>
+            <div class="perfil-acoes">
+                <a class="btn-ver-jogo" id="btnVerJogo" href="#" target="_blank" rel="noopener">🎮 Ver no Jogo</a>
+                <button class="btn-compartilhar" onclick="compartilhar()">📤 Compartilhar</button>
+            </div>
         </div>
 
         <!-- WRAPPER DAS SEÇÕES CLARAS -->
@@ -266,10 +323,12 @@
                     <div class="stat-card">
                         <div class="valor" id="statMediaEstrelas">--</div>
                         <div class="label">⭐ Média de Estrelas</div>
+                        <div class="comparativo" id="compMediaEstrelas"></div>
                     </div>
                     <div class="stat-card">
                         <div class="valor" id="statMediaPct">--</div>
                         <div class="label">🎯 Média Destruição</div>
+                        <div class="comparativo" id="compMediaPct"></div>
                     </div>
                     <div class="stat-card">
                         <div class="valor" id="statGuerras">--</div>
@@ -332,6 +391,7 @@
                                 <th>Média ⭐</th>
                                 <th>Média %</th>
                                 <th>Guerras</th>
+                                <th>Tend.</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -525,12 +585,15 @@
                 ultimoJogador = jogador;
                 ultimoMembroLocal = membroLocal;
 
+                const participacoes = extrairParticipacoes(tag, historico);
+
                 renderCabecalho(jogador);
-                renderStats(jogador, membroLocal);
+                renderStats(jogador, membroLocal, membros);
+                renderTendencia(membroLocal, participacoes);
                 renderHerois(jogador.heroes);
                 renderEquipamentos(jogador.heroEquipment);
                 renderTropas(jogador.troops);
-                renderHistorico(tag, historico);
+                renderHistorico(participacoes);
 
                 document.getElementById('loadingState').style.display = 'none';
                 document.getElementById('conteudoPerfil').style.display = 'block';
@@ -549,23 +612,81 @@
             document.getElementById('perfilCV').innerText    = `CV ${j.townHallLevel}`;
             document.getElementById('perfilNivel').innerText = `Nível ${j.expLevel}`;
             document.getElementById('perfilLiga').innerText  = j.league?.name || 'Sem Liga';
+
+            const btnVerJogo = document.getElementById('btnVerJogo');
+            if (j.tag) {
+                btnVerJogo.href = `https://link.clashofclans.com/?action=OpenPlayerProfile&tag=${encodeURIComponent(j.tag)}`;
+            } else {
+                btnVerJogo.style.display = 'none';
+            }
         }
 
-        function renderStats(j, membroLocal) {
-            const mediaE = membroLocal && membroLocal.guerras > 0
-                ? (membroLocal.totalEstrelas / membroLocal.guerras).toFixed(2)
-                : '--';
-            const mediaP = membroLocal && membroLocal.guerras > 0
-                ? ((membroLocal.totalDestruicao / membroLocal.guerras) / 2).toFixed(1) + '%'
-                : '--';
+        // Média do clã, considerando só membros com pelo menos 1 guerra
+        // na temporada atual (evita distorcer com quem ainda não guerreou).
+        function calcularMediaCla(membros) {
+            const ativos = (membros || []).filter(m => m.guerras > 0);
+            if (ativos.length === 0) return null;
+            const mediaE = ativos.reduce((soma, m) => soma + (m.totalEstrelas / m.guerras), 0) / ativos.length;
+            const mediaP = ativos.reduce((soma, m) => soma + ((m.totalDestruicao / m.guerras) / 2), 0) / ativos.length;
+            return { mediaE, mediaP };
+        }
 
-            document.getElementById('statMediaEstrelas').innerText = mediaE !== '--' ? `${mediaE} ★` : '--';
-            document.getElementById('statMediaPct').innerText      = mediaP;
+        function renderComparativo(elId, valorJogador, valorCla, sufixo, casas) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            if (valorJogador === null || valorCla === null || valorCla === undefined) {
+                el.innerHTML = '';
+                return;
+            }
+            const diff = valorJogador - valorCla;
+            const limiar = sufixo === '%' ? 0.5 : 0.05;
+            if (Math.abs(diff) < limiar) {
+                el.innerHTML = `<span style="color:#888;">≈ na média do clã</span>`;
+            } else if (diff > 0) {
+                el.innerHTML = `<span style="color:#16a34a;">▲ ${diff.toFixed(casas)}${sufixo} acima da média</span>`;
+            } else {
+                el.innerHTML = `<span style="color:#dc2626;">▼ ${Math.abs(diff).toFixed(casas)}${sufixo} abaixo da média</span>`;
+            }
+        }
+
+        function renderStats(j, membroLocal, membros) {
+            const temGuerras = membroLocal && membroLocal.guerras > 0;
+            const mediaE = temGuerras ? (membroLocal.totalEstrelas / membroLocal.guerras) : null;
+            const mediaP = temGuerras ? ((membroLocal.totalDestruicao / membroLocal.guerras) / 2) : null;
+
+            document.getElementById('statMediaEstrelas').innerText = mediaE !== null ? `${mediaE.toFixed(2)} ★` : '--';
+            document.getElementById('statMediaPct').innerText      = mediaP !== null ? `${mediaP.toFixed(1)}%` : '--';
             document.getElementById('statGuerras').innerText       = membroLocal?.guerras ?? '--';
             document.getElementById('statTrofeus').innerText       = j.trophies?.toLocaleString('pt-BR') ?? '--';
             document.getElementById('statRecorde').innerText       = j.bestTrophies?.toLocaleString('pt-BR') ?? '--';
             document.getElementById('statDoacoes').innerText       = j.donations?.toLocaleString('pt-BR') ?? '--';
             document.getElementById('statWarStars').innerText      = j.warStars?.toLocaleString('pt-BR') ?? '--';
+
+            const mediaCla = calcularMediaCla(membros);
+            renderComparativo('compMediaEstrelas', mediaE, mediaCla?.mediaE, '★', 2);
+            renderComparativo('compMediaPct', mediaP, mediaCla?.mediaP, '%', 1);
+        }
+
+        // Compara a média da temporada em andamento com a última temporada
+        // fechada, e mostra um selo de tendência no cabeçalho.
+        function renderTendencia(membroLocal, participacoes) {
+            const badge = document.getElementById('perfilTendencia');
+            if (!membroLocal || membroLocal.guerras === 0 || !participacoes || participacoes.length === 0) {
+                badge.style.display = 'none';
+                return;
+            }
+            const mediaAtual = membroLocal.totalEstrelas / membroLocal.guerras;
+            const mediaAnterior = participacoes[0].mediaEstrelas;
+            const diff = mediaAtual - mediaAnterior;
+
+            let texto, bg;
+            if (diff > 0.05)       { texto = `📈 +${diff.toFixed(2)} vs mês passado`; bg = 'rgba(34,197,94,0.28)'; }
+            else if (diff < -0.05) { texto = `📉 ${diff.toFixed(2)} vs mês passado`;  bg = 'rgba(239,68,68,0.28)'; }
+            else                   { texto = `➖ Estável vs mês passado`;             bg = 'rgba(255,255,255,0.15)'; }
+
+            badge.innerText = texto;
+            badge.style.background = bg;
+            badge.style.display = 'inline-block';
         }
 
         function renderHerois(herois) {
@@ -657,11 +778,11 @@
             container.innerHTML = html || "<p style='opacity:0.6;'>Nenhuma tropa disponível</p>";
         }
 
-        function renderHistorico(tag, temporadas) {
-            if (!temporadas || temporadas.length === 0) return;
-
-            // Filtra temporadas onde o jogador aparece
-            const participacoes = temporadas
+        // Extrai as participações do jogador no histórico de temporadas
+        // fechadas, mais recente primeiro.
+        function extrairParticipacoes(tag, temporadas) {
+            if (!temporadas || temporadas.length === 0) return [];
+            return temporadas
                 .map(t => {
                     const entrada = t.snapshot?.find(p => p.tag === tag);
                     if (!entrada) return null;
@@ -669,8 +790,10 @@
                 })
                 .filter(Boolean)
                 .sort((a, b) => b.mes.localeCompare(a.mes));
+        }
 
-            if (participacoes.length === 0) return;
+        function renderHistorico(participacoes) {
+            if (!participacoes || participacoes.length === 0) return;
 
             // Gráfico
             const labels  = participacoes.map(p => {
@@ -679,47 +802,57 @@
             }).reverse();
             const valores = participacoes.map(p => p.mediaEstrelas).reverse();
 
-            document.getElementById('secaoGrafico').style.display = 'block';
+            // O gráfico depende do Chart.js vindo de um CDN externo — se essa
+            // biblioteca não carregar (conexão lenta, bloqueador etc.), isolamos
+            // a falha aqui pra não derrubar o resto da página (tabela, stats...).
+            try {
+                if (typeof Chart === 'undefined') throw new Error('Chart.js não carregou');
 
-            if (grafico) grafico.destroy();
-            grafico = new Chart(document.getElementById('graficoEvolucao'), {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Média de Estrelas',
-                        data: valores,
-                        borderColor: '#11032c',
-                        backgroundColor: 'rgba(17,3,44,0.08)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#f9d246',
-                        pointBorderColor: '#11032c',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { labels: { color: '#333', font: { family: 'Lexend' } } }
+                document.getElementById('secaoGrafico').style.display = 'block';
+
+                if (grafico) grafico.destroy();
+                grafico = new Chart(document.getElementById('graficoEvolucao'), {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Média de Estrelas',
+                            data: valores,
+                            borderColor: '#11032c',
+                            backgroundColor: 'rgba(17,3,44,0.08)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#f9d246',
+                            pointBorderColor: '#11032c',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            tension: 0.4,
+                            fill: true
+                        }]
                     },
-                    scales: {
-                        x: { ticks: { color: '#555', font: { family: 'Lexend' } }, grid: { color: 'rgba(0,0,0,0.06)' } },
-                        y: {
-                            min: 0, max: 6,
-                            ticks: { color: '#555', font: { family: 'Lexend' } },
-                            grid: { color: 'rgba(0,0,0,0.06)' }
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { labels: { color: '#333', font: { family: 'Lexend' } } }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#555', font: { family: 'Lexend' } }, grid: { color: 'rgba(0,0,0,0.06)' } },
+                            y: {
+                                min: 0, max: 6,
+                                ticks: { color: '#555', font: { family: 'Lexend' } },
+                                grid: { color: 'rgba(0,0,0,0.06)' }
+                            }
                         }
                     }
-                }
-            });
+                });
+            } catch (e) {
+                console.warn('Gráfico de evolução indisponível:', e.message);
+                document.getElementById('secaoGrafico').style.display = 'none';
+            }
 
             // Tabela de histórico
             const medalhas = ["🥇","🥈","🥉"];
             let html = "";
-            participacoes.forEach(p => {
+            participacoes.forEach((p, idx) => {
                 const [ano, mes] = p.mes.split('-');
                 const nomeTemporada = `${mesesNomes[mes]} ${ano}`;
                 const rankLabel = p.posicao <= 3 ? medalhas[p.posicao - 1] : `${p.posicao}º`;
@@ -729,6 +862,15 @@
                 else if (p.mediaEstrelas >= 4.0)  { statusTxt = "MÉDIA"; corStatus = "#f9d246"; }
                 else                              { statusTxt = "BAGRE"; corStatus = "#ef4444"; }
 
+                // Tendência: compara com a temporada anterior (mais antiga)
+                let tendencia = `<span style="color:#ccc;">–</span>`;
+                if (idx < participacoes.length - 1) {
+                    const diff = p.mediaEstrelas - participacoes[idx + 1].mediaEstrelas;
+                    if (diff > 0.05)      tendencia = `<span style="color:#16a34a;font-weight:800;">▲</span>`;
+                    else if (diff < -0.05) tendencia = `<span style="color:#dc2626;font-weight:800;">▼</span>`;
+                    else                    tendencia = `<span style="color:#999;">–</span>`;
+                }
+
                 html += `
                 <tr>
                     <td>${nomeTemporada}</td>
@@ -736,6 +878,7 @@
                     <td>⭐ ${p.mediaEstrelas.toFixed(2)}</td>
                     <td>${p.mediaPorcentagem.toFixed(1)}%</td>
                     <td>${p.guerras}</td>
+                    <td>${tendencia}</td>
                     <td><span style="background:${corStatus};color:#000;font-weight:800;padding:3px 10px;border-radius:20px;font-size:0.75rem;">${statusTxt}</span></td>
                 </tr>`;
             });
