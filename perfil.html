@@ -195,38 +195,44 @@
             animation: fadeInUp 0.5s ease;
         }
 
-        /* HERÓIS — cards brancos */
+        /* HERÓIS — cards brancos, em grid de 2 colunas pra ocupar menos altura */
+        #heroisList {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
         .heroi-card {
             background: #fff;
             border-radius: 14px;
-            padding: 16px 20px;
-            margin-bottom: 10px;
+            padding: 12px 16px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.07);
         }
         .heroi-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
         }
         .heroi-nome-wrap {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .heroi-icone {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             flex-shrink: 0;
             box-shadow: 0 3px 10px rgba(0,0,0,0.18);
         }
 
-        /* EQUIPAMENTOS */
+        /* EQUIPAMENTOS / TROPAS */
         .equip-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -237,6 +243,54 @@
             border-radius: 12px;
             padding: 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+
+        /* SEÇÕES RECOLHÍVEIS (Equipamentos / Tropas) — fechadas por padrão
+           pra reduzir o quanto a pessoa precisa rolar a tela */
+        .perfil-details {
+            margin: 28px 0 14px;
+        }
+        .perfil-details-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #11032c;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 14px 18px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            transition: box-shadow 0.2s;
+            list-style: none;
+        }
+        .perfil-details-summary::-webkit-details-marker { display: none; }
+        .perfil-details-summary:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.11);
+        }
+        .perfil-details-summary .contagem {
+            font-weight: 600;
+            color: #999;
+            text-transform: none;
+            letter-spacing: normal;
+            font-size: 0.78rem;
+            margin-left: 4px;
+        }
+        .perfil-details-summary .chevron {
+            transition: transform 0.25s ease;
+            color: #f9d246;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .perfil-details[open] .perfil-details-summary .chevron {
+            transform: rotate(180deg);
+        }
+        .perfil-details-conteudo {
+            margin-top: 14px;
         }
 
         /* TABELA HISTÓRICO */
@@ -434,14 +488,24 @@
 
             <!-- EQUIPAMENTOS -->
             <div class="perfil-section">
-                <h2>🛡️ Equipamentos Ativos</h2>
-                <div class="equip-grid" id="equipList"></div>
+                <details class="perfil-details" id="detalhesEquip">
+                    <summary class="perfil-details-summary">
+                        <span>🛡️ Equipamentos Ativos <span class="contagem" id="equipCount"></span></span>
+                        <span class="chevron">▼</span>
+                    </summary>
+                    <div class="equip-grid perfil-details-conteudo" id="equipList"></div>
+                </details>
             </div>
 
             <!-- TROPAS -->
             <div class="perfil-section">
-                <h2>🐺 Tropas</h2>
-                <div class="equip-grid" id="tropasList"></div>
+                <details class="perfil-details" id="detalhesTropas">
+                    <summary class="perfil-details-summary">
+                        <span>🐺 Tropas <span class="contagem" id="tropasCount"></span></span>
+                        <span class="chevron">▼</span>
+                    </summary>
+                    <div class="equip-grid perfil-details-conteudo" id="tropasList"></div>
+                </details>
             </div>
 
             <!-- GRÁFICO DE EVOLUÇÃO -->
@@ -854,11 +918,15 @@
 
         function renderEquipamentos(equipamentos) {
             const container = document.getElementById('equipList');
+            const contagem  = document.getElementById('equipCount');
 
             if (!equipamentos) { container.innerHTML = "<p style='opacity:0.6;'>Nenhum equipamento</p>"; return; }
 
+            const doJogador = equipamentos.filter(e => e.village === 'home');
+            contagem.innerText = `(${doJogador.length})`;
+
             let html = "";
-            equipamentos.filter(e => e.village === 'home').forEach(e => {
+            doJogador.forEach(e => {
                 const pct      = Math.round((e.level / e.maxLevel) * 100);
                 const raridade = e.maxLevel >= 27 ? '#f9d246' : e.maxLevel >= 18 ? '#a855f7' : '#64748b';
                 const nomePT   = traduzirEquipamento(e.name);
@@ -888,6 +956,7 @@
 
         function renderTropas(tropas) {
             const container = document.getElementById('tropasList');
+            const contagem  = document.getElementById('tropasCount');
 
             if (!tropas) { container.innerHTML = "<p style='opacity:0.6;'>Nenhuma tropa disponível</p>"; return; }
 
@@ -895,6 +964,8 @@
                 .filter(t => t.village === 'home' && t.level > 0 && !superTropas.has(t.name))
                 // Menos evoluídas primeiro — destaca o que vale mais a pena upar
                 .sort((a, b) => (a.level / a.maxLevel) - (b.level / b.maxLevel));
+
+            contagem.innerText = `(${doJogador.length})`;
 
             let html = "";
             doJogador.forEach(t => {
