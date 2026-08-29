@@ -231,7 +231,7 @@
         async function carregarDados() {
             try {
                 const resposta = await fetch(API_URL, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                    headers: {}
                 });
                 const membrosDoBanco = await resposta.json();
 
@@ -477,7 +477,7 @@
 
             try {
                 const resposta = await fetch(`${BACKEND_URL}/jogador/${encodeURIComponent(tag)}`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                    headers: {}
                 });
                 const data = await resposta.json();
 
@@ -516,7 +516,7 @@
             try {
                 const resposta = await fetch(`${BACKEND_URL}/sincronizar-guerra`, {
                     method: 'POST',
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                    headers: {}
                 });
                 const data = await resposta.json();
 
