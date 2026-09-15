@@ -6,11 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
     <title>Clash City BR - Desempenho de Guerra</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="config.js"></script>
 </head>
 
 <body>
@@ -18,7 +15,6 @@
     <nav>
         <a href="https://clashcitybr.github.io">Home</a>
         <a href="https://clashcitybr.github.io/liga">Liga</a>
-        <a href="historico.html">Historico</a>
     </nav>
 
     <header>
@@ -32,6 +28,27 @@
             <div class="mvp-card">
                 <span class="mvp-badge">🏆 MVP DA TEMPORADA</span>
                 <h2 id="mvpNome">--</h2>
+            </div>
+        </div>
+
+        <!-- BAGRE DO MÊS -->
+        <div class="mvp-container scroll-anim" id="bagreContainer" style="display:none;">
+            <div class="mvp-card" style="background: linear-gradient(135deg, #7f1d1d, #450a0a); border-color: #ef4444;">
+                <span class="mvp-badge" style="background:#ef4444; color:#fff;">🐟 BAGRE DO MÊS</span>
+                <h2 id="bagreNome" style="color:#fca5a5;">--</h2>
+                <p id="bagreStats" style="color:#ef4444; font-weight:600; font-size:0.85rem; margin-top:8px;">--</p>
+            </div>
+        </div>
+
+        <!-- FIX 4: Cards de estatísticas com IDs que o JS referenciava mas não existiam no HTML -->
+        <div class="stats-resumo scroll-anim">
+            <div class="stat-resumo-card">
+                <span class="stat-resumo-label">👥 Total de Membros</span>
+                <span class="stat-resumo-valor" id="totalMembros">--</span>
+            </div>
+            <div class="stat-resumo-card">
+                <span class="stat-resumo-label">⭐ Melhor da Temporada</span>
+                <span class="stat-resumo-valor" id="melhorPlayer">--</span>
             </div>
         </div>
 
@@ -114,10 +131,7 @@
                         </tr>
                     </tbody>
                 </table>
-
             </div>
-            <!-- CARDS MOBILE — visíveis só no celular -->
-            <div class="ranking-cards-mobile" id="rankingCardsMobile"></div>
 
             <p style="margin-top: 20px; font-size: 0.8rem; color: #666; text-align: center;">
                 * Dados atualizados automaticamente via Banco de Dados após cada guerra.
@@ -158,17 +172,14 @@
                             <span id="profTag" class="cv-tag">#000000</span>
                             <span id="profCV" class="cv-tag" style="margin-left:6px;">CV --</span>
                         </div>
-                        <span id="profNivel"
-                            style="background:var(--primary);color:#000;font-weight:800;padding:4px 10px;border-radius:20px;font-size:0.85rem;">Nível
-                            --</span>
+                        <span id="profNivel" style="background:var(--primary);color:#000;font-weight:800;padding:4px 10px;border-radius:20px;font-size:0.85rem;">Nível --</span>
                     </div>
                 </div>
 
                 <div class="modal-body">
 
                     <!-- STATS RESUMIDOS -->
-                    <div class="stats-grid"
-                        style="grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
+                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
                         <div class="stat-box">
                             ⭐ <span id="profEstrelas">--</span>
                             <p>Média Temporada</p>
@@ -187,10 +198,16 @@
                         </div>
                     </div>
 
+                    <!-- HERÓIS RESUMIDOS -->
+                    <h3 style="margin-bottom:10px;">👑 Heróis</h3>
+                    <div id="listaHerois" class="herois-container" style="margin-bottom:20px;"></div>
+
                     <!-- BOTÃO PERFIL COMPLETO -->
-                    <a id="linkPerfilCompleto" href="#" style="display:block; text-align:center; background:var(--primary); color:#000;
+                    <a id="linkPerfilCompleto" href="#"
+                        style="display:block; text-align:center; background:var(--primary); color:#000;
                                font-weight:800; font-size:1rem; padding:12px; border-radius:12px;
-                               text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'"
+                               text-decoration:none; transition:opacity 0.2s;"
+                        onmouseover="this.style.opacity='0.8'"
                         onmouseout="this.style.opacity='1'">
                         Ver Perfil Completo →
                     </a>
@@ -201,22 +218,29 @@
     </section>
 
     <!-- BOTÃO ADMIN DE SINCRONIZAÇÃO -->
-    <div style="position:fixed; bottom:20px; right:20px; z-index:999;">
-        <button id="btnSincronizar" onclick="sincronizarManual()" style="background:#11032c; border:2px solid var(--primary); color:var(--primary);
+    <div style="position:fixed; bottom:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+        <button id="btnNotificacao" onclick="toggleNotificacao()"
+            style="background:#11032c; border:2px solid #a855f7; color:#a855f7;
+                   font-family:Lexend; font-weight:700; font-size:0.85rem;
+                   padding:10px 16px; border-radius:50px; cursor:pointer;
+                   box-shadow:0 4px 15px rgba(0,0,0,0.4); transition:all 0.3s;">
+            🔔 Notificações
+        </button>
+        <button id="btnSincronizar" onclick="sincronizarManual()"
+            style="background:#11032c; border:2px solid var(--primary); color:var(--primary);
                    font-family:Lexend; font-weight:700; font-size:0.85rem;
                    padding:10px 16px; border-radius:50px; cursor:pointer;
                    box-shadow:0 4px 15px rgba(0,0,0,0.4); transition:all 0.3s;">
             🔄 Sincronizar
         </button>
-        <div id="msgSincronizar" style="display:none; margin-top:8px; text-align:center;
+        <div id="msgSincronizar" style="display:none; margin-top:4px; text-align:center;
              background:#1a1a2e; border-radius:10px; padding:6px 12px;
              font-size:0.8rem; font-weight:600;"></div>
     </div>
 
     <footer>
-        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
+        <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
     </footer>
-    <script>document.getElementById('ano-atual').textContent = new Date().getFullYear();</script>
 
     <script>
         // 1. CONFIGURAÇÕES E VARIÁVEIS GERAIS
@@ -225,13 +249,13 @@
         // FIX 1: ordemAtual agora começa como 'qtd' — consistente com o botão "Por Guerras" ativo no HTML
         let ordemAtual = 'qtd';
 
-        const API_URL = `${BACKEND_URL}/membros`;
+        const API_URL = "https://cork-dice-gala.ngrok-free.dev/membros";
 
         // 2. CARREGAMENTO DOS DADOS DO MONGODB
         async function carregarDados() {
             try {
                 const resposta = await fetch(API_URL, {
-                    headers: {'ngrok-skip-browser-warning': 'true'}
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const membrosDoBanco = await resposta.json();
 
@@ -248,7 +272,7 @@
                     return {
                         tag: m.tag,
                         nome: m.nome,
-                        cv: `${m.cv}`,
+                        cv: `CV ${m.cv}`,
                         status: m.status,
                         qtd: qtdGuerras,
                         mediaE: mediaEstrelas,
@@ -288,16 +312,7 @@
                 return matchesBusca && matchesCV;
             });
 
-            listaFiltrada.sort((a, b) => {
-                if (b[ordemAtual] !== a[ordemAtual]) return b[ordemAtual] - a[ordemAtual];
-                if (b.qtd !== a.qtd) return b.qtd - a.qtd;
-                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
-                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
-                const cvA = parseInt(a.cv.replace('CV ', ''));
-                const cvB = parseInt(b.cv.replace('CV ', ''));
-                return cvB - cvA;
-            });
-
+            listaFiltrada.sort((a, b) => b[ordemAtual] - a[ordemAtual]);
             renderizar(listaFiltrada);
         }
 
@@ -306,32 +321,26 @@
             const corpo = document.getElementById('corpoRanking');
             if (!corpo) return;
 
-            const dadosPodio = [...dados].sort((a, b) => {
-                if (b.qtd !== a.qtd) return b.qtd - a.qtd;
-                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
-                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
-                const cvA = parseInt(a.cv.replace('CV ', ''));
-                const cvB = parseInt(b.cv.replace('CV ', ''));
-                return cvB - cvA;
-            });
+            // Pódio sempre ordenado por média de estrelas, independente da aba ativa
+            const dadosPodio = [...dados].sort((a, b) => b.mediaE - a.mediaE);
 
             for (let i = 1; i <= 3; i++) {
                 const player = dadosPodio[i - 1];
                 const nomeEl = document.getElementById(`nomeRank${i}`);
-                const estEl = document.getElementById(`estrelasRank${i}`);
-                const perEl = document.getElementById(`percRank${i}`);
-                const gueEl = document.getElementById(`guerrasRank${i}`);
+                const estEl  = document.getElementById(`estrelasRank${i}`);
+                const perEl  = document.getElementById(`percRank${i}`);
+                const gueEl  = document.getElementById(`guerrasRank${i}`);
 
                 if (player) {
                     if (nomeEl) nomeEl.innerText = player.nome;
-                    if (estEl) estEl.innerText = `⭐ ${player.mediaE.toFixed(1)} ★`;
-                    if (perEl) perEl.innerText = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
-                    if (gueEl) gueEl.innerText = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
+                    if (estEl)  estEl.innerText  = `⭐ ${player.mediaE.toFixed(1)} ★`;
+                    if (perEl)  perEl.innerText  = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
+                    if (gueEl)  gueEl.innerText  = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
                 } else {
                     if (nomeEl) nomeEl.innerText = "--";
-                    if (estEl) estEl.innerText = "⭐ 0.0";
-                    if (perEl) perEl.innerText = "🎯 0%";
-                    if (gueEl) gueEl.innerText = "⚔️ 0";
+                    if (estEl)  estEl.innerText  = "⭐ 0.0";
+                    if (perEl)  perEl.innerText  = "🎯 0%";
+                    if (gueEl)  gueEl.innerText  = "⚔️ 0";
                 }
             }
 
@@ -344,21 +353,21 @@
             let htmlFinal = "";
 
             dados.forEach((p, i) => {
-                let statusTxt = "";
-                let corStatus = "";
+                let statusTxt   = "";
+                let corStatus   = "";
                 let statusClass = "";
 
                 if (p.mediaE >= 5.0) {
-                    statusTxt = "PRO";
-                    corStatus = "#22c55e";
+                    statusTxt   = "PRO";
+                    corStatus   = "#22c55e";
                     statusClass = "titular-badge";
                 } else if (p.mediaE >= 4.0) {
-                    statusTxt = "MÉDIA";
-                    corStatus = "#f9d246";
+                    statusTxt   = "MÉDIA";
+                    corStatus   = "#f9d246";
                     statusClass = "reserva-badge";
                 } else {
-                    statusTxt = "BAGRE";
-                    corStatus = "#ef4444";
+                    statusTxt   = "BAGRE";
+                    corStatus   = "#ef4444";
                     statusClass = "bagre-badge";
                 }
 
@@ -381,41 +390,6 @@
         <td><span class="${statusClass}" style="background: ${corStatus}; color: #000; font-weight: 800;">${statusTxt}</span></td>
     </tr>`;
             });
-            // CARDS MOBILE
-            const containerMobile = document.getElementById('rankingCardsMobile');
-            if (containerMobile) {
-                let htmlMobile = "";
-                dados.forEach((p, i) => {
-                    let corStatus, statusTxt;
-                    if (p.mediaE >= 5.0) { corStatus = "#22c55e"; statusTxt = "PRO"; }
-                    else if (p.mediaE >= 4.0) { corStatus = "#f9d246"; statusTxt = "MÉDIA"; }
-                    else { corStatus = "#ef4444"; statusTxt = "BAGRE"; }
-
-                    const medalhas = ["🥇", "🥈", "🥉"];
-                    const rankLabel = i < 3 ? medalhas[i] : `${i + 1}º`;
-
-                    htmlMobile += `
-        <div class="mobile-card" onclick="abrirPerfil('${p.tag}')">
-            <div class="mobile-rank">${rankLabel}</div>
-            <div class="mobile-info">
-                <div class="mobile-nome">${p.nome}</div>
-                <div class="mobile-stats">
-                    <span>${p.cv}</span>
-                    <span>⚔️ ${p.qtd}</span>
-                    <span>🎯 ${p.mediaP.toFixed(1)}%</span>
-                </div>
-            </div>
-            <div class="mobile-right">
-                <div class="mobile-estrelas">⭐ ${p.mediaE.toFixed(1)}</div>
-                <div class="mobile-barra">
-                    <div class="mobile-barra-fill" style="width:${(p.mediaE / 6) * 100}%;background:${corStatus};"></div>
-                </div>
-                <span class="mobile-status" style="background:${corStatus};">${statusTxt}</span>
-            </div>
-        </div>`;
-                });
-                containerMobile.innerHTML = htmlMobile;
-            }
 
             corpo.innerHTML = htmlFinal || "<tr><td colspan='7' style='text-align:center;'>Nenhum jogador encontrado.</td></tr>";
         }
@@ -428,13 +402,41 @@
 
             if (totalMembros) totalMembros.innerText = dados.length;
             if (melhorPlayer) {
-                const ordenado = [...dados].sort((a, b) => b.mediaE - a.mediaE);
+                const ordenado = [...dados].sort((a, b) => {
+                    if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+                    if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+                    return b.mediaP - a.mediaP;
+                });
                 melhorPlayer.innerText = ordenado[0] ? ordenado[0].nome : "--";
+            }
+
+            // BAGRE DO MÊS — pior média entre quem participou de pelo menos 50% das guerras
+            const maxGuerras = dados.length > 0 ? Math.max(...dados.map(p => p.qtd)) : 0;
+            const minimoGuerras = Math.max(1, Math.floor(maxGuerras * 0.5));
+
+            const candidatos = dados.filter(p => p.qtd >= minimoGuerras);
+
+            if (candidatos.length > 0) {
+                const bagre = candidatos.sort((a, b) => {
+                    if (a.mediaE !== b.mediaE) return a.mediaE - b.mediaE;
+                    return a.mediaP - b.mediaP;
+                })[0];
+
+                const bagreContainer = document.getElementById('bagreContainer');
+                const bagreNome = document.getElementById('bagreNome');
+                const bagreStats = document.getElementById('bagreStats');
+
+                if (bagreContainer && bagreNome && bagreStats) {
+                    bagreNome.innerText = bagre.nome;
+                    bagreStats.innerText = `⭐ ${bagre.mediaE.toFixed(1)} média • ⚔️ ${bagre.qtd} guerras • 🎯 ${bagre.mediaP.toFixed(1)}%`;
+                    bagreContainer.style.display = 'block';
+                }
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', () => {
             carregarDados();
+            iniciarNotificacoes();
 
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -461,11 +463,12 @@
             document.getElementById('profTrofeus').innerText = "--";
             document.getElementById('profGuerras').innerText = "--";
             document.getElementById('profWarStars').innerText = "--";
+            document.getElementById('listaHerois').innerHTML = "";
 
             // Link pro perfil completo
             const tagEncoded = encodeURIComponent(tag);
             document.getElementById('linkPerfilCompleto').href =
-                `https://clashcitybr.github.io/controle-cla/perfil.html?tag=${tagEncoded}`;
+                `https://clashcitybr.github.io/controle-cla/perfil?tag=${tagEncoded}`;
 
             // Dados do banco local
             const membroLocal = dadosGlobais.find(m => m.tag === tag);
@@ -476,15 +479,14 @@
             }
 
             try {
-                const resposta = await fetch(`${BACKEND_URL}/jogador/${encodeURIComponent(tag)}`, {
-                    headers: {'ngrok-skip-browser-warning': 'true'
-                    }
+                const resposta = await fetch(`https://cork-dice-gala.ngrok-free.dev/jogador/${tag}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await resposta.json();
 
-                document.getElementById('profNome').innerText = data.name || "Não encontrado";
-                document.getElementById('profTag').innerText = data.tag || tag;
-                document.getElementById('profCV').innerText = `CV ${data.townHallLevel ?? '--'}`;
+                document.getElementById('profNome').innerText  = data.name || "Não encontrado";
+                document.getElementById('profTag').innerText   = data.tag  || tag;
+                document.getElementById('profCV').innerText    = `CV ${data.townHallLevel ?? '--'}`;
                 document.getElementById('profNivel').innerText = `Nível ${data.expLevel ?? '--'}`;
                 document.getElementById('profTrofeus').innerText = data.trophies?.toLocaleString('pt-BR') ?? '--';
                 document.getElementById('profWarStars').innerText = data.warStars?.toLocaleString('pt-BR') ?? '--';
@@ -493,6 +495,35 @@
                     document.getElementById('profEstrelas').innerText = data.warStars ?? '--';
                     document.getElementById('profGuerras').innerText = '--';
                 }
+
+                // Heróis resumidos
+                const heroisPrincipais = ["Barbarian King", "Archer Queen", "Grand Warden", "Royal Champion"];
+                const emojisHerois = {
+                    "Barbarian King": "👑", "Archer Queen": "🏹",
+                    "Grand Warden": "📖", "Royal Champion": "🗡️"
+                };
+
+                let heroisHtml = "";
+                if (data.heroes) {
+                    data.heroes
+                        .filter(h => heroisPrincipais.includes(h.name))
+                        .forEach(h => {
+                            const pct = Math.round((h.level / h.maxLevel) * 100);
+                            const cor = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
+                            heroisHtml += `
+                            <div class="heroi-item" style="margin-bottom:8px;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                                    <span>${emojisHerois[h.name]} ${h.name}</span>
+                                    <strong style="color:${cor};">Nv ${h.level}/${h.maxLevel}</strong>
+                                </div>
+                                <div style="background:#333;border-radius:10px;height:5px;overflow:hidden;">
+                                    <div style="width:${pct}%;height:100%;background:${cor};border-radius:10px;"></div>
+                                </div>
+                            </div>`;
+                        });
+                }
+                document.getElementById('listaHerois').innerHTML = heroisHtml || "<p style='opacity:0.6;'>Nenhum herói</p>";
+
             } catch (e) {
                 document.getElementById('profNome').innerText = "Erro ao carregar perfil";
                 console.error("Falha ao consumir rota de perfil do jogador:", e);
@@ -502,6 +533,74 @@
         function fecharModal(event) {
             if (event.target.id === "modalPerfil") {
                 document.getElementById('modalPerfil').style.display = 'none';
+            }
+        }
+
+        // NOTIFICAÇÕES PUSH
+        let swRegistration = null;
+
+        async function iniciarNotificacoes() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+            try {
+                swRegistration = await navigator.serviceWorker.register('/controle-cla/sw.js');
+                const sub = await swRegistration.pushManager.getSubscription();
+                atualizarBotaoNotificacao(sub !== null);
+            } catch (err) {
+                console.error('Erro ao registrar Service Worker:', err);
+            }
+        }
+
+        function atualizarBotaoNotificacao(inscrito) {
+            const btn = document.getElementById('btnNotificacao');
+            if (!btn) return;
+            if (inscrito) {
+                btn.innerText = '🔕 Notificações ativas';
+                btn.style.borderColor = '#22c55e';
+                btn.style.color = '#22c55e';
+            } else {
+                btn.innerText = '🔔 Ativar Notificações';
+                btn.style.borderColor = '#a855f7';
+                btn.style.color = '#a855f7';
+            }
+        }
+
+        async function toggleNotificacao() {
+            if (!swRegistration) return;
+
+            const sub = await swRegistration.pushManager.getSubscription();
+
+            if (sub) {
+                // Desinscreve
+                await sub.unsubscribe();
+                await fetch(`${API_URL}/subscribe`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ endpoint: sub.endpoint })
+                });
+                atualizarBotaoNotificacao(false);
+            } else {
+                // Inscreve
+                const permissao = await Notification.requestPermission();
+                if (permissao !== 'granted') return;
+
+                const resp = await fetch(`${API_URL}/vapid-public-key`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const { publicKey } = await resp.json();
+
+                const novaSub = await swRegistration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: publicKey
+                });
+
+                await fetch(`${API_URL}/subscribe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify(novaSub)
+                });
+
+                atualizarBotaoNotificacao(true);
             }
         }
 
@@ -515,9 +614,9 @@
             msg.style.display = 'none';
 
             try {
-                const resposta = await fetch(`${BACKEND_URL}/sincronizar-guerra`, {
+                const resposta = await fetch('https://cork-dice-gala.ngrok-free.dev/sincronizar-guerra', {
                     method: 'POST',
-                    headers: {'ngrok-skip-browser-warning': 'true'}
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await resposta.json();
 
