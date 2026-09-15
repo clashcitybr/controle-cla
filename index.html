@@ -40,18 +40,6 @@
             </div>
         </div>
 
-        <!-- FIX 4: Cards de estatísticas com IDs que o JS referenciava mas não existiam no HTML -->
-        <div class="stats-resumo scroll-anim">
-            <div class="stat-resumo-card">
-                <span class="stat-resumo-label">👥 Total de Membros</span>
-                <span class="stat-resumo-valor" id="totalMembros">--</span>
-            </div>
-            <div class="stat-resumo-card">
-                <span class="stat-resumo-label">⭐ Melhor da Temporada</span>
-                <span class="stat-resumo-valor" id="melhorPlayer">--</span>
-            </div>
-        </div>
-
         <div class="podium-container scroll-anim">
             <div class="podium-card silver">
                 <div class="podium-rank-badge">2º</div>
@@ -417,10 +405,13 @@
             const candidatos = dados.filter(p => p.qtd >= minimoGuerras);
 
             if (candidatos.length > 0) {
-                const bagre = candidatos.sort((a, b) => {
-                    if (a.mediaE !== b.mediaE) return a.mediaE - b.mediaE;
-                    return a.mediaP - b.mediaP;
-                })[0];
+               const bagre = candidatos.sort((a, b) => {
+    if (a.mediaE !== b.mediaE) return a.mediaE - b.mediaE;
+    if (a.mediaP !== b.mediaP) return a.mediaP - b.mediaP;
+    const cvA = parseInt(a.cv.replace('CV ', ''));
+    const cvB = parseInt(b.cv.replace('CV ', ''));
+    return cvB - cvA; // CV maior tem mais vergonha em caso de empate
+})[0];
 
                 const bagreContainer = document.getElementById('bagreContainer');
                 const bagreNome = document.getElementById('bagreNome');
