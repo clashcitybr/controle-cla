@@ -528,15 +528,26 @@ footer {
 /* ============================================================
    RESPONSIVIDADE MOBILE
    ============================================================ */
-@media (max-width: 700px) {
+
+   @media (max-width: 750px) {
 
     .ranking-section {
         padding: 20px 3%;
     }
 
-    /* Esconde a tabela no mobile */
-    .table-container {
-        display: none;
+    /* Mostra os cards mobile */
+    .ranking-cards-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .ranking-section {
+        padding: 20px 3%;
     }
 
     /* Mostra os cards mobile */
