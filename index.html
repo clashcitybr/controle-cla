@@ -305,82 +305,104 @@
         }
 
         // 4. RENDERIZAÇÃO (PÓDIO E TABELA DINÂMICA)
+    
         function renderizar(dados) {
-            const corpo = document.getElementById('corpoRanking');
-            if (!corpo) return;
+    const corpo = document.getElementById('corpoRanking');
+    if (!corpo) return;
 
-            // Pódio sempre ordenado por média de estrelas, independente da aba ativa
-            const dadosPodio = [...dados].sort((a, b) => b.mediaE - a.mediaE);
+    const dadosPodio = [...dados].sort((a, b) => {
+        if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+        if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+        if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+        const cvA = parseInt(a.cv.replace('CV ', ''));
+        const cvB = parseInt(b.cv.replace('CV ', ''));
+        return cvB - cvA;
+    });
 
-            for (let i = 1; i <= 3; i++) {
-                const player = dadosPodio[i - 1];
-                const nomeEl = document.getElementById(`nomeRank${i}`);
-                const estEl  = document.getElementById(`estrelasRank${i}`);
-                const perEl  = document.getElementById(`percRank${i}`);
-                const gueEl  = document.getElementById(`guerrasRank${i}`);
+    for (let i = 1; i <= 3; i++) {
+        const player = dadosPodio[i - 1];
+        const nomeEl = document.getElementById(`nomeRank${i}`);
+        const estEl  = document.getElementById(`estrelasRank${i}`);
+        const perEl  = document.getElementById(`percRank${i}`);
+        const gueEl  = document.getElementById(`guerrasRank${i}`);
 
-                if (player) {
-                    if (nomeEl) nomeEl.innerText = player.nome;
-                    if (estEl)  estEl.innerText  = `⭐ ${player.mediaE.toFixed(1)} ★`;
-                    if (perEl)  perEl.innerText  = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
-                    if (gueEl)  gueEl.innerText  = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
-                } else {
-                    if (nomeEl) nomeEl.innerText = "--";
-                    if (estEl)  estEl.innerText  = "⭐ 0.0";
-                    if (perEl)  perEl.innerText  = "🎯 0%";
-                    if (gueEl)  gueEl.innerText  = "⚔️ 0";
-                }
-            }
-
-            const mvpNome = document.getElementById('mvpNome');
-            if (mvpNome) {
-                mvpNome.innerText = dadosPodio[0] ? dadosPodio[0].nome : "---";
-            }
-
-            // Construção da tabela
-            let htmlFinal = "";
-
-            dados.forEach((p, i) => {
-                let statusTxt   = "";
-                let corStatus   = "";
-                let statusClass = "";
-
-                if (p.mediaE >= 5.0) {
-                    statusTxt   = "PRO";
-                    corStatus   = "#22c55e";
-                    statusClass = "titular-badge";
-                } else if (p.mediaE >= 4.0) {
-                    statusTxt   = "MÉDIA";
-                    corStatus   = "#f9d246";
-                    statusClass = "reserva-badge";
-                } else {
-                    statusTxt   = "BAGRE";
-                    corStatus   = "#ef4444";
-                    statusClass = "bagre-badge";
-                }
-
-                const medalhas = ["🥇", "🥈", "🥉"];
-                const rankLabel = (i + 1) <= 3 ? medalhas[i] : (i + 1) + "º";
-
-                htmlFinal += `
-    <tr onclick="abrirPerfil('${p.tag}')" style="cursor: pointer;">
-        <td class="${(i + 1) <= 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
-        <td><strong>${p.nome}</strong></td>
-        <td>
-            <div style="font-weight: bold; margin-bottom: 2px;">⭐ ${p.mediaE.toFixed(1)}</div>
-            <div class="progresso-container">
-                <div class="progresso-barra" style="width: ${(p.mediaE / 6) * 100}%; background: ${corStatus};"></div>
-            </div>
-        </td>
-        <td>${p.mediaP.toFixed(1)}%</td>
-        <td><span class="cv-tag">${p.cv}</span></td>
-        <td>${p.qtd}</td>
-        <td><span class="${statusClass}" style="background: ${corStatus}; color: #000; font-weight: 800;">${statusTxt}</span></td>
-    </tr>`;
-            });
-
-            corpo.innerHTML = htmlFinal || "<tr><td colspan='7' style='text-align:center;'>Nenhum jogador encontrado.</td></tr>";
+        if (player) {
+            if (nomeEl) nomeEl.innerText = player.nome;
+            if (estEl)  estEl.innerText  = `⭐ ${player.mediaE.toFixed(1)} ★`;
+            if (perEl)  perEl.innerText  = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
+            if (gueEl)  gueEl.innerText  = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
+        } else {
+            if (nomeEl) nomeEl.innerText = "--";
+            if (estEl)  estEl.innerText  = "⭐ 0.0";
+            if (perEl)  perEl.innerText  = "🎯 0%";
+            if (gueEl)  gueEl.innerText  = "⚔️ 0";
         }
+    }
+
+    const mvpNome = document.getElementById('mvpNome');
+    if (mvpNome) mvpNome.innerText = dadosPodio[0] ? dadosPodio[0].nome : "---";
+
+    let htmlFinal = "";
+    let htmlMobile = "";
+
+    dados.forEach((p, i) => {
+        let statusTxt, corStatus, statusClass;
+
+        if (p.mediaE >= 5.0) {
+            statusTxt = "PRO"; corStatus = "#22c55e"; statusClass = "titular-badge";
+        } else if (p.mediaE >= 4.0) {
+            statusTxt = "MÉDIA"; corStatus = "#f9d246"; statusClass = "reserva-badge";
+        } else {
+            statusTxt = "BAGRE"; corStatus = "#ef4444"; statusClass = "bagre-badge";
+        }
+
+        const medalhas = ["🥇", "🥈", "🥉"];
+        const rankLabel = (i + 1) <= 3 ? medalhas[i] : (i + 1) + "º";
+
+        // TABELA DESKTOP
+        htmlFinal += `
+        <tr onclick="abrirPerfil('${p.tag}')" style="cursor: pointer;">
+            <td class="${(i + 1) <= 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
+            <td><strong>${p.nome}</strong></td>
+            <td>
+                <div style="font-weight: bold; margin-bottom: 2px;">⭐ ${p.mediaE.toFixed(1)}</div>
+                <div class="progresso-container">
+                    <div class="progresso-barra" style="width: ${(p.mediaE / 6) * 100}%; background: ${corStatus};"></div>
+                </div>
+            </td>
+            <td>${p.mediaP.toFixed(1)}%</td>
+            <td><span class="cv-tag">${p.cv}</span></td>
+            <td>${p.qtd}</td>
+            <td><span class="${statusClass}" style="background: ${corStatus}; color: #000; font-weight: 800;">${statusTxt}</span></td>
+        </tr>`;
+
+        // CARDS MOBILE
+        htmlMobile += `
+        <div class="mobile-card" onclick="abrirPerfil('${p.tag}')">
+            <div class="mobile-rank">${rankLabel}</div>
+            <div class="mobile-info">
+                <div class="mobile-nome">${p.nome}</div>
+                <div class="mobile-stats">
+                    <span>${p.cv}</span>
+                    <span>⚔️ ${p.qtd}</span>
+                    <span>🎯 ${p.mediaP.toFixed(1)}%</span>
+                </div>
+            </div>
+            <div class="mobile-right">
+                <div class="mobile-estrelas">⭐ ${p.mediaE.toFixed(1)}</div>
+                <div class="mobile-barra">
+                    <div class="mobile-barra-fill" style="width:${(p.mediaE/6)*100}%;background:${corStatus};"></div>
+                </div>
+                <span class="mobile-status" style="background:${corStatus};">${statusTxt}</span>
+            </div>
+        </div>`;
+    });
+
+    corpo.innerHTML = htmlFinal || "<tr><td colspan='7' style='text-align:center;'>Nenhum jogador encontrado.</td></tr>";
+
+    const containerMobile = document.getElementById('rankingCardsMobile');
+    if (containerMobile) containerMobile.innerHTML = htmlMobile;
+}
 
         // 5. FUNÇÕES AUXILIARES
         // FIX 4: IDs totalMembros e melhorPlayer agora existem no HTML — essa função passa a funcionar
