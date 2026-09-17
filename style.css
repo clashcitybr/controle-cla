@@ -709,6 +709,55 @@ footer {
         font-size: 0.72rem;
     }
 }
+
+@media (max-width: 800px) {
+    table {
+        font-size: 0.62rem !important;
+        min-width: unset !important;
+    }
+
+    td, th {
+        padding: 5px 3px !important;
+    }
+
+    td strong {
+        font-size: 0.62rem !important;
+    }
+
+    .cv-tag {
+        font-size: 0.55rem !important;
+        padding: 1px 4px !important;
+    }
+
+    .titular-badge, .reserva-badge, .bagre-badge {
+        font-size: 0.52rem !important;
+        padding: 2px 4px !important;
+    }
+
+    .progresso-container {
+        width: 35px !important;
+        height: 4px !important;
+    }
+
+    .ranking-card {
+        padding: 12px !important;
+    }
+
+    .ranking-section {
+        padding: 15px 2% !important;
+    }
+    .rank-number, .top-3 {
+    font-size: 0.62rem !important;
+}
+
+/* Junta a estrela com o número */
+td:nth-child(3) div:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.62rem !important;
+}
+}
 @media (max-width: 1000px) {
     table {
         font-size: 0.75rem;
