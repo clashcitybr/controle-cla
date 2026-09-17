@@ -28,6 +28,7 @@
             <div class="mvp-card">
                 <span class="mvp-badge">🏆 MVP DA TEMPORADA</span>
                 <h2 id="mvpNome">--</h2>
+                <p id="mvpStats" style="color: var(--primary); font-weight: 600; font-size: 0.85rem; margin-top: 6px;">--</p>
             </div>
         </div>
 
@@ -160,14 +161,17 @@
                             <span id="profTag" class="cv-tag">#000000</span>
                             <span id="profCV" class="cv-tag" style="margin-left:6px;">CV --</span>
                         </div>
-                        <span id="profNivel" style="background:var(--primary);color:#000;font-weight:800;padding:4px 10px;border-radius:20px;font-size:0.85rem;">Nível --</span>
+                        <span id="profNivel"
+                            style="background:var(--primary);color:#000;font-weight:800;padding:4px 10px;border-radius:20px;font-size:0.85rem;">Nível
+                            --</span>
                     </div>
                 </div>
 
                 <div class="modal-body">
 
                     <!-- STATS RESUMIDOS -->
-                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
+                    <div class="stats-grid"
+                        style="grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
                         <div class="stat-box">
                             ⭐ <span id="profEstrelas">--</span>
                             <p>Média Temporada</p>
@@ -191,11 +195,9 @@
                     <div id="listaHerois" class="herois-container" style="margin-bottom:20px;"></div>
 
                     <!-- BOTÃO PERFIL COMPLETO -->
-                    <a id="linkPerfilCompleto" href="#"
-                        style="display:block; text-align:center; background:var(--primary); color:#000;
+                    <a id="linkPerfilCompleto" href="#" style="display:block; text-align:center; background:var(--primary); color:#000;
                                font-weight:800; font-size:1rem; padding:12px; border-radius:12px;
-                               text-decoration:none; transition:opacity 0.2s;"
-                        onmouseover="this.style.opacity='0.8'"
+                               text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'"
                         onmouseout="this.style.opacity='1'">
                         Ver Perfil Completo →
                     </a>
@@ -204,27 +206,6 @@
             </div>
         </div>
     </section>
-
-    <!-- BOTÃO ADMIN DE SINCRONIZAÇÃO -->
-    <div style="position:fixed; bottom:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-        <button id="btnNotificacao" onclick="toggleNotificacao()"
-            style="background:#11032c; border:2px solid #a855f7; color:#a855f7;
-                   font-family:Lexend; font-weight:700; font-size:0.85rem;
-                   padding:10px 16px; border-radius:50px; cursor:pointer;
-                   box-shadow:0 4px 15px rgba(0,0,0,0.4); transition:all 0.3s;">
-            🔔 Notificações
-        </button>
-        <button id="btnSincronizar" onclick="sincronizarManual()"
-            style="background:#11032c; border:2px solid var(--primary); color:var(--primary);
-                   font-family:Lexend; font-weight:700; font-size:0.85rem;
-                   padding:10px 16px; border-radius:50px; cursor:pointer;
-                   box-shadow:0 4px 15px rgba(0,0,0,0.4); transition:all 0.3s;">
-            🔄 Sincronizar
-        </button>
-        <div id="msgSincronizar" style="display:none; margin-top:4px; text-align:center;
-             background:#1a1a2e; border-radius:10px; padding:6px 12px;
-             font-size:0.8rem; font-weight:600;"></div>
-    </div>
 
     <footer>
         <p>© 2026 Clash City BR - Sistema de Gestão de Guerra</p>
@@ -305,62 +286,67 @@
         }
 
         // 4. RENDERIZAÇÃO (PÓDIO E TABELA DINÂMICA)
-    
+
         function renderizar(dados) {
-    const corpo = document.getElementById('corpoRanking');
-    if (!corpo) return;
+            const corpo = document.getElementById('corpoRanking');
+            if (!corpo) return;
 
-    const dadosPodio = [...dados].sort((a, b) => {
-        if (b.qtd !== a.qtd) return b.qtd - a.qtd;
-        if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
-        if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
-        const cvA = parseInt(a.cv.replace('CV ', ''));
-        const cvB = parseInt(b.cv.replace('CV ', ''));
-        return cvB - cvA;
-    });
+            const dadosPodio = [...dados].sort((a, b) => {
+                if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+                const cvA = parseInt(a.cv.replace('CV ', ''));
+                const cvB = parseInt(b.cv.replace('CV ', ''));
+                return cvB - cvA;
+            });
 
-    for (let i = 1; i <= 3; i++) {
-        const player = dadosPodio[i - 1];
-        const nomeEl = document.getElementById(`nomeRank${i}`);
-        const estEl  = document.getElementById(`estrelasRank${i}`);
-        const perEl  = document.getElementById(`percRank${i}`);
-        const gueEl  = document.getElementById(`guerrasRank${i}`);
+            for (let i = 1; i <= 3; i++) {
+                const player = dadosPodio[i - 1];
+                const nomeEl = document.getElementById(`nomeRank${i}`);
+                const estEl = document.getElementById(`estrelasRank${i}`);
+                const perEl = document.getElementById(`percRank${i}`);
+                const gueEl = document.getElementById(`guerrasRank${i}`);
 
-        if (player) {
-            if (nomeEl) nomeEl.innerText = player.nome;
-            if (estEl)  estEl.innerText  = `⭐ ${player.mediaE.toFixed(1)} ★`;
-            if (perEl)  perEl.innerText  = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
-            if (gueEl)  gueEl.innerText  = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
-        } else {
-            if (nomeEl) nomeEl.innerText = "--";
-            if (estEl)  estEl.innerText  = "⭐ 0.0";
-            if (perEl)  perEl.innerText  = "🎯 0%";
-            if (gueEl)  gueEl.innerText  = "⚔️ 0";
-        }
-    }
+                if (player) {
+                    if (nomeEl) nomeEl.innerText = player.nome;
+                    if (estEl) estEl.innerText = `⭐ ${player.mediaE.toFixed(1)} ★`;
+                    if (perEl) perEl.innerText = `🎯 Média: ${player.mediaP.toFixed(1)}%`;
+                    if (gueEl) gueEl.innerText = `🏰 ${player.cv} • ⚔️ ${player.qtd}`;
+                } else {
+                    if (nomeEl) nomeEl.innerText = "--";
+                    if (estEl) estEl.innerText = "⭐ 0.0";
+                    if (perEl) perEl.innerText = "🎯 0%";
+                    if (gueEl) gueEl.innerText = "⚔️ 0";
+                }
+            }
 
-    const mvpNome = document.getElementById('mvpNome');
-    if (mvpNome) mvpNome.innerText = dadosPodio[0] ? dadosPodio[0].nome : "---";
+            const mvpNome = document.getElementById('mvpNome');
+            const mvpStats = document.getElementById('mvpStats');
+            if (dadosPodio[0]) {
+                if (mvpNome) mvpNome.innerText = dadosPodio[0].nome;
+                if (mvpStats) mvpStats.innerText = `⭐ ${dadosPodio[0].mediaE.toFixed(1)} • ⚔️ ${dadosPodio[0].qtd} guerras • 🎯 ${dadosPodio[0].mediaP.toFixed(1)}%`;
+            } else {
+                if (mvpNome) mvpNome.innerText = "---";
+            }
+            let htmlFinal = "";
+            let htmlMobile = "";
 
-    let htmlFinal = "";
-    let htmlMobile = "";
+            dados.forEach((p, i) => {
+                let statusTxt, corStatus, statusClass;
 
-    dados.forEach((p, i) => {
-        let statusTxt, corStatus, statusClass;
+                if (p.mediaE >= 5.0) {
+                    statusTxt = "PRO"; corStatus = "#22c55e"; statusClass = "titular-badge";
+                } else if (p.mediaE >= 4.0) {
+                    statusTxt = "MÉDIA"; corStatus = "#f9d246"; statusClass = "reserva-badge";
+                } else {
+                    statusTxt = "BAGRE"; corStatus = "#ef4444"; statusClass = "bagre-badge";
+                }
 
-        if (p.mediaE >= 5.0) {
-            statusTxt = "PRO"; corStatus = "#22c55e"; statusClass = "titular-badge";
-        } else if (p.mediaE >= 4.0) {
-            statusTxt = "MÉDIA"; corStatus = "#f9d246"; statusClass = "reserva-badge";
-        } else {
-            statusTxt = "BAGRE"; corStatus = "#ef4444"; statusClass = "bagre-badge";
-        }
+                const medalhas = ["🥇", "🥈", "🥉"];
+                const rankLabel = (i + 1) <= 3 ? medalhas[i] : (i + 1) + "º";
 
-        const medalhas = ["🥇", "🥈", "🥉"];
-        const rankLabel = (i + 1) <= 3 ? medalhas[i] : (i + 1) + "º";
-
-        // TABELA DESKTOP
-        htmlFinal += `
+                // TABELA DESKTOP
+                htmlFinal += `
         <tr onclick="abrirPerfil('${p.tag}')" style="cursor: pointer;">
             <td class="${(i + 1) <= 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
             <td><strong>${p.nome}</strong></td>
@@ -376,8 +362,8 @@
             <td><span class="${statusClass}" style="background: ${corStatus}; color: #000; font-weight: 800;">${statusTxt}</span></td>
         </tr>`;
 
-        // CARDS MOBILE
-        htmlMobile += `
+                // CARDS MOBILE
+                htmlMobile += `
         <div class="mobile-card" onclick="abrirPerfil('${p.tag}')">
             <div class="mobile-rank">${rankLabel}</div>
             <div class="mobile-info">
@@ -391,18 +377,18 @@
             <div class="mobile-right">
                 <div class="mobile-estrelas">⭐ ${p.mediaE.toFixed(1)}</div>
                 <div class="mobile-barra">
-                    <div class="mobile-barra-fill" style="width:${(p.mediaE/6)*100}%;background:${corStatus};"></div>
+                    <div class="mobile-barra-fill" style="width:${(p.mediaE / 6) * 100}%;background:${corStatus};"></div>
                 </div>
                 <span class="mobile-status" style="background:${corStatus};">${statusTxt}</span>
             </div>
         </div>`;
-    });
+            });
 
-    corpo.innerHTML = htmlFinal || "<tr><td colspan='7' style='text-align:center;'>Nenhum jogador encontrado.</td></tr>";
+            corpo.innerHTML = htmlFinal || "<tr><td colspan='7' style='text-align:center;'>Nenhum jogador encontrado.</td></tr>";
 
-    const containerMobile = document.getElementById('rankingCardsMobile');
-    if (containerMobile) containerMobile.innerHTML = htmlMobile;
-}
+            const containerMobile = document.getElementById('rankingCardsMobile');
+            if (containerMobile) containerMobile.innerHTML = htmlMobile;
+        }
 
         // 5. FUNÇÕES AUXILIARES
         // FIX 4: IDs totalMembros e melhorPlayer agora existem no HTML — essa função passa a funcionar
@@ -427,13 +413,13 @@
             const candidatos = dados.filter(p => p.qtd >= minimoGuerras);
 
             if (candidatos.length > 0) {
-               const bagre = candidatos.sort((a, b) => {
-    if (a.mediaE !== b.mediaE) return a.mediaE - b.mediaE;
-    if (a.mediaP !== b.mediaP) return a.mediaP - b.mediaP;
-    const cvA = parseInt(a.cv.replace('CV ', ''));
-    const cvB = parseInt(b.cv.replace('CV ', ''));
-    return cvB - cvA; // CV maior tem mais vergonha em caso de empate
-})[0];
+                const bagre = candidatos.sort((a, b) => {
+                    if (a.mediaE !== b.mediaE) return a.mediaE - b.mediaE;
+                    if (a.mediaP !== b.mediaP) return a.mediaP - b.mediaP;
+                    const cvA = parseInt(a.cv.replace('CV ', ''));
+                    const cvB = parseInt(b.cv.replace('CV ', ''));
+                    return cvB - cvA; // CV maior tem mais vergonha em caso de empate
+                })[0];
 
                 const bagreContainer = document.getElementById('bagreContainer');
                 const bagreNome = document.getElementById('bagreNome');
@@ -497,9 +483,9 @@
                 });
                 const data = await resposta.json();
 
-                document.getElementById('profNome').innerText  = data.name || "Não encontrado";
-                document.getElementById('profTag').innerText   = data.tag  || tag;
-                document.getElementById('profCV').innerText    = `CV ${data.townHallLevel ?? '--'}`;
+                document.getElementById('profNome').innerText = data.name || "Não encontrado";
+                document.getElementById('profTag').innerText = data.tag || tag;
+                document.getElementById('profCV').innerText = `CV ${data.townHallLevel ?? '--'}`;
                 document.getElementById('profNivel').innerText = `Nível ${data.expLevel ?? '--'}`;
                 document.getElementById('profTrofeus').innerText = data.trophies?.toLocaleString('pt-BR') ?? '--';
                 document.getElementById('profWarStars').innerText = data.warStars?.toLocaleString('pt-BR') ?? '--';
