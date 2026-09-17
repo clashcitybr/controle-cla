@@ -716,6 +716,15 @@ footer {
         min-width: unset !important;
     }
 
+th {
+    font-size: 0.62rem !important;
+}
+
+td:nth-child(4),
+td:nth-child(6) {
+    font-size: 0.62rem !important;
+}
+
     td, th {
         padding: 5px 3px !important;
     }
