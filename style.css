@@ -710,7 +710,7 @@ footer {
     }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1000px) {
     table {
         font-size: 0.62rem !important;
         min-width: unset !important;
