@@ -28,7 +28,8 @@
             <div class="mvp-card">
                 <span class="mvp-badge">🏆 MVP DA TEMPORADA</span>
                 <h2 id="mvpNome">--</h2>
-                <p id="mvpStats" style="color: var(--primary); font-weight: 600; font-size: 0.85rem; margin-top: 6px;">--</p>
+                <p id="mvpStats" style="color: var(--primary); font-weight: 600; font-size: 0.85rem; margin-top: 6px;">
+                    --</p>
             </div>
         </div>
 
@@ -276,9 +277,17 @@
                 const matchesCV = cvSelecionado === "todos" || p.cv.includes(cvSelecionado);
                 return matchesBusca && matchesCV;
             });
-
-            listaFiltrada.sort((a, b) => b[ordemAtual] - a[ordemAtual]);
+            listaFiltrada.sort((a, b) => {
+                if (b[ordemAtual] !== a[ordemAtual]) return b[ordemAtual] - a[ordemAtual];
+                if (b.qtd !== a.qtd) return b.qtd - a.qtd;
+                if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
+                if (b.mediaP !== a.mediaP) return b.mediaP - a.mediaP;
+                const cvA = parseInt(a.cv.replace('CV ', ''));
+                const cvB = parseInt(b.cv.replace('CV ', ''));
+                return cvB - cvA;
+            });
             renderizar(listaFiltrada);
+
         }
 
         // 4. RENDERIZAÇÃO (PÓDIO E TABELA DINÂMICA)
@@ -515,13 +524,13 @@
                                 </div>
                             </div>`;
                         });
-                    }
-                
+                }
+
 
             } catch (e) {
-    console.error("Falha ao consumir rota de perfil do jogador:", e);
-    // Não sobrescreve o nome — mantém o que já foi carregado do banco local
-}
+                console.error("Falha ao consumir rota de perfil do jogador:", e);
+                // Não sobrescreve o nome — mantém o que já foi carregado do banco local
+            }
         }
 
         function fecharModal(event) {
