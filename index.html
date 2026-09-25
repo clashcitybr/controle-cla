@@ -190,10 +190,6 @@
                         </div>
                     </div>
 
-                    <!-- HERÓIS RESUMIDOS -->
-                    <h3 style="margin-bottom:10px;">👑 Heróis</h3>
-                    <div id="listaHerois" class="herois-container" style="margin-bottom:20px;"></div>
-
                     <!-- BOTÃO PERFIL COMPLETO -->
                     <a id="linkPerfilCompleto" href="#" style="display:block; text-align:center; background:var(--primary); color:#000;
                                font-weight:800; font-size:1rem; padding:12px; border-radius:12px;
@@ -524,9 +520,9 @@
                 document.getElementById('listaHerois').innerHTML = heroisHtml || "<p style='opacity:0.6;'>Nenhum herói</p>";
 
             } catch (e) {
-                document.getElementById('profNome').innerText = "Erro ao carregar perfil";
-                console.error("Falha ao consumir rota de perfil do jogador:", e);
-            }
+    console.error("Falha ao consumir rota de perfil do jogador:", e);
+    // Não sobrescreve o nome — mantém o que já foi carregado do banco local
+}
         }
 
         function fecharModal(event) {
