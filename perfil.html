@@ -325,6 +325,15 @@
             margin-bottom: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.07);
         }
+        /* Altura fixa: o Chart.js ocupa o wrapper (maintainAspectRatio: false) */
+        .chart-wrap {
+            position: relative;
+            height: 300px;
+        }
+        @media (max-width: 600px) {
+            .chart-container { padding: 14px 10px 10px; }
+            .chart-wrap { height: 230px; }
+        }
 
         /* BOTÃO COMPARTILHAR */
         .btn-compartilhar {
@@ -512,7 +521,10 @@
             <div class="perfil-section" id="secaoGrafico" style="display:none;">
                 <h2>📈 Evolução por Temporada</h2>
                 <div class="chart-container">
-                    <canvas id="graficoEvolucao" height="100"></canvas>
+                    <div class="chart-wrap"><canvas id="graficoEvolucao"></canvas></div>
+                    <p id="graficoAviso" style="display:none; text-align:center; font-size:0.8rem; color:#666; margin-top:8px;">
+                        Só há 1 temporada arquivada com este jogador — a linha de evolução aparece a partir da 2ª.
+                    </p>
                 </div>
             </div>
 
@@ -718,11 +730,12 @@
                 document.title = `Clash City BR - ${jogador.name}`;
 
                 // Dados do banco local
-                const membroLocal = membros.find(m => m.tag === tag);
+                const membroLocal = membros.find(m => normalizarTag(m.tag) === normalizarTag(tag));
                 ultimoJogador = jogador;
                 ultimoMembroLocal = membroLocal;
 
-                const participacoes = extrairParticipacoes(tag, historico);
+                const participacoes = extrairParticipacoes(tag, historico, jogador.name);
+                console.info(`[perfil] temporadas no histórico: ${Array.isArray(historico) ? historico.length : 0} · com este jogador: ${participacoes.length}`);
 
                 renderCabecalho(jogador);
                 renderStats(jogador, membroLocal, membros);
@@ -987,11 +1000,32 @@
 
         // Extrai as participações do jogador no histórico de temporadas
         // fechadas, mais recente primeiro.
-        function extrairParticipacoes(tag, temporadas) {
-            if (!temporadas || temporadas.length === 0) return [];
+        // Tags podem chegar em formatos diferentes ("#abc", "ABC", "%23ABC"),
+        // e snapshots antigos podem ter sido salvos sem o campo tag.
+        function normalizarTag(t) {
+            if (!t) return '';
+            let v = String(t);
+            try { v = decodeURIComponent(v); } catch (_) {}
+            return v.trim().toUpperCase().replace(/^#/, '');
+        }
+
+        function normalizarNome(n) {
+            return (n || '').normalize('NFC').trim().toLowerCase();
+        }
+
+        function extrairParticipacoes(tag, temporadas, nome) {
+            if (!Array.isArray(temporadas) || temporadas.length === 0) return [];
+            const tagAlvo = normalizarTag(tag);
+            const nomeAlvo = normalizarNome(nome);
             return temporadas
                 .map(t => {
-                    const entrada = t.snapshot?.find(p => p.tag === tag);
+                    const lista = t.snapshot || [];
+                    // 1º: casa pela tag (formato normalizado)
+                    let entrada = lista.find(p => p.tag && normalizarTag(p.tag) === tagAlvo);
+                    // 2º: snapshot sem tag → casa pelo nome
+                    if (!entrada && nomeAlvo) {
+                        entrada = lista.find(p => !p.tag && normalizarNome(p.nome) === nomeAlvo);
+                    }
                     if (!entrada) return null;
                     return { mes: t.mes, ...entrada };
                 })
@@ -1016,8 +1050,11 @@
                 if (typeof Chart === 'undefined') throw new Error('Chart.js não carregou');
 
                 document.getElementById('secaoGrafico').style.display = 'block';
+                document.getElementById('graficoAviso').style.display = valores.length < 2 ? 'block' : 'none';
 
                 if (grafico) grafico.destroy();
+                const mobile = window.matchMedia('(max-width: 600px)').matches;
+                const fonte = { family: 'Lexend', size: mobile ? 10 : 12 };
                 grafico = new Chart(document.getElementById('graficoEvolucao'), {
                     type: 'line',
                     data: {
@@ -1031,21 +1068,44 @@
                             pointBackgroundColor: '#f9d246',
                             pointBorderColor: '#11032c',
                             pointBorderWidth: 2,
-                            pointRadius: 6,
+                            pointRadius: mobile ? 4 : 6,
+                            pointHoverRadius: mobile ? 6 : 8,
                             tension: 0.4,
                             fill: true
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
+                        layout: { padding: { top: 8, right: mobile ? 6 : 12 } },
+                        interaction: { mode: 'index', intersect: false },
                         plugins: {
-                            legend: { labels: { color: '#333', font: { family: 'Lexend' } } }
+                            // O título da seção já diz o que é — a legenda só ocupava espaço
+                            legend: { display: false },
+                            tooltip: {
+                                titleFont: fonte, bodyFont: fonte,
+                                callbacks: { label: c => ` ${c.parsed.y.toFixed(1)} ★ de média` }
+                            }
                         },
                         scales: {
-                            x: { ticks: { color: '#555', font: { family: 'Lexend' } }, grid: { color: 'rgba(0,0,0,0.06)' } },
+                            x: {
+                                ticks: {
+                                    color: '#555', font: fonte,
+                                    maxRotation: 0, autoSkip: true,
+                                    maxTicksLimit: mobile ? 4 : 12,
+                                    // "Setembro 2026" → "Set/26" no celular
+                                    callback: function (v) {
+                                        const t = this.getLabelForValue(v);
+                                        if (!mobile) return t;
+                                        const [m, a] = t.split(' ');
+                                        return `${m.slice(0, 3)}/${(a || '').slice(2)}`;
+                                    }
+                                },
+                                grid: { display: false }
+                            },
                             y: {
                                 min: 0, max: 6,
-                                ticks: { color: '#555', font: { family: 'Lexend' } },
+                                ticks: { color: '#555', font: fonte, stepSize: mobile ? 2 : 1, callback: v => v + '★' },
                                 grid: { color: 'rgba(0,0,0,0.06)' }
                             }
                         }
