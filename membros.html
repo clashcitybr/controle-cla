@@ -343,7 +343,7 @@
                 <select id="ordenarMembros" onchange="renderizarMembros()">
                     <option value="cargo">Ordenar: Cargo</option>
                     <option value="cv">Ordenar: Centro de Vila</option>
-                    <option value="trofeus">Ordenar: Troféus</option>
+                    <option value="doacoes">Ordenar: Doações</option>
                     <option value="nome">Ordenar: Nome</option>
                 </select>
             </div>
@@ -433,7 +433,7 @@
                             nome: m.nome,
                             cv: m.cv,
                             cargo: m.cargo || null,
-                            trofeus: typeof m.trofeus === 'number' ? m.trofeus : null,
+                            doacoes: typeof m.doacoes === 'number' ? m.doacoes : null,
                             guerras,
                             mediaE: guerras > 0 ? b.totalEstrelas / guerras : 0
                         };
@@ -456,7 +456,7 @@
                 if (!todos.some(m => m.cargo)) {
                     const sel = document.getElementById('ordenarMembros');
                     sel.querySelector('option[value="cargo"]').remove();
-                    sel.querySelector('option[value="trofeus"]').remove();
+                    sel.querySelector('option[value="doacoes"]').remove();
                     sel.value = 'cv';
                 }
 
@@ -521,7 +521,7 @@
             const cargo = CARGOS[m.cargo];
             const detalhes = [
                 mostrarCargo && cargo ? `<span class="cargo-txt">${cargo.nome}</span>` : '',
-                m.trofeus ? `<span>🏆 ${m.trofeus.toLocaleString('pt-BR')}</span>` : '',
+                m.doacoes ? `<span title="Tropas doadas na temporada">🎁 ${m.doacoes.toLocaleString('pt-BR')} doadas</span>` : '',
                 m.guerras > 0 ? `<span>⚔️ ${m.guerras} ${m.guerras === 1 ? 'guerra' : 'guerras'} · ⭐ ${m.mediaE.toFixed(1)}</span>` : ''
             ].join('');
 
@@ -560,9 +560,9 @@
             const porNome = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
             const ordemCargo = m => (CARGOS[m.cargo]?.ordem ?? 9);
             const ordenar = {
-                cargo: (a, b) => ordemCargo(a) - ordemCargo(b) || b.cv - a.cv || (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
+                cargo: (a, b) => ordemCargo(a) - ordemCargo(b) || b.cv - a.cv || (b.doacoes ?? 0) - (a.doacoes ?? 0) || porNome(a, b),
                 cv: (a, b) => b.cv - a.cv || porNome(a, b),
-                trofeus: (a, b) => (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
+                doacoes: (a, b) => (b.doacoes ?? 0) - (a.doacoes ?? 0) || porNome(a, b),
                 nome: porNome
             }[ordem] || porNome;
 

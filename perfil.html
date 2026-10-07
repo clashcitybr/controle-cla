@@ -459,19 +459,20 @@
 
             <!-- STATS DA TEMPORADA ATUAL -->
             <div class="perfil-section">
-                <h2>📊 Temporada Atual</h2>
+                <h2 id="tituloStats">📊 Temporada Atual</h2>
+                <p id="notaForaCla" style="display:none; margin:-4px 0 14px; font-size:0.85rem; color:#5b6475;"></p>
                 <div class="stats-row">
-                    <div class="stat-card">
+                    <div class="stat-card stat-guerra">
                         <div class="valor" id="statMediaEstrelas">--</div>
                         <div class="label">⭐ Média de Estrelas</div>
                         <div class="comparativo" id="compMediaEstrelas"></div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card stat-guerra">
                         <div class="valor" id="statMediaPct">--</div>
                         <div class="label">🎯 Média Destruição</div>
                         <div class="comparativo" id="compMediaPct"></div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card stat-guerra">
                         <div class="valor" id="statGuerras">--</div>
                         <div class="label">⚔️ Guerras</div>
                     </div>
@@ -892,8 +893,9 @@
             } else if (noPrincipal) {
                 if (cargo) add(cargo, 'perfil-badge-cargo');
             } else {
-                // Saiu do clã principal (ou está em outro clã da família)
-                add(`${cargo ? cargo + ' · ' : ''}${j.clan.name}`, 'perfil-badge-cargo');
+                // Está em outro clã (da família, parceiro ou de fora): o nome do clã vem primeiro
+                const cargoSimples = cargo ? cargo.replace(/^[^\p{L}]+/u, '') : '';
+                add(`🏰 ${j.clan.name}${cargoSimples ? ' · ' + cargoSimples : ''}`, 'perfil-badge-cargo');
             }
 
             if (j.warPreference === 'in')  add('⚔️ Disponível para guerra', 'perfil-badge-ok');
@@ -932,6 +934,17 @@
             const temGuerras = membroLocal && membroLocal.guerras > 0;
             const mediaE = temGuerras ? (membroLocal.totalEstrelas / membroLocal.guerras) : null;
             const mediaP = temGuerras ? ((membroLocal.totalDestruicao / membroLocal.guerras) / 2) : null;
+
+            // Quem não está no clã principal e não guerreou nele neste mês não tem
+            // números de temporada: em vez de três cards com "--", esconde e explica.
+            const semTemporada = j.clan?.tag !== CLA_PRINCIPAL && !temGuerras;
+            document.querySelectorAll('.stat-guerra').forEach(el => { el.style.display = semTemporada ? 'none' : ''; });
+            document.getElementById('tituloStats').textContent = semTemporada ? '📊 Estatísticas' : '📊 Temporada Atual';
+            const nota = document.getElementById('notaForaCla');
+            nota.style.display = semTemporada ? '' : 'none';
+            nota.textContent = semTemporada
+                ? `${j.clan ? 'Este jogador está no clã ' + j.clan.name : 'Este jogador está sem clã'}. O ranking mensal conta só as guerras do Clash City BR.`
+                : '';
 
             document.getElementById('statMediaEstrelas').innerText = mediaE !== null ? `${mediaE.toFixed(2)} ★` : '--';
             document.getElementById('statMediaPct').innerText      = mediaP !== null ? `${mediaP.toFixed(1)}%` : '--';
