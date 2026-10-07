@@ -201,6 +201,64 @@
             font-weight: 700;
             color: var(--texto-suave);
         }
+        /* Tela inicial: um card por clã */
+        .clas-lista {
+            max-width: var(--largura);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+        }
+        .cla-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 18px 16px;
+            border: 1px solid var(--borda);
+            border-left: 6px solid var(--cor-cla);
+            border-radius: 16px;
+            background: var(--light);
+            box-shadow: var(--sombra-sm);
+            color: var(--dark);
+            font-family: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            min-width: 0;
+        }
+        .cla-card:hover { transform: translateY(-2px); box-shadow: var(--sombra-md); }
+        .cla-card-escudo {
+            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: color-mix(in srgb, var(--cor-cla) 18%, transparent);
+        }
+        .cla-card-escudo img { width: 100%; height: 100%; object-fit: contain; }
+        .cla-card-info { flex: 1; min-width: 0; }
+        .cla-card-nome { font-weight: 800; font-size: 1.05rem; line-height: 1.25; overflow-wrap: anywhere; }
+        .cla-card-qtd { margin-top: 3px; font-size: 0.8rem; font-weight: 600; color: var(--texto-suave); }
+        .cla-card .membro-seta { font-size: 1.2rem; }
+
+        .cla-voltar {
+            flex-shrink: 0;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 2px solid var(--secondary);
+            background: transparent;
+            color: var(--secondary);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
         .selo-parceiro {
             display: inline-block;
             vertical-align: middle;
@@ -235,6 +293,8 @@
             .membros-grid { grid-template-columns: 1fr; gap: 10px; }
             .membros-resumo { margin-top: 12px; }
             .clas-abas { margin-top: 14px; }
+            .clas-lista { grid-template-columns: 1fr; gap: 10px; }
+            .cla-card { padding: 14px; }
             .filtros-membros { display: grid !important; grid-template-columns: 1fr 1fr; }
             .filtros-membros > * { min-width: 0; width: 100%; }
             .filtros-membros #inputBusca { grid-column: 1 / -1; }
@@ -254,14 +314,14 @@
 
     <header>
         <h1 class="scroll-anim show">Membros da Família</h1>
-        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">Toque em um jogador para abrir o perfil</p>
+        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;" id="subtitulo">Escolha um clã para ver os membros</p>
     </header>
 
     <section class="ranking-section">
 
         <div class="controles-container" style="position:relative; z-index:10;">
             <div class="filtros-extras filtros-membros" style="justify-content:flex-start;">
-                <input type="text" id="inputBusca" placeholder="🔍 Buscar jogador..." oninput="renderizarMembros()"
+                <input type="text" id="inputBusca" placeholder="🔍 Buscar jogador em todos os clãs..." oninput="renderizarMembros()"
                     style="max-width:none; flex:1;">
                 <select id="filtroCV" onchange="renderizarMembros()">
                     <option value="todos">Todos os CVs</option>
@@ -305,7 +365,7 @@
         const NOMES_PADRAO = { principal: 'Clash City BR', cla2: 'Clash City BR 2', cla3: 'Clash City BR 3', parceiro: 'TOP 1 BR' };
 
         let clas = [];          // [{ chave, nome, escudo, erro, membros: [...] }]
-        let claAtivo = 'todos';
+        let claAtivo = null;    // null = tela inicial (lista de clãs)
         let fonte = 'vivo';
 
         function esc(txt) {
@@ -386,34 +446,60 @@
                     sel.value = 'cv';
                 }
 
-                renderizarAbas();
-                renderizarMembros();
+                aplicarHash();
             } catch (e) {
                 console.error('Erro ao carregar membros:', e.message);
                 grid.innerHTML = '<div class="membros-grid"><p class="membros-vazio">Não foi possível carregar os membros agora. Tenta recarregar a página em instantes.</p></div>';
             }
         }
 
+        // O clã aberto fica no endereço (#cla2), então o "voltar" do celular
+        // retorna para a lista de clãs em vez de sair da página.
         function selecionarCla(chave) {
-            claAtivo = chave;
-            renderizarAbas();
-            renderizarMembros();
+            if (chave) location.hash = chave;
+            else history.pushState(null, '', location.pathname + location.search);
+            aplicarHash();
         }
 
+        function aplicarHash() {
+            const chave = decodeURIComponent(location.hash.replace(/^#/, ''));
+            const existe = clas.some(c => c.chave === chave);
+            // Com um clã só (backend antigo ou Supercell fora), não há o que escolher
+            claAtivo = existe ? chave : (clas.length === 1 ? clas[0].chave : null);
+            renderizarAbas();
+            renderizarMembros();
+            window.scrollTo({ top: 0 });
+        }
+        window.addEventListener('hashchange', aplicarHash);
+        window.addEventListener('popstate', aplicarHash);
+
+        // Dentro de um clã: botão de voltar + atalhos para os outros clãs
         function renderizarAbas() {
             const box = document.getElementById('clasAbas');
-            if (clas.length < 2) { box.style.display = 'none'; return; }
+            if (clas.length < 2 || !claAtivo) { box.style.display = 'none'; return; }
 
-            const total = clas.reduce((s, c) => s + c.membros.length, 0);
-            const aba = (chave, nome, qtd, cor) => `
-                <button type="button" class="cla-aba${claAtivo === chave ? ' ativa' : ''}"
-                    onclick="selecionarCla('${esc(chave)}')" ${cor ? `style="--cor-cla:${cor}"` : ''}>
-                    ${cor ? '<span class="bolinha"></span>' : ''}${esc(nome)} <span class="qtd">${qtd}</span>
-                </button>`;
-
-            box.innerHTML = aba('todos', 'Todos', total, null)
-                + clas.map(c => aba(c.chave, c.nome, c.erro ? '–' : c.membros.length, CORES_CLA[c.chave])).join('');
+            box.innerHTML = `<button type="button" class="cla-voltar" onclick="selecionarCla(null)">← Clãs</button>`
+                + clas.map(c => `
+                <button type="button" class="cla-aba${claAtivo === c.chave ? ' ativa' : ''}"
+                    onclick="selecionarCla('${esc(c.chave)}')" style="--cor-cla:${CORES_CLA[c.chave] || '#94a3b8'}">
+                    <span class="bolinha"></span>${esc(c.nome)} <span class="qtd">${c.erro ? '–' : c.membros.length}</span>
+                </button>`).join('');
             box.style.display = 'flex';
+        }
+
+        function cardCla(c) {
+            const qtd = c.erro ? 'Não foi possível carregar agora'
+                : `${c.membros.length} ${c.membros.length === 1 ? 'membro' : 'membros'}`;
+            return `
+                <button type="button" class="cla-card" onclick="selecionarCla('${esc(c.chave)}')"
+                    style="--cor-cla:${CORES_CLA[c.chave] || '#94a3b8'}">
+                    <span class="cla-card-escudo">${c.escudo ? `<img src="${esc(c.escudo)}" alt="" loading="lazy">` : '🛡️'}</span>
+                    <span class="cla-card-info">
+                        <span class="cla-card-nome" style="display:block;">${esc(c.nome)}${c.chave === 'parceiro' ? ' <span class="selo-parceiro">Parceiro</span>' : ''}</span>
+                        <span class="cla-card-qtd" style="display:block;">${qtd}</span>
+                    </span>
+                    <span class="membro-seta" aria-hidden="true">→</span>
+                </button>`;
         }
 
         function cardMembro(m, noPrincipal) {
@@ -453,18 +539,42 @@
                 nome: porNome
             }[ordem] || porNome;
 
-            const visiveis = clas.filter(c => claAtivo === 'todos' || c.chave === claAtivo);
-            const filtrando = !!busca || cv !== 'todos';
+            const naInicial = !claAtivo;
+            const resumo = document.getElementById('membrosResumo');
+
+            // Filtro de CV e ordenação só fazem sentido com membros na tela
+            document.getElementById('filtroCV').style.display = naInicial ? 'none' : '';
+            document.getElementById('ordenarMembros').style.display = naInicial ? 'none' : '';
+            document.getElementById('inputBusca').placeholder = naInicial
+                ? '🔍 Buscar jogador em todos os clãs...'
+                : '🔍 Buscar jogador neste clã...';
+            document.getElementById('subtitulo').textContent = naInicial
+                ? 'Escolha um clã para ver os membros'
+                : 'Toque em um jogador para abrir o perfil';
+
+            // Tela inicial sem busca: só os clãs, nenhum membro
+            if (naInicial && !busca) {
+                const totalGeral = clas.reduce((s, c) => s + c.membros.length, 0);
+                resumo.textContent = `${clas.length} clãs · ${totalGeral} membros`
+                    + (fonte === 'banco' ? ' · lista do banco de dados (a Supercell não respondeu agora)' : '');
+                grid.innerHTML = `<div class="clas-lista">${clas.map(cardCla).join('')}</div>`;
+                return;
+            }
+
+            // Tela inicial com busca: procura em todos os clãs. Dentro de um clã: só nele.
+            const visiveis = clas.filter(c => naInicial || c.chave === claAtivo);
+            const cvFiltro = naInicial ? 'todos' : cv;
+            const filtrando = !!busca || cvFiltro !== 'todos';
             let total = 0, mostrados = 0, html = '';
 
             visiveis.forEach(c => {
                 const lista = c.membros
-                    .filter(m => (cv === 'todos' || String(m.cv) === cv) && (!busca || m.nome.toLowerCase().includes(busca)))
+                    .filter(m => (cvFiltro === 'todos' || String(m.cv) === cvFiltro) && (!busca || m.nome.toLowerCase().includes(busca)))
                     .sort(ordenar);
                 total += c.membros.length;
                 mostrados += lista.length;
 
-                // Buscando em "Todos": esconde os clãs onde ninguém bateu com a busca
+                // Buscando em todos: esconde os clãs onde ninguém bateu com a busca
                 if (lista.length === 0 && filtrando && visiveis.length > 1) return;
 
                 const corpo = c.erro
@@ -488,9 +598,9 @@
                     </div>`;
             });
 
-            const onde = clas.length > 1 && claAtivo === 'todos' ? 'na família e no parceiro' : 'no clã';
-            document.getElementById('membrosResumo').textContent =
-                (mostrados === total ? `${total} membros ${onde}` : `${mostrados} de ${total} membros`)
+            resumo.textContent =
+                (naInicial ? `${mostrados} ${mostrados === 1 ? 'jogador encontrado' : 'jogadores encontrados'}`
+                    : mostrados === total ? `${total} membros no clã` : `${mostrados} de ${total} membros`)
                 + (fonte === 'banco' ? ' · lista do banco de dados (a Supercell não respondeu agora)' : '');
 
             grid.innerHTML = html
