@@ -201,6 +201,19 @@
             font-weight: 700;
             color: var(--texto-suave);
         }
+        .selo-parceiro {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 6px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--cor-cla);
+            color: #fff;
+        }
         .cla-grupo .membro-card { border-left: 4px solid var(--cor-cla); }
         .cla-grupo .membros-grid { max-width: none; }
 
@@ -288,8 +301,8 @@
         };
 
         // Cada clã tem uma cor fixa, usada na aba, no título do grupo e na borda do card
-        const CORES_CLA = { principal: '#f9d246', cla2: '#077187', cla3: '#8b5cf6' };
-        const NOMES_PADRAO = { principal: 'Clash City BR', cla2: 'Clash City BR 2', cla3: 'Clash City BR 3' };
+        const CORES_CLA = { principal: '#f9d246', cla2: '#077187', cla3: '#8b5cf6', parceiro: '#ef4444' };
+        const NOMES_PADRAO = { principal: 'Clash City BR', cla2: 'Clash City BR 2', cla3: 'Clash City BR 3', parceiro: 'TOP 1 BR' };
 
         let clas = [];          // [{ chave, nome, escudo, erro, membros: [...] }]
         let claAtivo = 'todos';
@@ -468,14 +481,14 @@
                     <div class="cla-grupo" style="--cor-cla:${CORES_CLA[c.chave] || '#94a3b8'}">
                         <div class="cla-grupo-titulo">
                             ${c.escudo ? `<img src="${esc(c.escudo)}" alt="" loading="lazy">` : ''}
-                            <h2>${esc(c.nome)}</h2>
+                            <h2>${esc(c.nome)}${c.chave === 'parceiro' ? ' <span class="selo-parceiro">Parceiro</span>' : ''}</h2>
                             <span class="qtd">${qtd}</span>
                         </div>
                         <div class="membros-grid">${corpo}</div>
                     </div>`;
             });
 
-            const onde = clas.length > 1 && claAtivo === 'todos' ? 'na família' : 'no clã';
+            const onde = clas.length > 1 && claAtivo === 'todos' ? 'na família e no parceiro' : 'no clã';
             document.getElementById('membrosResumo').textContent =
                 (mostrados === total ? `${total} membros ${onde}` : `${mostrados} de ${total} membros`)
                 + (fonte === 'banco' ? ' · lista do banco de dados (a Supercell não respondeu agora)' : '');
