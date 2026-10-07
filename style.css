@@ -197,6 +197,14 @@ header p {
     margin: 50px auto 40px;
 }
 
+/* Sem o card de MVP, o pódio é o primeiro bloco da página e sobe
+   por cima do banner (o margin-top negativo da .ranking-section) */
+.ranking-section > .podium-container:first-child {
+    margin-top: 0;
+    position: relative;
+    z-index: 10;
+}
+
 .podium-card {
     background: var(--light);
     border-radius: 20px;
