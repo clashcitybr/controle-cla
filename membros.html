@@ -16,7 +16,7 @@
         /* Estilos só desta página — o resto vem do style.css compartilhado */
         .membros-resumo {
             max-width: var(--largura);
-            margin: 26px auto 14px;
+            margin: 16px auto 14px;
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--texto-suave);
@@ -127,6 +127,83 @@
             border-radius: 14px;
         }
 
+        /* ---- Separação por clã ---- */
+        .clas-abas {
+            max-width: var(--largura);
+            margin: 22px auto 0;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 2px 2px 6px;
+            scrollbar-width: none;
+        }
+        .clas-abas::-webkit-scrollbar { display: none; }
+
+        .cla-aba {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 2px solid var(--borda);
+            background: var(--light);
+            color: var(--dark);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .cla-aba .bolinha {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--cor-cla, var(--texto-suave));
+        }
+        .cla-aba .qtd { font-weight: 600; color: var(--texto-suave); }
+        .cla-aba.ativa {
+            background: var(--dark);
+            border-color: var(--dark);
+            color: #fff;
+        }
+        .cla-aba.ativa .qtd { color: rgba(255, 255, 255, 0.7); }
+
+        .cla-grupo {
+            max-width: var(--largura);
+            margin: 0 auto 26px;
+        }
+        .cla-grupo-titulo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            background: var(--light);
+            border-left: 6px solid var(--cor-cla);
+            box-shadow: var(--sombra-sm);
+        }
+        .cla-grupo-titulo img { width: 34px; height: 34px; flex-shrink: 0; }
+        .cla-grupo-titulo h2 {
+            margin: 0;
+            font-size: 1.05rem;
+            line-height: 1.2;
+            flex: 1;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            text-align: left;
+        }
+        .cla-grupo-titulo h2::after { display: none; }
+        .cla-grupo-titulo .qtd {
+            flex-shrink: 0;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--texto-suave);
+        }
+        .cla-grupo .membro-card { border-left: 4px solid var(--cor-cla); }
+        .cla-grupo .membros-grid { max-width: none; }
+
         #ordenarMembros {
             padding: 10px 14px;
             border-radius: 10px;
@@ -143,7 +220,8 @@
 
         @media (max-width: 640px) {
             .membros-grid { grid-template-columns: 1fr; gap: 10px; }
-            .membros-resumo { margin-top: 4px; }
+            .membros-resumo { margin-top: 12px; }
+            .clas-abas { margin-top: 14px; }
             .filtros-membros { display: grid !important; grid-template-columns: 1fr 1fr; }
             .filtros-membros > * { min-width: 0; width: 100%; }
             .filtros-membros #inputBusca { grid-column: 1 / -1; }
@@ -162,7 +240,7 @@
     </nav>
 
     <header>
-        <h1 class="scroll-anim show">Membros do Clã</h1>
+        <h1 class="scroll-anim show">Membros da Família</h1>
         <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">Toque em um jogador para abrir o perfil</p>
     </header>
 
@@ -184,10 +262,12 @@
             </div>
         </div>
 
+        <div class="clas-abas" id="clasAbas" style="display:none;"></div>
+
         <p class="membros-resumo" id="membrosResumo"></p>
 
-        <div class="membros-grid" id="membrosGrid">
-            <p class="membros-vazio">Carregando membros...</p>
+        <div id="membrosGrid">
+            <div class="membros-grid"><p class="membros-vazio">Carregando membros...</p></div>
         </div>
 
     </section>
@@ -207,7 +287,13 @@
             member: { nome: 'Membro', classe: '', ordem: 3 }
         };
 
-        let membros = [];
+        // Cada clã tem uma cor fixa, usada na aba, no título do grupo e na borda do card
+        const CORES_CLA = { principal: '#f9d246', cla2: '#077187', cla3: '#8b5cf6' };
+        const NOMES_PADRAO = { principal: 'Clash City BR', cla2: 'Clash City BR 2', cla3: 'Clash City BR 3' };
+
+        let clas = [];          // [{ chave, nome, escudo, erro, membros: [...] }]
+        let claAtivo = 'todos';
+        let fonte = 'vivo';
 
         function esc(txt) {
             return String(txt ?? '').replace(/[&<>"']/g, c => (
@@ -220,67 +306,123 @@
             return m ? m[0].toUpperCase() : '?';
         }
 
+        async function buscarJson(caminho) {
+            const r = await fetch(`${BACKEND_URL}${caminho}`, FETCH_OPTS);
+            if (!r.ok) throw new Error(`${caminho}: ${r.status}`);
+            return r.json();
+        }
+
         async function carregarMembros() {
             const grid = document.getElementById('membrosGrid');
             try {
-                // Lista ao vivo da Supercell (quem está no clã AGORA) + dados do mês no banco
-                const [respCla, respBanco] = await Promise.all([
-                    fetch(`${BACKEND_URL}/membros-cla`, FETCH_OPTS),
-                    fetch(`${BACKEND_URL}/membros`, FETCH_OPTS).catch(() => null)
-                ]);
-
-                let doBanco = [];
-                try { if (respBanco && respBanco.ok) doBanco = await respBanco.json(); } catch (e) { }
+                // Dados de guerra do mês (banco) — opcional, só enriquece os cards
+                const doBanco = await buscarJson('/membros').catch(() => []);
                 const porTag = new Map((Array.isArray(doBanco) ? doBanco : []).map(m => [m.tag, m]));
 
-                let lista, aoVivo = true;
-                if (respCla.ok) {
-                    lista = await respCla.json();
-                } else {
-                    // Supercell fora do ar: usa o que tem no banco (pode incluir ex-membros)
-                    aoVivo = false;
-                    lista = doBanco.map(m => ({ tag: m.tag, nome: m.nome, cv: m.cv }));
+                // 1ª opção: os 3 clãs da família. 2ª: só o principal (backend antigo).
+                // 3ª: lista do banco (Supercell fora do ar; pode incluir ex-membros).
+                let bruto;
+                try {
+                    bruto = (await buscarJson('/membros-familia')).clas;
+                } catch (e) {
+                    try {
+                        bruto = [{ chave: 'principal', membros: await buscarJson('/membros-cla') }];
+                    } catch (e2) {
+                        fonte = 'banco';
+                        bruto = [{ chave: 'principal', membros: doBanco.map(m => ({ tag: m.tag, nome: m.nome, cv: m.cv })) }];
+                    }
                 }
-                if (!Array.isArray(lista) || lista.length === 0) throw new Error('Lista vazia');
 
-                membros = lista.map(m => {
-                    const b = porTag.get(m.tag);
-                    const guerras = b?.guerras || 0;
-                    return {
-                        tag: m.tag,
-                        nome: m.nome,
-                        cv: m.cv,
-                        cargo: m.cargo || null,
-                        trofeus: typeof m.trofeus === 'number' ? m.trofeus : null,
-                        doacoes: typeof m.doacoes === 'number' ? m.doacoes : null,
-                        guerras,
-                        mediaE: guerras > 0 ? b.totalEstrelas / guerras : 0
-                    };
-                });
+                clas = (Array.isArray(bruto) ? bruto : []).map(c => ({
+                    chave: c.chave,
+                    nome: c.nome || NOMES_PADRAO[c.chave] || c.chave,
+                    escudo: c.escudo || null,
+                    erro: !!c.erro,
+                    membros: (Array.isArray(c.membros) ? c.membros : []).map(m => {
+                        const b = porTag.get(m.tag);
+                        const guerras = b?.guerras || 0;
+                        return {
+                            tag: m.tag,
+                            nome: m.nome,
+                            cv: m.cv,
+                            cargo: m.cargo || null,
+                            trofeus: typeof m.trofeus === 'number' ? m.trofeus : null,
+                            guerras,
+                            mediaE: guerras > 0 ? b.totalEstrelas / guerras : 0
+                        };
+                    })
+                }));
 
-                // Monta o filtro de CV só com os níveis que existem no clã
+                const todos = clas.flatMap(c => c.membros);
+                if (todos.length === 0) throw new Error('Lista vazia');
+
+                // Monta o filtro de CV só com os níveis que existem
                 const filtro = document.getElementById('filtroCV');
-                [...new Set(membros.map(m => m.cv))].sort((a, b) => b - a).forEach(cv => {
+                [...new Set(todos.map(m => m.cv))].sort((a, b) => b - a).forEach(cv => {
                     const o = document.createElement('option');
                     o.value = cv;
                     o.textContent = `Apenas CV ${cv}`;
                     filtro.appendChild(o);
                 });
 
-                // Sem dados de cargo/troféus (backend antigo), essas ordenações não fazem sentido
-                if (!membros.some(m => m.cargo)) {
+                // Sem dados de cargo/troféus, essas ordenações não fazem sentido
+                if (!todos.some(m => m.cargo)) {
                     const sel = document.getElementById('ordenarMembros');
                     sel.querySelector('option[value="cargo"]').remove();
                     sel.querySelector('option[value="trofeus"]').remove();
                     sel.value = 'cv';
                 }
 
-                document.getElementById('membrosResumo').dataset.fonte = aoVivo ? 'vivo' : 'banco';
+                renderizarAbas();
                 renderizarMembros();
             } catch (e) {
                 console.error('Erro ao carregar membros:', e.message);
-                grid.innerHTML = '<p class="membros-vazio">Não foi possível carregar os membros agora. Tenta recarregar a página em instantes.</p>';
+                grid.innerHTML = '<div class="membros-grid"><p class="membros-vazio">Não foi possível carregar os membros agora. Tenta recarregar a página em instantes.</p></div>';
             }
+        }
+
+        function selecionarCla(chave) {
+            claAtivo = chave;
+            renderizarAbas();
+            renderizarMembros();
+        }
+
+        function renderizarAbas() {
+            const box = document.getElementById('clasAbas');
+            if (clas.length < 2) { box.style.display = 'none'; return; }
+
+            const total = clas.reduce((s, c) => s + c.membros.length, 0);
+            const aba = (chave, nome, qtd, cor) => `
+                <button type="button" class="cla-aba${claAtivo === chave ? ' ativa' : ''}"
+                    onclick="selecionarCla('${esc(chave)}')" ${cor ? `style="--cor-cla:${cor}"` : ''}>
+                    ${cor ? '<span class="bolinha"></span>' : ''}${esc(nome)} <span class="qtd">${qtd}</span>
+                </button>`;
+
+            box.innerHTML = aba('todos', 'Todos', total, null)
+                + clas.map(c => aba(c.chave, c.nome, c.erro ? '–' : c.membros.length, CORES_CLA[c.chave])).join('');
+            box.style.display = 'flex';
+        }
+
+        function cardMembro(m, noPrincipal) {
+            const cargo = CARGOS[m.cargo];
+            const detalhes = [
+                cargo ? `<span class="membro-cargo ${cargo.classe}">${cargo.nome}</span>` : '',
+                m.trofeus !== null ? `<span>🏆 ${m.trofeus.toLocaleString('pt-BR')}</span>` : '',
+                m.guerras > 0
+                    ? `<span>⚔️ ${m.guerras} · ⭐ ${m.mediaE.toFixed(1)}</span>`
+                    // O ranking mensal só conta guerras do clã principal
+                    : (noPrincipal ? `<span>Sem guerra no mês</span>` : '')
+            ].join('');
+
+            return `
+                <a class="membro-card" href="perfil.html?tag=${encodeURIComponent(m.tag)}">
+                    <div class="membro-avatar">${esc(inicial(m.nome))}<span class="cv-tag">${esc(m.cv)}</span></div>
+                    <div class="membro-info">
+                        <div class="membro-nome">${esc(m.nome)}</div>
+                        <div class="membro-linha">${detalhes}</div>
+                    </div>
+                    <span class="membro-seta" aria-hidden="true">→</span>
+                </a>`;
         }
 
         function renderizarMembros() {
@@ -289,51 +431,57 @@
             const cv = document.getElementById('filtroCV').value;
             const ordem = document.getElementById('ordenarMembros').value;
 
-            let lista = membros.filter(m =>
-                (cv === 'todos' || String(m.cv) === cv) &&
-                (!busca || m.nome.toLowerCase().includes(busca)));
-
             const porNome = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
             const ordemCargo = m => (CARGOS[m.cargo]?.ordem ?? 9);
-            lista.sort({
+            const ordenar = {
                 cargo: (a, b) => ordemCargo(a) - ordemCargo(b) || (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
                 cv: (a, b) => b.cv - a.cv || porNome(a, b),
                 trofeus: (a, b) => (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
                 nome: porNome
-            }[ordem] || porNome);
+            }[ordem] || porNome;
 
-            const resumo = document.getElementById('membrosResumo');
-            const total = membros.length;
-            resumo.textContent = (lista.length === total
-                ? `${total} membros no clã`
-                : `${lista.length} de ${total} membros`)
-                + (resumo.dataset.fonte === 'banco' ? ' · lista do banco de dados (a Supercell não respondeu agora)' : '');
+            const visiveis = clas.filter(c => claAtivo === 'todos' || c.chave === claAtivo);
+            const filtrando = !!busca || cv !== 'todos';
+            let total = 0, mostrados = 0, html = '';
 
-            if (lista.length === 0) {
-                grid.innerHTML = '<p class="membros-vazio">Nenhum jogador encontrado.</p>';
-                return;
-            }
+            visiveis.forEach(c => {
+                const lista = c.membros
+                    .filter(m => (cv === 'todos' || String(m.cv) === cv) && (!busca || m.nome.toLowerCase().includes(busca)))
+                    .sort(ordenar);
+                total += c.membros.length;
+                mostrados += lista.length;
 
-            grid.innerHTML = lista.map(m => {
-                const cargo = CARGOS[m.cargo];
-                const detalhes = [
-                    cargo ? `<span class="membro-cargo ${cargo.classe}">${cargo.nome}</span>` : '',
-                    m.trofeus !== null ? `<span>🏆 ${m.trofeus.toLocaleString('pt-BR')}</span>` : '',
-                    m.guerras > 0
-                        ? `<span>⚔️ ${m.guerras} · ⭐ ${m.mediaE.toFixed(1)}</span>`
-                        : `<span>Sem guerra no mês</span>`
-                ].join('');
+                // Buscando em "Todos": esconde os clãs onde ninguém bateu com a busca
+                if (lista.length === 0 && filtrando && visiveis.length > 1) return;
 
-                return `
-                    <a class="membro-card" href="perfil.html?tag=${encodeURIComponent(m.tag)}">
-                        <div class="membro-avatar">${esc(inicial(m.nome))}<span class="cv-tag">${esc(m.cv)}</span></div>
-                        <div class="membro-info">
-                            <div class="membro-nome">${esc(m.nome)}</div>
-                            <div class="membro-linha">${detalhes}</div>
+                const corpo = c.erro
+                    ? '<p class="membros-vazio">Não foi possível carregar este clã agora.</p>'
+                    : lista.length === 0
+                        ? '<p class="membros-vazio">Nenhum jogador encontrado.</p>'
+                        : lista.map(m => cardMembro(m, c.chave === 'principal')).join('');
+
+                const qtd = c.erro ? '' : (lista.length === c.membros.length
+                    ? `${c.membros.length} membros`
+                    : `${lista.length} de ${c.membros.length}`);
+
+                html += `
+                    <div class="cla-grupo" style="--cor-cla:${CORES_CLA[c.chave] || '#94a3b8'}">
+                        <div class="cla-grupo-titulo">
+                            ${c.escudo ? `<img src="${esc(c.escudo)}" alt="" loading="lazy">` : ''}
+                            <h2>${esc(c.nome)}</h2>
+                            <span class="qtd">${qtd}</span>
                         </div>
-                        <span class="membro-seta" aria-hidden="true">→</span>
-                    </a>`;
-            }).join('');
+                        <div class="membros-grid">${corpo}</div>
+                    </div>`;
+            });
+
+            const onde = clas.length > 1 && claAtivo === 'todos' ? 'na família' : 'no clã';
+            document.getElementById('membrosResumo').textContent =
+                (mostrados === total ? `${total} membros ${onde}` : `${mostrados} de ${total} membros`)
+                + (fonte === 'banco' ? ' · lista do banco de dados (a Supercell não respondeu agora)' : '');
+
+            grid.innerHTML = html
+                || '<div class="membros-grid"><p class="membros-vazio">Nenhum jogador encontrado.</p></div>';
         }
 
         document.getElementById('ano-atual').textContent = new Date().getFullYear();
