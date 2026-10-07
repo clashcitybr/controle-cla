@@ -244,6 +244,11 @@
                     };
                 });
 
+                // O ranking do mês mostra só quem já participou de guerra NESTE mês.
+                // Quem saiu do clã (ou ainda não guerreou) continua no banco com
+                // todo o histórico, mas não aparece aqui com tudo zerado.
+                dadosGlobais = dadosGlobais.filter(p => p.qtd > 0);
+
                 atualizarCardsEstatisticas(dadosGlobais);
                 filtrarTudo();
 
@@ -296,7 +301,7 @@
 
             // Início de mês: sem nenhuma guerra registrada, o pódio seria três
             // jogadores com 0.0 ★. Mostra um aviso no lugar.
-            const semGuerrasNoMes = dadosGlobais.length > 0 && dadosGlobais.every(p => !p.qtd);
+            const semGuerrasNoMes = dadosGlobais.length === 0;
             const podioEl = document.getElementById('podioContainer');
             const avisoEl = document.getElementById('avisoTemporada');
             if (podioEl && avisoEl) {
@@ -407,10 +412,14 @@
         </div>`;
             });
 
-            corpo.innerHTML = htmlFinal || "<tr><td colspan='7' style='text-align:center;'>Nenhum jogador encontrado.</td></tr>";
+            const msgVazio = semGuerrasNoMes
+                ? "Nenhuma guerra registrada neste mês ainda. O ranking é montado conforme os jogadores participam das guerras."
+                : "Nenhum jogador encontrado.";
+            corpo.innerHTML = htmlFinal || `<tr><td colspan='7' style='text-align:center; padding:28px 12px;'>${msgVazio}</td></tr>`;
 
             const containerMobile = document.getElementById('rankingCardsMobile');
-            if (containerMobile) containerMobile.innerHTML = htmlMobile;
+            if (containerMobile) containerMobile.innerHTML = htmlMobile
+                || `<p style="text-align:center; padding:20px 8px; color:#555;">${msgVazio}</p>`;
         }
 
         // 5. FUNÇÕES AUXILIARES

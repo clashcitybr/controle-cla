@@ -1026,7 +1026,8 @@
                     if (!entrada && nomeAlvo) {
                         entrada = lista.find(p => !p.tag && normalizarNome(p.nome) === nomeAlvo);
                     }
-                    if (!entrada) return null;
+                    // Mês em que o jogador estava cadastrado mas não guerreou não conta
+                    if (!entrada || entrada.guerras === 0) return null;
                     return { mes: t.mes, ...entrada };
                 })
                 .filter(Boolean)

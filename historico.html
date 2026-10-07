@@ -136,7 +136,9 @@
 
                 document.getElementById('tituloTemporada').innerText = `📊 RANKING — ${nomeTemporada}`;
 
-                const snapshot = temporada.snapshot;
+                // Só quem participou de guerra naquele mês (temporadas antigas foram
+                // arquivadas com todos os membros, inclusive quem não jogou).
+                const snapshot = (temporada.snapshot || []).filter(p => (p.guerras ?? 1) > 0);
 
                 // MVP
                 if (snapshot.length > 0) {
