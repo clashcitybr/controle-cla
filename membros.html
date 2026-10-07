@@ -22,6 +22,10 @@
             color: var(--texto-suave);
         }
 
+        /* Na tela inicial não há abas acima, então precisa de mais respiro
+           para não ficar escondido atrás da barra de busca */
+        .membros-resumo.na-inicial { margin-top: 44px; }
+
         .membros-grid {
             max-width: var(--largura);
             margin: 0 auto;
@@ -301,6 +305,7 @@
         @media (max-width: 640px) {
             .membros-grid { grid-template-columns: 1fr; gap: 8px; }
             .membros-resumo { margin-top: 12px; }
+            .membros-resumo.na-inicial { margin-top: 20px; }
             .clas-abas { margin-top: 14px; }
             .clas-lista { grid-template-columns: 1fr; gap: 10px; }
             .cla-card { padding: 14px; }
@@ -555,7 +560,7 @@
             const porNome = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
             const ordemCargo = m => (CARGOS[m.cargo]?.ordem ?? 9);
             const ordenar = {
-                cargo: (a, b) => ordemCargo(a) - ordemCargo(b) || (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
+                cargo: (a, b) => ordemCargo(a) - ordemCargo(b) || b.cv - a.cv || (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
                 cv: (a, b) => b.cv - a.cv || porNome(a, b),
                 trofeus: (a, b) => (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
                 nome: porNome
@@ -563,6 +568,7 @@
 
             const naInicial = !claAtivo;
             const resumo = document.getElementById('membrosResumo');
+            resumo.classList.toggle('na-inicial', naInicial);
 
             // Filtro de CV e ordenação só fazem sentido com membros na tela
             document.getElementById('filtroCV').style.display = naInicial ? 'none' : '';
