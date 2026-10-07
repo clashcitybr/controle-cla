@@ -123,6 +123,9 @@
         .perfil-badge-liga {
             border: 1px solid rgba(255,255,255,0.3);
         }
+        .perfil-badge-ok  { background: rgba(34,197,94,0.28);  border: 1px solid rgba(34,197,94,0.55); }
+        .perfil-badge-off { background: rgba(239,68,68,0.28);  border: 1px solid rgba(239,68,68,0.55); }
+        .perfil-badge-cargo { background: rgba(249,210,70,0.22); border: 1px solid rgba(249,210,70,0.55); color: #f9d246; }
 
         /* SEÇÕES — fundo claro */
         .perfil-section {
@@ -443,6 +446,7 @@
                     <span class="perfil-badge perfil-badge-liga" id="perfilLiga">--</span>
                     <span class="perfil-badge" id="perfilTendencia" style="display:none;"></span>
                 </div>
+                <div class="perfil-badges" id="perfilBadgesCla"></div>
             </div>
             <div class="perfil-acoes">
                 <a class="btn-ver-jogo" id="btnVerJogo" href="#" target="_blank" rel="noopener">🎮 Ver no Jogo</a>
@@ -484,6 +488,14 @@
                         <div class="label">📦 Doações</div>
                     </div>
                     <div class="stat-card">
+                        <div class="valor" id="statRecebidas">--</div>
+                        <div class="label">📥 Doações Recebidas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="valor" id="statAtaquesVencidos">--</div>
+                        <div class="label">🗡️ Ataques Vencidos</div>
+                    </div>
+                    <div class="stat-card">
                         <div class="valor" id="statWarStars">--</div>
                         <div class="label">🌟 Estrelas Históricas</div>
                     </div>
@@ -515,6 +527,17 @@
                         <span class="chevron">▼</span>
                     </summary>
                     <div class="equip-grid perfil-details-conteudo" id="tropasList"></div>
+                </details>
+            </div>
+
+            <!-- FEITIÇOS -->
+            <div class="perfil-section">
+                <details class="perfil-details" id="detalhesFeiticos">
+                    <summary class="perfil-details-summary">
+                        <span>🧪 Feitiços <span class="contagem" id="feiticosCount"></span></span>
+                        <span class="chevron">▼</span>
+                    </summary>
+                    <div class="equip-grid perfil-details-conteudo" id="feiticosList"></div>
                 </details>
             </div>
 
@@ -692,6 +715,32 @@
             return traducoesTropas[nome] || nome;
         }
 
+        const traducoesFeiticos = {
+            "Lightning Spell":    "Relâmpago",
+            "Healing Spell":      "Cura",
+            "Rage Spell":         "Fúria",
+            "Jump Spell":         "Salto",
+            "Freeze Spell":       "Gelo",
+            "Clone Spell":        "Clonagem",
+            "Invisibility Spell": "Invisibilidade",
+            "Recall Spell":       "Retorno",
+            "Revive Spell":       "Ressurreição",
+            "Poison Spell":       "Veneno",
+            "Earthquake Spell":   "Terremoto",
+            "Haste Spell":        "Pressa",
+            "Skeleton Spell":     "Esqueletos",
+            "Bat Spell":          "Morcegos",
+            "Overgrowth Spell":   "Supercrescimento",
+            "Ice Block Spell":    "Bloco de Gelo",
+        };
+
+        function traduzirFeitico(nome) {
+            return traducoesFeiticos[nome] || String(nome || '').replace(/ Spell$/, '');
+        }
+
+        const CLA_PRINCIPAL = '#GUPJU0L2';
+        const CARGOS_CLA = { leader: '👑 Líder', coLeader: '⭐ Colíder', admin: '🛡️ Ancião', member: 'Membro' };
+
         function traduzirHeroi(nome) {
             return traducoesHerois[nome] || nome;
         }
@@ -744,6 +793,7 @@
                 renderHerois(jogador.heroes);
                 renderEquipamentos(jogador.heroEquipment);
                 renderTropas(jogador.troops);
+                renderFeiticos(jogador.spells);
                 renderHistorico(participacoes);
 
                 document.getElementById('loadingState').style.display = 'none';
@@ -813,12 +863,41 @@
             avatar.style.boxShadow   = `0 4px 20px ${liga.cores[1]}66`;
             avatar.style.borderColor = `${liga.cores[1]}55`;
 
+            renderBadgesCla(j);
+
             const btnVerJogo = document.getElementById('btnVerJogo');
             if (j.tag) {
                 btnVerJogo.href = `https://link.clashofclans.com/?action=OpenPlayerProfile&tag=${encodeURIComponent(j.tag)}`;
             } else {
                 btnVerJogo.style.display = 'none';
             }
+        }
+
+        // Segunda linha de selos: cargo e preferência de guerra
+        function renderBadgesCla(j) {
+            const box = document.getElementById('perfilBadgesCla');
+            box.innerHTML = '';
+            const add = (texto, classe) => {
+                const s = document.createElement('span');
+                s.className = 'perfil-badge' + (classe ? ' ' + classe : '');
+                s.textContent = texto;
+                box.appendChild(s);
+            };
+
+            const noPrincipal = j.clan?.tag === CLA_PRINCIPAL;
+            const cargo = CARGOS_CLA[j.role];
+
+            if (!j.clan) {
+                add('Sem clã no momento', 'perfil-badge-off');
+            } else if (noPrincipal) {
+                if (cargo) add(cargo, 'perfil-badge-cargo');
+            } else {
+                // Saiu do clã principal (ou está em outro clã da família)
+                add(`${cargo ? cargo + ' · ' : ''}${j.clan.name}`, 'perfil-badge-cargo');
+            }
+
+            if (j.warPreference === 'in')  add('⚔️ Disponível para guerra', 'perfil-badge-ok');
+            if (j.warPreference === 'out') add('🚫 Fora da guerra', 'perfil-badge-off');
         }
 
         // Média do clã, considerando só membros com pelo menos 1 guerra
@@ -861,6 +940,8 @@
             document.getElementById('statRecorde').innerText       = j.bestTrophies?.toLocaleString('pt-BR') ?? '--';
             document.getElementById('statDoacoes').innerText       = j.donations?.toLocaleString('pt-BR') ?? '--';
             document.getElementById('statWarStars').innerText      = j.warStars?.toLocaleString('pt-BR') ?? '--';
+            document.getElementById('statRecebidas').innerText       = j.donationsReceived?.toLocaleString('pt-BR') ?? '--';
+            document.getElementById('statAtaquesVencidos').innerText = j.attackWins?.toLocaleString('pt-BR') ?? '--';
 
             const mediaCla = calcularMediaCla(membros);
             renderComparativo('compMediaEstrelas', mediaE, mediaCla?.mediaE, '★', 2);
@@ -997,6 +1078,39 @@
             });
 
             container.innerHTML = html || "<p style='opacity:0.6;'>Nenhuma tropa disponível</p>";
+        }
+
+        function renderFeiticos(feiticos) {
+            const container = document.getElementById('feiticosList');
+            const contagem  = document.getElementById('feiticosCount');
+            const vazio = "<p style='opacity:0.6;'>Nenhum feitiço disponível</p>";
+
+            if (!Array.isArray(feiticos)) { container.innerHTML = vazio; return; }
+
+            const doJogador = feiticos
+                .filter(f => f.village === 'home' && f.level > 0 && f.maxLevel > 0)
+                .sort((a, b) => (a.level / a.maxLevel) - (b.level / b.maxLevel));
+
+            contagem.innerText = `(${doJogador.length})`;
+            container.innerHTML = '';
+
+            doJogador.forEach(f => {
+                const pct = Math.round((f.level / f.maxLevel) * 100);
+                const cor = pct >= 100 ? '#22c55e' : pct >= 70 ? '#f9d246' : '#ef4444';
+                const card = document.createElement('div');
+                card.className = 'equip-card';
+                card.style.border = `1px solid ${cor}`;
+                card.innerHTML = `
+                    <div class="f-nome" style="color:${cor};font-weight:700;margin-bottom:4px;"></div>
+                    <div style="font-size:0.8rem;opacity:0.7;margin-bottom:6px;">Nv ${Number(f.level)} / ${Number(f.maxLevel)}</div>
+                    <div style="background:#333;border-radius:6px;height:5px;overflow:hidden;">
+                        <div style="width:${pct}%;height:100%;background:${cor};border-radius:6px;"></div>
+                    </div>`;
+                card.querySelector('.f-nome').textContent = traduzirFeitico(f.name);
+                container.appendChild(card);
+            });
+
+            if (doJogador.length === 0) container.innerHTML = vazio;
         }
 
         // Extrai as participações do jogador no histórico de temporadas
