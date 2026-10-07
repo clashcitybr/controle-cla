@@ -24,7 +24,7 @@
 
     <section id="ranking" class="ranking-section">
 
-        <div class="podium-container scroll-anim">
+        <div class="podium-container scroll-anim" id="podioContainer">
             <div class="podium-card silver">
                 <div class="podium-rank-badge">2º</div>
                 <div class="podium-info">
@@ -59,6 +59,19 @@
                         <p id="guerrasRank3">⚔️ 0 Guerras</p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Aparece no lugar do pódio enquanto ninguém tem guerra no mês -->
+        <div class="mvp-container scroll-anim" id="avisoTemporada" style="display:none;">
+            <div class="mvp-card">
+                <span class="mvp-badge">🏁 TEMPORADA COMEÇANDO</span>
+                <h2 id="avisoTemporadaTitulo" style="color: var(--primary); font-size: clamp(1.2rem, 3.5vw, 1.6rem);">--</h2>
+                <p style="font-size: 0.9rem; margin-top: 8px; opacity: 0.9;">
+                    O pódio aparece assim que a primeira guerra do mês terminar.</p>
+                <a href="historico.html"
+                    style="display:inline-block; margin-top:14px; color: var(--primary); font-weight:700; font-size:0.9rem; text-decoration:none;">
+                    Ver ranking da temporada anterior →</a>
             </div>
         </div>
 
@@ -281,6 +294,22 @@
             const corpo = document.getElementById('corpoRanking');
             if (!corpo) return;
 
+            // Início de mês: sem nenhuma guerra registrada, o pódio seria três
+            // jogadores com 0.0 ★. Mostra um aviso no lugar.
+            const semGuerrasNoMes = dadosGlobais.length > 0 && dadosGlobais.every(p => !p.qtd);
+            const podioEl = document.getElementById('podioContainer');
+            const avisoEl = document.getElementById('avisoTemporada');
+            if (podioEl && avisoEl) {
+                podioEl.style.display = semGuerrasNoMes ? 'none' : '';
+                avisoEl.style.display = semGuerrasNoMes ? 'block' : 'none';
+                if (semGuerrasNoMes) {
+                    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                    document.getElementById('avisoTemporadaTitulo').innerText =
+                        `Temporada de ${meses[new Date().getMonth()]}`;
+                }
+            }
+
             const dadosPodio = [...dados].sort((a, b) => {
                 if (b.qtd !== a.qtd) return b.qtd - a.qtd;
                 if (b.mediaE !== a.mediaE) return b.mediaE - a.mediaE;
@@ -324,7 +353,10 @@
             dados.forEach((p, i) => {
                 let statusTxt, corStatus, statusClass;
 
-                if (p.mediaE >= 5.0) {
+                if (!p.qtd) {
+                    // Quem ainda não guerreou no mês não é "bagre" — só não jogou
+                    statusTxt = "SEM GUERRA"; corStatus = "#cbd5e1"; statusClass = "reserva-badge";
+                } else if (p.mediaE >= 5.0) {
                     statusTxt = "PRO"; corStatus = "#22c55e"; statusClass = "titular-badge";
                 } else if (p.mediaE >= 4.0) {
                     statusTxt = "MÉDIA"; corStatus = "#f9d246"; statusClass = "reserva-badge";
@@ -333,7 +365,8 @@
                 }
 
                 const medalhas = ["🥇", "🥈", "🥉"];
-                const rankLabel = (i + 1) <= 3 ? medalhas[i] : (i + 1) + "º";
+                // Medalha só para quem já guerreou no mês
+                const rankLabel = ((i + 1) <= 3 && p.qtd > 0) ? medalhas[i] : (i + 1) + "º";
 
                 // TABELA DESKTOP
                 htmlFinal += `
