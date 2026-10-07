@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
+    <title>Clash City BR - Membros do Clã</title>
+    <meta name="description" content="Lista de membros do clã Clash City BR — abra o perfil de qualquer jogador.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <style>
+        /* Estilos só desta página — o resto vem do style.css compartilhado */
+        .membros-resumo {
+            max-width: var(--largura);
+            margin: 26px auto 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--texto-suave);
+        }
+
+        .membros-grid {
+            max-width: var(--largura);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        .membro-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--light);
+            border: 1px solid var(--borda);
+            border-radius: 14px;
+            padding: 12px 14px;
+            box-shadow: var(--sombra-sm);
+            text-decoration: none;
+            color: var(--dark);
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            min-width: 0;
+        }
+
+        .membro-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--sombra-md);
+            border-color: var(--primary);
+        }
+
+        .membro-avatar {
+            flex-shrink: 0;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--dark);
+            background: linear-gradient(135deg, var(--primary), #f3b13a);
+            position: relative;
+        }
+
+        .membro-avatar .cv-tag {
+            position: absolute;
+            right: -8px;
+            bottom: -6px;
+            font-size: 0.62rem;
+            padding: 2px 5px;
+            border: 2px solid var(--light);
+        }
+
+        .membro-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .membro-nome {
+            font-weight: 700;
+            font-size: 0.98rem;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+
+        .membro-linha {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 10px;
+            margin-top: 4px;
+            font-size: 0.76rem;
+            color: var(--texto-suave);
+        }
+
+        .membro-cargo {
+            font-size: 0.64rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .membro-cargo.lider { background: var(--primary); color: var(--dark); }
+        .membro-cargo.colider { background: var(--secondary); color: #fff; }
+        .membro-cargo.anciao { background: var(--dark); color: var(--primary); }
+
+        .membro-seta {
+            flex-shrink: 0;
+            color: var(--secondary);
+            font-weight: 800;
+        }
+
+        .membros-vazio {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 30px 12px;
+            color: var(--texto-suave);
+            background: var(--light);
+            border-radius: 14px;
+        }
+
+        #ordenarMembros {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background: var(--light);
+            box-shadow: var(--sombra-sm);
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        #ordenarMembros:focus { border-color: var(--secondary); }
+
+        @media (max-width: 640px) {
+            .membros-grid { grid-template-columns: 1fr; gap: 10px; }
+            .membros-resumo { margin-top: 4px; }
+            .filtros-membros { display: grid !important; grid-template-columns: 1fr 1fr; }
+            .filtros-membros > * { min-width: 0; width: 100%; }
+            .filtros-membros #inputBusca { grid-column: 1 / -1; }
+            #ordenarMembros { font-size: 16px; padding: 9px 12px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="https://clashcitybr.github.io">Home</a>
+        <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="https://clashcitybr.github.io/controle-cla/">Desempenho</a>
+        <a href="https://clashcitybr.github.io/controle-cla/historico.html">Histórico</a>
+    </nav>
+
+    <header>
+        <h1 class="scroll-anim show">Membros do Clã</h1>
+        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">Toque em um jogador para abrir o perfil</p>
+    </header>
+
+    <section class="ranking-section">
+
+        <div class="controles-container" style="position:relative; z-index:10;">
+            <div class="filtros-extras filtros-membros" style="justify-content:flex-start;">
+                <input type="text" id="inputBusca" placeholder="🔍 Buscar jogador..." oninput="renderizarMembros()"
+                    style="max-width:none; flex:1;">
+                <select id="filtroCV" onchange="renderizarMembros()">
+                    <option value="todos">Todos os CVs</option>
+                </select>
+                <select id="ordenarMembros" onchange="renderizarMembros()">
+                    <option value="cargo">Ordenar: Cargo</option>
+                    <option value="cv">Ordenar: Centro de Vila</option>
+                    <option value="trofeus">Ordenar: Troféus</option>
+                    <option value="nome">Ordenar: Nome</option>
+                </select>
+            </div>
+        </div>
+
+        <p class="membros-resumo" id="membrosResumo"></p>
+
+        <div class="membros-grid" id="membrosGrid">
+            <p class="membros-vazio">Carregando membros...</p>
+        </div>
+
+    </section>
+
+    <footer>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
+    </footer>
+
+    <script>
+        // BACKEND_URL vem de config.js (compartilhado entre as páginas)
+        const FETCH_OPTS = { headers: { 'ngrok-skip-browser-warning': 'true' } };
+
+        const CARGOS = {
+            leader: { nome: 'Líder', classe: 'lider', ordem: 0 },
+            coLeader: { nome: 'Colíder', classe: 'colider', ordem: 1 },
+            admin: { nome: 'Ancião', classe: 'anciao', ordem: 2 },
+            member: { nome: 'Membro', classe: '', ordem: 3 }
+        };
+
+        let membros = [];
+
+        function esc(txt) {
+            return String(txt ?? '').replace(/[&<>"']/g, c => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Primeira letra/número "de verdade" do nome (ignora emojis e símbolos no começo)
+        function inicial(nome) {
+            const m = String(nome || '').match(/[\p{L}\p{N}]/u);
+            return m ? m[0].toUpperCase() : '?';
+        }
+
+        async function carregarMembros() {
+            const grid = document.getElementById('membrosGrid');
+            try {
+                // Lista ao vivo da Supercell (quem está no clã AGORA) + dados do mês no banco
+                const [respCla, respBanco] = await Promise.all([
+                    fetch(`${BACKEND_URL}/membros-cla`, FETCH_OPTS),
+                    fetch(`${BACKEND_URL}/membros`, FETCH_OPTS).catch(() => null)
+                ]);
+
+                let doBanco = [];
+                try { if (respBanco && respBanco.ok) doBanco = await respBanco.json(); } catch (e) { }
+                const porTag = new Map((Array.isArray(doBanco) ? doBanco : []).map(m => [m.tag, m]));
+
+                let lista, aoVivo = true;
+                if (respCla.ok) {
+                    lista = await respCla.json();
+                } else {
+                    // Supercell fora do ar: usa o que tem no banco (pode incluir ex-membros)
+                    aoVivo = false;
+                    lista = doBanco.map(m => ({ tag: m.tag, nome: m.nome, cv: m.cv }));
+                }
+                if (!Array.isArray(lista) || lista.length === 0) throw new Error('Lista vazia');
+
+                membros = lista.map(m => {
+                    const b = porTag.get(m.tag);
+                    const guerras = b?.guerras || 0;
+                    return {
+                        tag: m.tag,
+                        nome: m.nome,
+                        cv: m.cv,
+                        cargo: m.cargo || null,
+                        trofeus: typeof m.trofeus === 'number' ? m.trofeus : null,
+                        doacoes: typeof m.doacoes === 'number' ? m.doacoes : null,
+                        guerras,
+                        mediaE: guerras > 0 ? b.totalEstrelas / guerras : 0
+                    };
+                });
+
+                // Monta o filtro de CV só com os níveis que existem no clã
+                const filtro = document.getElementById('filtroCV');
+                [...new Set(membros.map(m => m.cv))].sort((a, b) => b - a).forEach(cv => {
+                    const o = document.createElement('option');
+                    o.value = cv;
+                    o.textContent = `Apenas CV ${cv}`;
+                    filtro.appendChild(o);
+                });
+
+                // Sem dados de cargo/troféus (backend antigo), essas ordenações não fazem sentido
+                if (!membros.some(m => m.cargo)) {
+                    const sel = document.getElementById('ordenarMembros');
+                    sel.querySelector('option[value="cargo"]').remove();
+                    sel.querySelector('option[value="trofeus"]').remove();
+                    sel.value = 'cv';
+                }
+
+                document.getElementById('membrosResumo').dataset.fonte = aoVivo ? 'vivo' : 'banco';
+                renderizarMembros();
+            } catch (e) {
+                console.error('Erro ao carregar membros:', e.message);
+                grid.innerHTML = '<p class="membros-vazio">Não foi possível carregar os membros agora. Tenta recarregar a página em instantes.</p>';
+            }
+        }
+
+        function renderizarMembros() {
+            const grid = document.getElementById('membrosGrid');
+            const busca = document.getElementById('inputBusca').value.trim().toLowerCase();
+            const cv = document.getElementById('filtroCV').value;
+            const ordem = document.getElementById('ordenarMembros').value;
+
+            let lista = membros.filter(m =>
+                (cv === 'todos' || String(m.cv) === cv) &&
+                (!busca || m.nome.toLowerCase().includes(busca)));
+
+            const porNome = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
+            const ordemCargo = m => (CARGOS[m.cargo]?.ordem ?? 9);
+            lista.sort({
+                cargo: (a, b) => ordemCargo(a) - ordemCargo(b) || (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
+                cv: (a, b) => b.cv - a.cv || porNome(a, b),
+                trofeus: (a, b) => (b.trofeus ?? 0) - (a.trofeus ?? 0) || porNome(a, b),
+                nome: porNome
+            }[ordem] || porNome);
+
+            const resumo = document.getElementById('membrosResumo');
+            const total = membros.length;
+            resumo.textContent = (lista.length === total
+                ? `${total} membros no clã`
+                : `${lista.length} de ${total} membros`)
+                + (resumo.dataset.fonte === 'banco' ? ' · lista do banco de dados (a Supercell não respondeu agora)' : '');
+
+            if (lista.length === 0) {
+                grid.innerHTML = '<p class="membros-vazio">Nenhum jogador encontrado.</p>';
+                return;
+            }
+
+            grid.innerHTML = lista.map(m => {
+                const cargo = CARGOS[m.cargo];
+                const detalhes = [
+                    cargo ? `<span class="membro-cargo ${cargo.classe}">${cargo.nome}</span>` : '',
+                    m.trofeus !== null ? `<span>🏆 ${m.trofeus.toLocaleString('pt-BR')}</span>` : '',
+                    m.guerras > 0
+                        ? `<span>⚔️ ${m.guerras} · ⭐ ${m.mediaE.toFixed(1)}</span>`
+                        : `<span>Sem guerra no mês</span>`
+                ].join('');
+
+                return `
+                    <a class="membro-card" href="perfil.html?tag=${encodeURIComponent(m.tag)}">
+                        <div class="membro-avatar">${esc(inicial(m.nome))}<span class="cv-tag">${esc(m.cv)}</span></div>
+                        <div class="membro-info">
+                            <div class="membro-nome">${esc(m.nome)}</div>
+                            <div class="membro-linha">${detalhes}</div>
+                        </div>
+                        <span class="membro-seta" aria-hidden="true">→</span>
+                    </a>`;
+            }).join('');
+        }
+
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        carregarMembros();
+    </script>
+</body>
+
+</html>

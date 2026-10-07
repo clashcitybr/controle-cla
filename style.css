@@ -869,9 +869,24 @@ footer {
         padding: 0 4%;
     }
 
+    nav {
+        gap: 2px;
+        padding: 0 2%;
+        overflow-x: auto;      /* rede de segurança: rola de lado em vez de cortar */
+        scrollbar-width: none;
+    }
+
+    nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Compacto o bastante para caber 5 links (perfil) em telas de 360px */
     nav a {
-        font-size: 0.72rem;
-        padding: 8px 10px;
+        font-size: 0.68rem;
+        letter-spacing: 0.2px;
+        padding: 8px 6px;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     header {
