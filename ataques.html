@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
+    <title>Clash City BR - Ataques</title>
+    <meta name="description" content="Exércitos e equipamentos recomendados pela liderança do Clash City BR, separados por Centro de Vila.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <style>
+        /* Estilos só desta página — o resto vem do style.css compartilhado */
+        .abas-ataques {
+            max-width: 460px;
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 10;
+        }
+        .abas-ataques .aba-btn { flex: 1; font-size: 0.88rem; }
+
+        .atualizado {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0 16px;
+        }
+        .atualizado span {
+            background: var(--light);
+            border: 1px solid var(--borda);
+            border-radius: 999px;
+            padding: 5px 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--texto-suave);
+        }
+
+        .cvs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+        .cv-btn {
+            border: 2px solid var(--borda);
+            background: var(--light);
+            border-radius: 999px;
+            padding: 7px 16px;
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: var(--dark);
+            box-shadow: var(--sombra-sm);
+        }
+        .cv-btn.ativo { background: var(--dark); color: var(--primary); border-color: var(--dark); }
+
+        .secao-titulo {
+            max-width: var(--largura);
+            margin: 6px auto 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--texto-suave);
+        }
+        .secao-titulo::after { content: ""; flex: 1; height: 1px; background: var(--borda); }
+
+        .exercitos {
+            max-width: var(--largura);
+            margin: 0 auto 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 14px;
+        }
+        .exercito {
+            background: var(--light);
+            border-radius: 16px;
+            box-shadow: var(--sombra-md);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-top: 4px solid var(--secondary);
+            min-width: 0;
+        }
+        .exercito-topo { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+        .exercito h3 { font-size: 1.05rem; line-height: 1.25; overflow-wrap: anywhere; }
+        .nivel {
+            flex-shrink: 0;
+            font-size: 0.66rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 999px;
+        }
+        .nivel.facil { background: #dcfce7; color: #166534; }
+        .nivel.medio { background: #fef9c3; color: #854d0e; }
+        .nivel.dificil { background: #fee2e2; color: #991b1b; }
+
+        .composicao { display: flex; flex-wrap: wrap; gap: 6px; }
+        .composicao span {
+            background: #eef1f5;
+            border-radius: 8px;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .dica {
+            font-size: 0.84rem;
+            color: #334155;
+            background: #f8fafc;
+            border-left: 3px solid var(--primary);
+            padding: 8px 10px;
+            border-radius: 6px;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
+        .btn-copiar {
+            margin-top: auto;
+            display: block;
+            text-align: center;
+            background: var(--primary);
+            color: var(--dark);
+            font-weight: 800;
+            text-decoration: none;
+            padding: 11px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        .btn-copiar:hover { filter: brightness(1.05); }
+
+        .herois {
+            max-width: var(--largura);
+            margin: 0 auto 26px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .heroi {
+            background: var(--light);
+            border-radius: 14px;
+            box-shadow: var(--sombra-sm);
+            padding: 14px;
+        }
+        .heroi h4 { font-size: 0.92rem; margin-bottom: 8px; }
+        .heroi li { list-style: none; font-size: 0.84rem; padding: 3px 0; }
+        .heroi li::before { content: "⭐ "; }
+
+        .vazio {
+            max-width: 760px;
+            margin: 0 auto 26px;
+            text-align: center;
+            padding: 28px 14px;
+            color: var(--texto-suave);
+            background: var(--light);
+            border-radius: 14px;
+        }
+        .nota-perfil {
+            max-width: 760px;
+            margin: 0 auto;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--texto-suave);
+        }
+
+        /* ---- Painel ---- */
+        .painel-caixa {
+            max-width: 760px;
+            margin: 0 auto 18px;
+            background: var(--light);
+            border-radius: 16px;
+            box-shadow: var(--sombra-md);
+            padding: 20px;
+        }
+        .painel-caixa h3 { font-size: 1rem; margin-bottom: 12px; }
+        .login-linha { display: flex; gap: 10px; flex-wrap: wrap; }
+        .login-linha input { flex: 1; min-width: 0; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .campo.cheio { grid-column: 1 / -1; }
+        .campo label { font-size: 0.72rem; font-weight: 800; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 0.4px; }
+        .campo small { font-size: 0.74rem; color: var(--texto-suave); }
+        .painel input[type=text], .painel input[type=password], .painel input[type=url], .painel select, .painel textarea {
+            font-family: inherit;
+            font-size: 0.92rem;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            outline: none;
+            min-width: 0;
+            width: 100%;
+            background: #fff;
+            color: var(--dark);
+        }
+        .painel input:focus, .painel select:focus, .painel textarea:focus { border-color: var(--secondary); }
+        .painel textarea { resize: vertical; min-height: 64px; }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 11px 18px;
+            font-family: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 0.88rem;
+        }
+        .btn-principal { background: var(--secondary); color: #fff; }
+        .btn-secundario { background: #eef1f5; color: var(--dark); }
+        .btn:disabled { opacity: 0.6; cursor: wait; }
+        .acoes-form { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; }
+        .acoes-form .btn-principal { flex: 1; }
+
+        .msg { font-size: 0.85rem; font-weight: 700; margin-top: 10px; }
+        .msg.ok { color: #16a34a; }
+        .msg.erro { color: #dc2626; }
+
+        .passo-a-passo {
+            max-width: 760px;
+            margin: 0 auto 18px;
+            background: #ecfeff;
+            border: 1px solid #a5f3fc;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 0.85rem;
+        }
+        .passo-a-passo b { display: block; margin-bottom: 6px; color: var(--secondary); }
+        .passo-a-passo ol { padding-left: 20px; }
+
+        .lista-admin { display: flex; flex-direction: column; gap: 8px; }
+        .item-admin {
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .item-admin .cv-mini {
+            background: var(--dark);
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 0.75rem;
+            border-radius: 8px;
+            padding: 4px 8px;
+            flex-shrink: 0;
+        }
+        .item-admin .nome { flex: 1; font-weight: 700; font-size: 0.88rem; min-width: 0; overflow-wrap: anywhere; }
+        .item-admin button {
+            border: 1px solid var(--borda);
+            background: #fff;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .equip-heroi { margin-bottom: 14px; }
+        .equip-heroi b { font-size: 0.86rem; display: block; margin-bottom: 6px; }
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .chips label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--borda);
+            border-radius: 999px;
+            padding: 5px 11px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: #fff;
+        }
+        .chips label:has(input:checked) { border-color: var(--secondary); background: #ecfeff; font-weight: 700; }
+
+        .oculto { display: none !important; }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .exercitos { grid-template-columns: 1fr; }
+            .painel input, .painel select, .painel textarea { font-size: 16px !important; }
+            .atualizado { margin-top: 18px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="https://clashcitybr.github.io">Home</a>
+        <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="https://clashcitybr.github.io/controle-cla/"><span class="nav-longo">Desempenho</span><span class="nav-curto">Ranking</span></a>
+        <a href="https://clashcitybr.github.io/controle-cla/membros.html">Membros</a>
+        <a href="https://clashcitybr.github.io/controle-cla/capital.html">Capital</a>
+        <a href="https://clashcitybr.github.io/controle-cla/ataques.html" class="ativo" aria-current="page">Ataques</a>
+        <a href="https://clashcitybr.github.io/controle-cla/historico.html">Histórico</a>
+    </nav>
+
+    <header>
+        <h1 class="scroll-anim show">⚔️ Ataques</h1>
+        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;" id="subtitulo">Exércitos e equipamentos recomendados pela liderança</p>
+    </header>
+
+    <section class="ranking-section">
+
+        <div class="menu-abas abas-ataques">
+            <button type="button" class="aba-btn active" id="abaMembro" onclick="mostrarAba('membro')">⚔️ Exércitos</button>
+            <button type="button" class="aba-btn" id="abaPainel" onclick="mostrarAba('painel')">🔧 Painel da liderança</button>
+        </div>
+
+        <!-- ================= VISÃO DOS MEMBROS ================= -->
+        <div id="visaoMembro">
+            <div class="atualizado" id="atualizado" style="display:none;"><span id="atualizadoTxt"></span></div>
+            <div class="cvs" id="cvs"></div>
+            <div id="conteudoExercitos"><p class="vazio">Carregando...</p></div>
+            <div id="conteudoEquip"></div>
+        </div>
+
+        <!-- ================= PAINEL DA LIDERANÇA ================= -->
+        <div id="visaoPainel" class="painel oculto">
+
+            <div class="painel-caixa" id="caixaLogin">
+                <h3>🔒 Senha da liderança</h3>
+                <form class="login-linha" onsubmit="entrar(event)">
+                    <input type="password" id="senhaAdmin" placeholder="Mesma senha do painel da Liga" autocomplete="current-password">
+                    <button class="btn btn-principal" id="btnEntrar">Entrar</button>
+                </form>
+                <p class="msg" id="msgLogin"></p>
+            </div>
+
+            <div id="areaAdmin" class="oculto">
+
+                <div class="passo-a-passo">
+                    <b>Como pegar o link do exército no jogo</b>
+                    <ol>
+                        <li>No jogo, abra o <strong>Treino Rápido</strong> e monte ou salve o exército.</li>
+                        <li>Toque no botão de <strong>compartilhar</strong> do exército e escolha <strong>copiar link</strong>.</li>
+                        <li>Cole o link no campo abaixo.</li>
+                    </ol>
+                </div>
+
+                <div class="painel-caixa">
+                    <h3 id="tituloForm">➕ Adicionar exército</h3>
+                    <form class="form-grid" id="formExercito" onsubmit="salvarExercito(event)">
+                        <div class="campo">
+                            <label for="fCv">Centro de Vila</label>
+                            <select id="fCv"></select>
+                        </div>
+                        <div class="campo">
+                            <label for="fDificuldade">Dificuldade</label>
+                            <select id="fDificuldade">
+                                <option value="facil">Fácil</option>
+                                <option value="medio" selected>Médio</option>
+                                <option value="dificil">Difícil</option>
+                            </select>
+                        </div>
+                        <div class="campo cheio">
+                            <label for="fNome">Nome do ataque</label>
+                            <input type="text" id="fNome" maxlength="60" placeholder="Ex: Dragões elétricos">
+                        </div>
+                        <div class="campo cheio">
+                            <label for="fLink">Link do exército</label>
+                            <input type="url" id="fLink" placeholder="https://link.clashofclans.com/...action=CopyArmy&army=...">
+                            <small>É o link que o jogo gera em "copiar link".</small>
+                        </div>
+                        <div class="campo cheio">
+                            <label for="fComposicao">Composição (opcional)</label>
+                            <input type="text" id="fComposicao" maxlength="200" placeholder="Separe por vírgula. Ex: Dragão Elétrico x8, Balão x6, Fúria x4">
+                        </div>
+                        <div class="campo cheio">
+                            <label for="fDica">Dica (opcional)</label>
+                            <textarea id="fDica" maxlength="300" placeholder="Uma ou duas linhas de dica para quem vai usar"></textarea>
+                        </div>
+                        <div class="acoes-form">
+                            <button class="btn btn-principal" id="btnSalvar">Salvar exército</button>
+                            <button type="button" class="btn btn-secundario oculto" id="btnCancelar" onclick="limparForm()">Cancelar edição</button>
+                        </div>
+                    </form>
+                    <p class="msg" id="msgForm"></p>
+                </div>
+
+                <div class="painel-caixa">
+                    <h3>📋 Exércitos cadastrados</h3>
+                    <div class="lista-admin" id="listaAdmin"></div>
+                </div>
+
+                <div class="painel-caixa">
+                    <h3>🛡️ Equipamentos meta</h3>
+                    <p style="font-size:0.82rem; color:var(--texto-suave); margin:-6px 0 14px;">
+                        Marque os que estão no meta e salve. Os perfis dos jogadores passam a mostrar o que cada um precisa upar.
+                        A lista vem dos equipamentos que os membros do clã usam no jogo.
+                    </p>
+                    <div id="catalogoEquip"><p style="color:var(--texto-suave); font-size:0.85rem;">Carregando equipamentos...</p></div>
+                    <button class="btn btn-principal" id="btnSalvarEquip" onclick="salvarEquipamentos()" style="width:100%; margin-top:6px;">Salvar equipamentos</button>
+                    <p class="msg" id="msgEquip"></p>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <footer>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
+    </footer>
+
+    <script>
+        // BACKEND_URL vem de config.js (compartilhado entre as páginas)
+        const HEADERS = { 'ngrok-skip-browser-warning': 'true' };
+
+        const HEROIS = {
+            'Barbarian King': '👑 Rei Bárbaro',
+            'Archer Queen': '🏹 Rainha Arqueira',
+            'Minion Prince': '🦇 Príncipe Servo',
+            'Grand Warden': '🧙 Grande Guardião',
+            'Royal Champion': '🛡️ Campeã Real',
+            'Dragon Duke': '🐉 Duque Dragão'
+        };
+        const ORDEM_HEROIS = Object.keys(HEROIS);
+
+        // Mesmos nomes em português usados no perfil
+        const EQUIP_PT = {
+            "Giant Gauntlet": "Manopla Gigante", "Spiky Ball": "Bola Espinhosa", "Barbarian Puppet": "Fantoche Bárbaro",
+            "Rage Vial": "Frasco de Fúria", "Earthquake Boots": "Botas Sísmicas", "Vampstache": "Vampigode",
+            "Fireball": "Bola de Fogo", "Rocket Spear": "Lança Foguete", "Archer Puppet": "Fantoche Arqueira",
+            "Invisibility Vial": "Frasco de Invisibilidade", "Giant Arrow": "Flecha Gigante", "Healer Puppet": "Fantoche Curandeira",
+            "Frozen Arrow": "Flecha Congelante", "Magic Mirror": "Espelho Mágico", "Electro Boots": "Botas Elétricas",
+            "Seeking Shield": "Escudo Buscador", "Eternal Tome": "Tomo Eterno", "Life Gem": "Gema da Vida",
+            "Rage Gem": "Gema de Fúria", "Healing Tome": "Tomo de Cura", "Haste Vial": "Frasco de Pressa",
+            "Royal Gem": "Gema Real", "Hog Rider Puppet": "Fantoche Cavaleiro", "Lavaloon Puppet": "Fantoche Lavaloon",
+            "Henchmen Puppet": "Fantoche Capanga", "Dark Crown": "Coroa das Trevas", "Meteor Staff": "Cajado Meteoro",
+            "Frost Flake": "Floco de Gelo", "Rocket Backpack": "Mochila Foguete", "Monolith Arrow": "Flecha Monólito",
+            "Noble Iron": "Ferro Nobre", "Metal Pants": "Calças de Metal", "Dark Orb": "Orbe das Trevas",
+            "Electro Fangs": "Presas Elétricas", "Stun Blaster": "Atordoador", "Fire Heart": "Coração de Fogo",
+            "Flame Blower": "Soprador de Chamas", "Fury Gauntlet": "Manopla da Fúria", "Dragon Claws": "Garras do Dragão",
+            "Wind Bow": "Arco do Vento", "Smoldering Horn": "Chifre Ardente"
+        };
+        const equipPT = n => EQUIP_PT[n] || n;
+        const DIF = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' };
+
+        let dados = { atualizadoEm: null, exercitos: [], equipamentosMeta: {} };
+        let cvAtivo = null;
+        let senha = null;        // só em memória: some ao fechar a página
+        let editandoId = null;
+        let catalogo = null;
+
+        function esc(txt) {
+            return String(txt ?? '').replace(/[&<>"']/g, c => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Só deixa abrir links oficiais do jogo
+        const linkSeguro = l => /^https:\/\/link\.clashofclans\.com\//i.test(l || '') ? l : '#';
+
+        // ============================================================
+        // VISÃO DOS MEMBROS
+        // ============================================================
+        async function carregar() {
+            try {
+                const r = await fetch(`${BACKEND_URL}/ataques`, { headers: HEADERS });
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                dados = await r.json();
+            } catch (e) {
+                console.error('Ataques indisponíveis:', e.message);
+                document.getElementById('conteudoExercitos').innerHTML =
+                    '<p class="vazio">Não foi possível carregar agora. Tenta recarregar a página em instantes.</p>';
+                return;
+            }
+            const cvs = cvsComExercito();
+            const doHash = parseInt((location.hash.match(/cv(\d+)/) || [])[1], 10);
+            cvAtivo = cvs.includes(doHash) ? doHash : (cvs.includes(cvAtivo) ? cvAtivo : cvs[0] ?? null);
+            renderMembro();
+            if (senha) renderAdmin();
+        }
+
+        function cvsComExercito() {
+            return [...new Set((dados.exercitos || []).map(e => e.cv))].sort((a, b) => b - a);
+        }
+
+        function renderMembro() {
+            const at = document.getElementById('atualizado');
+            if (dados.atualizadoEm) {
+                const d = new Date(dados.atualizadoEm);
+                document.getElementById('atualizadoTxt').textContent =
+                    `🗓️ Atualizado em ${d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} pela liderança`;
+                at.style.display = '';
+            } else {
+                at.style.display = 'none';
+            }
+
+            const cvs = cvsComExercito();
+            document.getElementById('cvs').innerHTML = cvs.map(cv =>
+                `<button type="button" class="cv-btn${cv === cvAtivo ? ' ativo' : ''}" onclick="escolherCv(${cv})">CV ${cv}</button>`).join('');
+
+            const box = document.getElementById('conteudoExercitos');
+            if (!cvs.length) {
+                box.innerHTML = '<p class="vazio">A liderança ainda não cadastrou exércitos. Volte em breve!</p>';
+            } else {
+                const lista = dados.exercitos.filter(e => e.cv === cvAtivo);
+                box.innerHTML = `<div class="secao-titulo">Exércitos recomendados · CV ${cvAtivo}</div>
+                    <div class="exercitos">${lista.map(cardExercito).join('')}</div>`;
+            }
+
+            const meta = dados.equipamentosMeta || {};
+            const herois = ORDEM_HEROIS.filter(h => meta[h]?.length)
+                .concat(Object.keys(meta).filter(h => !ORDEM_HEROIS.includes(h) && meta[h]?.length));
+            document.getElementById('conteudoEquip').innerHTML = herois.length ? `
+                <div class="secao-titulo">Equipamentos meta</div>
+                <div class="herois">${herois.map(h => `
+                    <div class="heroi"><h4>${esc(HEROIS[h] || h)}</h4>
+                        <ul>${meta[h].map(n => `<li>${esc(equipPT(n))}</li>`).join('')}</ul></div>`).join('')}
+                </div>
+                <p class="nota-perfil">No perfil de cada jogador aparece o nível dele em cada um desses equipamentos e o que vale a pena upar.</p>` : '';
+        }
+
+        function cardExercito(e) {
+            const comp = String(e.composicao || '').split(',').map(s => s.trim()).filter(Boolean);
+            return `
+                <div class="exercito">
+                    <div class="exercito-topo">
+                        <h3>${esc(e.nome)}</h3>
+                        <span class="nivel ${esc(e.dificuldade)}">${esc(DIF[e.dificuldade] || 'Médio')}</span>
+                    </div>
+                    ${comp.length ? `<div class="composicao">${comp.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+                    ${e.dica ? `<div class="dica">💡 ${esc(e.dica)}</div>` : ''}
+                    <a class="btn-copiar" href="${esc(linkSeguro(e.link))}" target="_blank" rel="noopener">📋 Copiar exército no jogo</a>
+                </div>`;
+        }
+
+        function escolherCv(cv) {
+            cvAtivo = cv;
+            history.replaceState(null, '', `#cv${cv}`);
+            renderMembro();
+        }
+
+        function mostrarAba(aba) {
+            const painel = aba === 'painel';
+            document.getElementById('visaoMembro').classList.toggle('oculto', painel);
+            document.getElementById('visaoPainel').classList.toggle('oculto', !painel);
+            document.getElementById('abaMembro').classList.toggle('active', !painel);
+            document.getElementById('abaPainel').classList.toggle('active', painel);
+            if (painel && !senha) setTimeout(() => document.getElementById('senhaAdmin').focus(), 50);
+        }
+
+        // ============================================================
+        // PAINEL DA LIDERANÇA
+        // ============================================================
+        function msg(id, texto, tipo) {
+            const el = document.getElementById(id);
+            el.textContent = texto || '';
+            el.className = 'msg' + (tipo ? ' ' + tipo : '');
+        }
+
+        async function api(metodo, caminho, corpo) {
+            const r = await fetch(`${BACKEND_URL}${caminho}`, {
+                method: metodo,
+                headers: { ...HEADERS, 'Content-Type': 'application/json', 'x-admin-key': senha },
+                body: corpo ? JSON.stringify(corpo) : undefined
+            });
+            const json = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(json.erro || `Erro ${r.status}`);
+            return json;
+        }
+
+        async function entrar(ev) {
+            ev.preventDefault();
+            const valor = document.getElementById('senhaAdmin').value;
+            if (!valor) return;
+            const btn = document.getElementById('btnEntrar');
+            btn.disabled = true;
+            msg('msgLogin', 'Verificando...');
+            try {
+                const r = await fetch(`${BACKEND_URL}/admin/verificar`, { headers: { ...HEADERS, 'x-admin-key': valor } });
+                if (!r.ok) throw new Error('Senha incorreta.');
+                senha = valor;
+                document.getElementById('senhaAdmin').value = '';
+                document.getElementById('caixaLogin').classList.add('oculto');
+                document.getElementById('areaAdmin').classList.remove('oculto');
+                montarSelectCv();
+                renderAdmin();
+                carregarCatalogo();
+            } catch (e) {
+                msg('msgLogin', e.message === 'Senha incorreta.' ? e.message : 'Não foi possível verificar agora.', 'erro');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function montarSelectCv() {
+            const sel = document.getElementById('fCv');
+            let html = '';
+            for (let cv = 18; cv >= 8; cv--) html += `<option value="${cv}">CV ${cv}</option>`;
+            sel.innerHTML = html;
+        }
+
+        function renderAdmin() {
+            const lista = [...(dados.exercitos || [])].sort((a, b) => b.cv - a.cv || a.nome.localeCompare(b.nome, 'pt-BR'));
+            document.getElementById('listaAdmin').innerHTML = lista.length ? lista.map(e => `
+                <div class="item-admin">
+                    <span class="cv-mini">CV ${e.cv}</span>
+                    <span class="nome">${esc(e.nome)}</span>
+                    <button type="button" onclick="editar('${esc(e.id)}')">✏️ Editar</button>
+                    <button type="button" onclick="remover('${esc(e.id)}')" aria-label="Remover">🗑️</button>
+                </div>`).join('') : '<p style="color:var(--texto-suave); font-size:0.85rem;">Nenhum exército cadastrado ainda.</p>';
+        }
+
+        function limparForm() {
+            editandoId = null;
+            document.getElementById('formExercito').reset();
+            document.getElementById('fDificuldade').value = 'medio';
+            document.getElementById('tituloForm').textContent = '➕ Adicionar exército';
+            document.getElementById('btnSalvar').textContent = 'Salvar exército';
+            document.getElementById('btnCancelar').classList.add('oculto');
+        }
+
+        function editar(id) {
+            const e = dados.exercitos.find(x => x.id === id);
+            if (!e) return;
+            editandoId = id;
+            document.getElementById('fCv').value = e.cv;
+            document.getElementById('fDificuldade').value = e.dificuldade || 'medio';
+            document.getElementById('fNome').value = e.nome || '';
+            document.getElementById('fLink').value = e.link || '';
+            document.getElementById('fComposicao').value = e.composicao || '';
+            document.getElementById('fDica').value = e.dica || '';
+            document.getElementById('tituloForm').textContent = '✏️ Editando exército';
+            document.getElementById('btnSalvar').textContent = 'Salvar alterações';
+            document.getElementById('btnCancelar').classList.remove('oculto');
+            msg('msgForm', '');
+            document.getElementById('formExercito').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function salvarExercito(ev) {
+            ev.preventDefault();
+            const corpo = {
+                cv: document.getElementById('fCv').value,
+                dificuldade: document.getElementById('fDificuldade').value,
+                nome: document.getElementById('fNome').value,
+                link: document.getElementById('fLink').value.trim(),
+                composicao: document.getElementById('fComposicao').value,
+                dica: document.getElementById('fDica').value
+            };
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = true;
+            msg('msgForm', 'Salvando...');
+            try {
+                if (editandoId) await api('PUT', `/ataques/exercitos/${encodeURIComponent(editandoId)}`, corpo);
+                else await api('POST', '/ataques/exercitos', corpo);
+                limparForm();
+                msg('msgForm', '✓ Salvo! Já aparece para os membros.', 'ok');
+                await carregar();
+            } catch (e) {
+                msg('msgForm', e.message, 'erro');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function remover(id) {
+            const e = dados.exercitos.find(x => x.id === id);
+            if (!e || !confirm(`Remover "${e.nome}" (CV ${e.cv})?`)) return;
+            try {
+                await api('DELETE', `/ataques/exercitos/${encodeURIComponent(id)}`);
+                if (editandoId === id) limparForm();
+                msg('msgForm', '✓ Exército removido.', 'ok');
+                await carregar();
+            } catch (err) {
+                msg('msgForm', err.message, 'erro');
+            }
+        }
+
+        async function carregarCatalogo() {
+            const box = document.getElementById('catalogoEquip');
+            try {
+                catalogo = await api('GET', '/ataques/catalogo');
+            } catch (e) {
+                catalogo = { herois: {} };
+                box.innerHTML = '<p class="msg erro">Não foi possível buscar a lista de equipamentos agora. Os já marcados continuam salvos.</p>';
+            }
+            renderCatalogo();
+        }
+
+        function renderCatalogo() {
+            const box = document.getElementById('catalogoEquip');
+            const meta = dados.equipamentosMeta || {};
+            // Junta o que os membros usam com o que já está marcado (para nada sumir)
+            const porHeroi = {};
+            for (const [h, l] of Object.entries(catalogo?.herois || {})) porHeroi[h] = new Set(l);
+            for (const [h, l] of Object.entries(meta)) (porHeroi[h] = porHeroi[h] || new Set()) && l.forEach(n => porHeroi[h].add(n));
+
+            const herois = ORDEM_HEROIS.filter(h => porHeroi[h]).concat(Object.keys(porHeroi).filter(h => !ORDEM_HEROIS.includes(h)));
+            if (!herois.length) {
+                if (!box.querySelector('.erro')) box.innerHTML = '<p style="color:var(--texto-suave); font-size:0.85rem;">Nenhum equipamento encontrado.</p>';
+                return;
+            }
+            box.innerHTML = herois.map(h => `
+                <div class="equip-heroi">
+                    <b>${esc(HEROIS[h] || h)}</b>
+                    <div class="chips">${[...porHeroi[h]].sort((a, b) => equipPT(a).localeCompare(equipPT(b), 'pt-BR')).map(n => `
+                        <label title="${esc(n)}"><input type="checkbox" data-heroi="${esc(h)}" value="${esc(n)}" ${(meta[h] || []).includes(n) ? 'checked' : ''}> ${esc(equipPT(n))}</label>`).join('')}
+                    </div>
+                </div>`).join('');
+        }
+
+        async function salvarEquipamentos() {
+            const equipamentosMeta = {};
+            document.querySelectorAll('#catalogoEquip input[type=checkbox]:checked').forEach(c => {
+                (equipamentosMeta[c.dataset.heroi] = equipamentosMeta[c.dataset.heroi] || []).push(c.value);
+            });
+            const btn = document.getElementById('btnSalvarEquip');
+            btn.disabled = true;
+            msg('msgEquip', 'Salvando...');
+            try {
+                await api('PUT', '/ataques/equipamentos', { equipamentosMeta });
+                msg('msgEquip', '✓ Equipamentos salvos! Os perfis já mostram a nova lista.', 'ok');
+                await carregar();
+            } catch (e) {
+                msg('msgEquip', e.message, 'erro');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        if (location.hash === '#painel') mostrarAba('painel');
+        carregar();
+    </script>
+</body>
+
+</html>

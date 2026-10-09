@@ -250,6 +250,38 @@
 
         /* SEÇÕES RECOLHÍVEIS (Equipamentos / Tropas) — fechadas por padrão
            pra reduzir o quanto a pessoa precisa rolar a tela */
+        /* Equipamentos meta */
+        .meta-lista {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .meta-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid rgba(17, 3, 44, 0.08);
+            border-left: 4px solid var(--cor-meta);
+            border-radius: 10px;
+            min-width: 0;
+        }
+        .meta-item .meta-nome { min-width: 0; }
+        .meta-item .meta-nome b { display: block; font-size: 0.88rem; overflow-wrap: anywhere; }
+        .meta-item .meta-nome small { font-size: 0.72rem; color: #5b6475; }
+        .meta-item .meta-status { flex-shrink: 0; font-size: 0.78rem; font-weight: 800; color: var(--cor-meta); text-align: right; }
+        .meta-link {
+            display: inline-block;
+            font-weight: 800;
+            font-size: 0.88rem;
+            color: #077187;
+            text-decoration: none;
+        }
+        .meta-link:hover { text-decoration: underline; }
+
         .perfil-details {
             margin: 28px 0 14px;
         }
@@ -420,9 +452,10 @@
     <nav>
         <a href="https://clashcitybr.github.io">Home</a>
         <a href="https://clashcitybr.github.io/liga">Liga</a>
-        <a href="https://clashcitybr.github.io/controle-cla/">Desempenho</a>
+        <a href="https://clashcitybr.github.io/controle-cla/"><span class="nav-longo">Desempenho</span><span class="nav-curto">Ranking</span></a>
         <a href="https://clashcitybr.github.io/controle-cla/membros.html">Membros</a>
         <a href="https://clashcitybr.github.io/controle-cla/capital.html">Capital</a>
+        <a href="https://clashcitybr.github.io/controle-cla/ataques.html">Ataques</a>
         <a href="https://clashcitybr.github.io/controle-cla/historico.html">Histórico</a>
     </nav>
 
@@ -502,6 +535,13 @@
                         <div class="label">🌟 Estrelas Históricas</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- EQUIPAMENTOS META (lista marcada pela liderança na página Ataques) -->
+            <div class="perfil-section" id="secaoMeta" style="display:none;">
+                <h2>🎯 Equipamentos Meta</h2>
+                <div class="meta-lista" id="metaLista"></div>
+                <a class="meta-link" id="metaLink" href="ataques.html">⚔️ Ver exércitos recomendados →</a>
             </div>
 
             <!-- HERÓIS -->
@@ -767,11 +807,15 @@
 
             try {
                 // Busca dados em paralelo
+                // Lista de equipamentos meta: opcional, se falhar o perfil abre igual
+                const promessaMeta = fetch(`${BACKEND_URL}/ataques`, FETCH_OPTS)
+                    .then(r => r.ok ? r.json() : null).catch(() => null);
                 const [resJogador, resMembros, resHistorico] = await Promise.all([
                     fetch(`${BACKEND_URL}/jogador/${encodeURIComponent(tag)}`, FETCH_OPTS),
                     fetch(`${BACKEND_URL}/membros`, FETCH_OPTS),
                     fetch(`${BACKEND_URL}/historico`, FETCH_OPTS)
                 ]);
+                const ataquesMeta = await promessaMeta;
 
                 const jogador   = await resJogador.json();
                 const membros   = await resMembros.json();
@@ -794,6 +838,7 @@
                 renderTendencia(membroLocal, participacoes);
                 renderHerois(jogador.heroes);
                 renderEquipamentos(jogador.heroEquipment);
+                renderEquipMeta(jogador, ataquesMeta);
                 renderTropas(jogador.troops);
                 renderFeiticos(jogador.spells);
                 renderHistorico(participacoes);
@@ -1023,6 +1068,43 @@
             });
 
             container.innerHTML = html || "<p style='opacity:0.6;'>Nenhum herói disponível</p>";
+        }
+
+        // Compara os equipamentos do jogador com a lista meta da liderança
+        function renderEquipMeta(j, ataquesMeta) {
+            const secao = document.getElementById('secaoMeta');
+            const meta = ataquesMeta?.equipamentosMeta || {};
+            const heroisDoJogador = new Map((j.heroes || []).filter(h => h.village === 'home').map(h => [h.name, h]));
+            const equipDoJogador = new Map((j.heroEquipment || []).filter(e => e.village === 'home').map(e => [e.name, e]));
+
+            const itens = [];
+            Object.entries(meta).forEach(([heroi, lista]) => {
+                const h = heroisDoJogador.get(heroi);
+                if (!h || !Array.isArray(lista)) return;   // herói ainda não desbloqueado: não cobra nada
+                const emUso = new Set((h.equipment || []).map(e => e.name));
+                lista.forEach(nome => {
+                    const e = equipDoJogador.get(nome);
+                    let status, cor, ordem;
+                    if (!e) { status = '🔒 não desbloqueado'; cor = '#94a3b8'; ordem = 2; }
+                    else if (e.level >= e.maxLevel) { status = '✅ nível máximo'; cor = '#16a34a'; ordem = 3; }
+                    else { status = `⬆️ nv ${e.level}/${e.maxLevel}`; cor = '#d97706'; ordem = 1; }
+                    itens.push({ heroi, nome, status, cor, ordem, emUso: emUso.has(nome), pct: e ? e.level / e.maxLevel : 0 });
+                });
+            });
+
+            if (!itens.length) { secao.style.display = 'none'; return; }
+
+            // O que falta upar primeiro (menos evoluído no topo), depois bloqueados, depois os já no máximo
+            itens.sort((a, b) => a.ordem - b.ordem || a.pct - b.pct);
+            const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            document.getElementById('metaLista').innerHTML = itens.map(i => `
+                <div class="meta-item" style="--cor-meta:${i.cor}">
+                    <span class="meta-nome"><b>${esc(traduzirEquipamento(i.nome))}</b>
+                        <small>${esc(traduzirHeroi(i.heroi))}${i.emUso ? ' · em uso' : ''}</small></span>
+                    <span class="meta-status">${i.status}</span>
+                </div>`).join('');
+            document.getElementById('metaLink').href = `ataques.html#cv${j.townHallLevel || ''}`;
+            secao.style.display = '';
         }
 
         function renderEquipamentos(equipamentos) {

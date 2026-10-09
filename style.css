@@ -83,6 +83,9 @@ nav a:hover {
     background: rgba(255, 255, 255, 0.06);
 }
 
+/* "Desempenho" vira "Ranking" no celular, para o menu caber */
+.nav-curto { display: none; }
+
 /* Página em que o visitante está */
 nav a.ativo {
     color: var(--primary);
@@ -876,8 +879,8 @@ footer {
     }
 
     nav {
-        gap: 2px;
-        padding: 0 2%;
+        gap: 0;
+        padding: 0 1%;
         overflow-x: auto;      /* rede de segurança: rola de lado em vez de cortar */
         scrollbar-width: none;
     }
@@ -886,11 +889,14 @@ footer {
         display: none;
     }
 
-    /* Compacto o bastante para caber os 6 links em telas de 360px */
+    .nav-longo { display: none; }
+    .nav-curto { display: inline; }
+
+    /* Compacto o bastante para caber os 7 links em telas de 360px */
     nav a {
-        font-size: 0.66rem;
-        letter-spacing: 0.2px;
-        padding: 8px 4px;
+        font-size: 0.64rem;
+        letter-spacing: 0.1px;
+        padding: 8px 3px;
         white-space: nowrap;
         flex-shrink: 0;
     }
