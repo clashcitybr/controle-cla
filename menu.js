@@ -73,6 +73,7 @@
                 right: 0;
                 max-height: calc(100vh - 56px);
                 overflow-y: auto;
+                overscroll-behavior: contain;
                 background: #11032c;
                 padding: 6px 0 12px;
                 box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
@@ -160,8 +161,27 @@
     nav.classList.add('menu-pronto');
     document.body.appendChild(fundo);
 
+    // Trava a página de fundo enquanto o menu está aberto (funciona também no iPhone)
+    let rolagemSalva = 0;
+    function travarFundo(sim) {
+        const b = document.body;
+        if (sim) {
+            rolagemSalva = window.scrollY;
+            b.style.position = 'fixed';
+            b.style.top = `-${rolagemSalva}px`;
+            b.style.left = '0';
+            b.style.right = '0';
+            b.style.width = '100%';
+        } else {
+            b.style.position = b.style.top = b.style.left = b.style.right = b.style.width = '';
+            window.scrollTo(0, rolagemSalva);
+        }
+    }
+
     function abrir(sim) {
+        if (sim === nav.classList.contains('aberto')) return;
         nav.classList.toggle('aberto', sim);
+        travarFundo(sim);
         document.body.classList.toggle('menu-aberto', sim);
         botao.setAttribute('aria-expanded', String(sim));
         botao.setAttribute('aria-label', sim ? 'Fechar menu' : 'Abrir menu');
