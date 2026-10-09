@@ -136,6 +136,61 @@
         }
         .btn-copiar:hover { filter: brightness(1.05); }
 
+        /* Vídeo do ataque */
+        .video-capa {
+            position: relative;
+            display: block;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+        .video-capa img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+        .video-capa:hover img { transform: scale(1.03); }
+        .video-play {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 62px;
+            height: 44px;
+            transform: translate(-50%, -50%);
+            background: #ff0000;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        }
+        .video-play::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 54%;
+            transform: translate(-50%, -50%);
+            border-style: solid;
+            border-width: 10px 0 10px 17px;
+            border-color: transparent transparent transparent #fff;
+        }
+        .video-rotulo {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 18px 12px 8px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .btn-video {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            font-weight: 800;
+            font-size: 0.88rem;
+            text-decoration: none;
+        }
+
         .herois {
             max-width: var(--largura);
             margin: 0 auto 26px;
@@ -378,7 +433,12 @@
                         </div>
                         <div class="campo cheio">
                             <label for="fDica">Dica (opcional)</label>
-                            <textarea id="fDica" maxlength="300" placeholder="Uma ou duas linhas de dica para quem vai usar"></textarea>
+                            <textarea id="fDica" maxlength="500" placeholder="Uma ou duas linhas de dica para quem vai usar"></textarea>
+                        </div>
+                        <div class="campo cheio">
+                            <label for="fVideo">Vídeo do ataque (opcional)</label>
+                            <input type="url" id="fVideo" maxlength="300" placeholder="https://youtu.be/... ou https://www.youtube.com/watch?v=...">
+                            <small>Link do YouTube (mostra a capa do vídeo no card) ou do Instagram.</small>
                         </div>
                         <div class="acoes-form">
                             <button class="btn btn-principal" id="btnSalvar">Salvar exército</button>
@@ -524,6 +584,28 @@
                 <p class="nota-perfil">No perfil de cada jogador aparece o nível dele em cada um desses equipamentos e o que vale a pena upar.</p>` : '';
         }
 
+        // Pega o ID do vídeo em qualquer formato de link do YouTube
+        function idYoutube(url) {
+            const m = String(url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
+            return m ? m[1] : null;
+        }
+        const videoSeguro = l => /^https:\/\/((www|m)\.)?(youtube\.com|youtu\.be|instagram\.com)\//i.test(l || '') ? l : null;
+
+        function blocoVideo(e) {
+            const url = videoSeguro(e.video);
+            if (!url) return '';
+            const id = idYoutube(url);
+            if (id) {
+                return `
+                    <a class="video-capa" href="${esc(url)}" target="_blank" rel="noopener" aria-label="Ver o ataque no YouTube">
+                        <img src="https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+                        <span class="video-play" aria-hidden="true"></span>
+                        <span class="video-rotulo">▶ Ver o ataque em vídeo</span>
+                    </a>`;
+            }
+            return `<a class="btn-video" href="${esc(url)}" target="_blank" rel="noopener">▶️ Ver o ataque em vídeo</a>`;
+        }
+
         function cardExercito(e) {
             const comp = String(e.composicao || '').split(',').map(s => s.trim()).filter(Boolean);
             return `
@@ -534,6 +616,7 @@
                     </div>
                     ${comp.length ? `<div class="composicao">${comp.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
                     ${e.dica ? `<div class="dica">💡 ${esc(e.dica)}</div>` : ''}
+                    ${blocoVideo(e)}
                     <a class="btn-copiar" href="${esc(linkSeguro(e.link))}" target="_blank" rel="noopener">📋 Copiar exército no jogo</a>
                 </div>`;
         }
@@ -634,6 +717,7 @@
             document.getElementById('fLink').value = e.link || '';
             document.getElementById('fComposicao').value = e.composicao || '';
             document.getElementById('fDica').value = e.dica || '';
+            document.getElementById('fVideo').value = e.video || '';
             document.getElementById('tituloForm').textContent = '✏️ Editando exército';
             document.getElementById('btnSalvar').textContent = 'Salvar alterações';
             document.getElementById('btnCancelar').classList.remove('oculto');
@@ -649,7 +733,8 @@
                 nome: document.getElementById('fNome').value,
                 link: document.getElementById('fLink').value.trim(),
                 composicao: document.getElementById('fComposicao').value,
-                dica: document.getElementById('fDica').value
+                dica: document.getElementById('fDica').value,
+                video: document.getElementById('fVideo').value.trim()
             };
             const btn = document.getElementById('btnSalvar');
             btn.disabled = true;
