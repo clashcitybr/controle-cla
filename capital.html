@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
+    <title>Clash City BR - Capital do Clã</title>
+    <meta name="description" content="Ataques de fim de semana da Capital do Clã — ouro saqueado e ataques de cada membro da família Clash City BR.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <style>
+        /* Estilos só desta página — o resto vem do style.css compartilhado */
+        .capital-topo {
+            max-width: var(--largura);
+            margin: 0 auto 16px;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .cla-aba {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            border: 2px solid var(--borda);
+            background: var(--light);
+            color: var(--dark);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: var(--sombra-sm);
+        }
+        .cla-aba .bolinha { width: 10px; height: 10px; border-radius: 50%; background: var(--cor-cla); }
+        .cla-aba.ativa { background: var(--dark); border-color: var(--dark); color: #fff; }
+        .cla-aba .nome-curto { display: none; }
+
+        #seletorPeriodo {
+            margin-left: auto;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background: var(--light);
+            box-shadow: var(--sombra-sm);
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: var(--dark);
+            outline: none;
+            min-width: 0;
+        }
+        #seletorPeriodo:focus { border-color: var(--secondary); }
+
+        .capital-info {
+            max-width: var(--largura);
+            margin: 34px auto 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--texto-suave);
+            font-weight: 600;
+        }
+        .capital-info img { width: 36px; height: 36px; }
+        .capital-info strong { color: var(--dark); font-size: 1rem; }
+        .capital-info .pilula {
+            background: var(--light);
+            border: 1px solid var(--borda);
+            border-radius: 999px;
+            padding: 3px 10px;
+            white-space: nowrap;
+        }
+        .pilula.ao-vivo { background: #dcfce7; border-color: #86efac; color: #166534; }
+
+        .stats-summary { margin-bottom: 26px; }
+        .stat-card small {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.72rem;
+            color: var(--texto-suave);
+            font-weight: 600;
+        }
+
+        .secao-titulo {
+            max-width: var(--largura);
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--texto-suave);
+        }
+        .secao-titulo::after { content: ""; flex: 1; height: 1px; background: var(--borda); }
+
+        .lista-capital {
+            max-width: var(--largura);
+            margin: 0 auto 28px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 10px;
+        }
+
+        .linha-capital {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 64px;
+            padding: 10px 14px;
+            background: var(--light);
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--dark);
+            transition: border-color 0.15s, box-shadow 0.15s;
+            min-width: 0;
+        }
+        .linha-capital:hover { border-color: var(--secondary); box-shadow: var(--sombra-sm); }
+        .linha-capital.pendente { border-left: 4px solid #ef4444; }
+
+        .pos {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            background: #eef1f5;
+            color: var(--dark);
+        }
+        .pos.p1 { background: var(--ouro); }
+        .pos.p2 { background: var(--prata); }
+        .pos.p3 { background: var(--bronze); color: #fff; }
+
+        .linha-info { flex: 1; min-width: 0; }
+        .linha-nome {
+            font-weight: 700;
+            font-size: 0.92rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .linha-sub {
+            display: flex;
+            gap: 10px;
+            margin-top: 2px;
+            font-size: 0.74rem;
+            color: var(--texto-suave);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .linha-sub .alerta { color: #dc2626; font-weight: 700; }
+
+        .linha-saque {
+            flex-shrink: 0;
+            text-align: right;
+            font-weight: 800;
+            font-size: 0.98rem;
+        }
+        .linha-saque small {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--texto-suave);
+        }
+
+        .sem-ataque {
+            max-width: var(--largura);
+            margin: 0 auto 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .sem-ataque a {
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .capital-vazio {
+            max-width: var(--largura);
+            margin: 0 auto;
+            text-align: center;
+            padding: 30px 12px;
+            color: var(--texto-suave);
+            background: var(--light);
+            border-radius: 14px;
+        }
+
+        .capital-nota {
+            max-width: var(--largura);
+            margin: -14px auto 26px;
+            font-size: 0.78rem;
+            color: var(--texto-suave);
+        }
+
+        @media (max-width: 640px) {
+            .capital-topo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+            .cla-aba { justify-content: center; padding: 8px 6px; font-size: 0.74rem; min-width: 0; }
+            .cla-aba .nome-cla { display: none; }
+            .cla-aba .nome-curto { display: inline; }
+            #seletorPeriodo { grid-column: 1 / -1; margin-left: 0; width: 100%; font-size: 16px; }
+            .stats-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 14px 10px; }
+            .stat-card p { font-size: 1.2rem; }
+            .lista-capital { grid-template-columns: 1fr; gap: 8px; }
+            .capital-info { margin-top: 18px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="https://clashcitybr.github.io">Home</a>
+        <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="https://clashcitybr.github.io/controle-cla/">Desempenho</a>
+        <a href="https://clashcitybr.github.io/controle-cla/membros.html">Membros</a>
+        <a href="https://clashcitybr.github.io/controle-cla/historico.html">Histórico</a>
+    </nav>
+
+    <header>
+        <h1 class="scroll-anim show">Capital do Clã</h1>
+        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">Ataques de fim de semana — quem mais saqueou</p>
+    </header>
+
+    <section class="ranking-section">
+
+        <div class="capital-topo" id="capitalTopo"></div>
+
+        <div class="capital-info" id="capitalInfo"></div>
+
+        <div id="capitalConteudo">
+            <p class="capital-vazio">Carregando a Capital...</p>
+        </div>
+
+    </section>
+
+    <footer>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
+    </footer>
+
+    <script>
+        // BACKEND_URL vem de config.js (compartilhado entre as páginas)
+        const FETCH_OPTS = { headers: { 'ngrok-skip-browser-warning': 'true' } };
+
+        const CLAS = [
+            { chave: 'principal', nome: 'Clash City BR', curto: 'City BR', cor: '#f9d246' },
+            { chave: 'cla2', nome: 'Clash City BR 2', curto: 'City BR 2', cor: '#077187' },
+            { chave: 'cla3', nome: 'Clash City BR 3', curto: 'City BR 3', cor: '#8b5cf6' }
+        ];
+        const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+        let claAtivo = 'principal';
+        let dados = null;          // resposta do /capital/:cla
+        const cache = {};
+
+        function esc(txt) {
+            return String(txt ?? '').replace(/[&<>"']/g, c => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        const num = n => Number(n || 0).toLocaleString('pt-BR');
+
+        // A Supercell manda datas como "20261009T070000.000Z"
+        function parseDataCoC(s) {
+            const m = String(s || '').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/);
+            return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])) : null;
+        }
+
+        const FUSO = 'America/Sao_Paulo';
+        function partesData(d) {
+            const p = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: 'numeric', month: 'numeric', year: 'numeric' })
+                .formatToParts(d).reduce((o, x) => (o[x.type] = x.value, o), {});
+            return { dia: +p.day, mes: +p.month - 1, ano: +p.year };
+        }
+
+        function rotuloFimDeSemana(t) {
+            const i = parseDataCoC(t.inicio), f = parseDataCoC(t.fim);
+            if (!i || !f) return 'Fim de semana';
+            const a = partesData(i), b = partesData(f);
+            const intervalo = a.mes === b.mes
+                ? `${a.dia} a ${b.dia} ${MESES_CURTOS[b.mes]}`
+                : `${a.dia} ${MESES_CURTOS[a.mes]} a ${b.dia} ${MESES_CURTOS[b.mes]}`;
+            return intervalo + (t.estado === 'ongoing' ? ' (em andamento)' : '');
+        }
+
+        // Mês do fim de semana = mês em que ele começou
+        function chaveMes(t) {
+            const i = parseDataCoC(t.inicio);
+            if (!i) return null;
+            const p = partesData(i);
+            return `${p.ano}-${String(p.mes + 1).padStart(2, '0')}`;
+        }
+
+        // Nome da liga da Capital em português ("Master League II" -> "Liga Mestre II")
+        function traduzirLiga(nome) {
+            if (!nome) return null;
+            const t = { Bronze: 'Bronze', Silver: 'Prata', Gold: 'Ouro', Crystal: 'Cristal', Master: 'Mestre',
+                Champion: 'Campeão', Titan: 'Titã', Legend: 'Lendária', Unranked: 'Sem liga' };
+            const m = nome.match(/^(\w+)(?: League)?(?: (I{1,3}))?$/);
+            if (!m) return nome;
+            if (m[1] === 'Unranked') return 'Sem liga';
+            return `Liga ${t[m[1]] || m[1]}${m[2] ? ' ' + m[2] : ''}`;
+        }
+
+        function renderAbas() {
+            document.getElementById('capitalTopo').innerHTML = CLAS.map(c => `
+                <button type="button" class="cla-aba${c.chave === claAtivo ? ' ativa' : ''}" style="--cor-cla:${c.cor}"
+                    onclick="trocarCla('${c.chave}')"><span class="bolinha"></span><span class="nome-cla">${esc(c.nome)}</span><span class="nome-curto">${esc(c.curto)}</span></button>`).join('')
+                + `<select id="seletorPeriodo" onchange="renderizar()" aria-label="Período"></select>`;
+        }
+
+        function trocarCla(chave) {
+            if (chave === claAtivo && dados) return;
+            claAtivo = chave;
+            history.replaceState(null, '', '#' + chave);
+            carregar();
+        }
+
+        async function carregar() {
+            renderAbas();
+            const conteudo = document.getElementById('capitalConteudo');
+            document.getElementById('capitalInfo').innerHTML = '';
+            conteudo.innerHTML = '<p class="capital-vazio">Carregando a Capital...</p>';
+            try {
+                if (!cache[claAtivo]) {
+                    const r = await fetch(`${BACKEND_URL}/capital/${claAtivo}`, FETCH_OPTS);
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    cache[claAtivo] = await r.json();
+                }
+                dados = cache[claAtivo];
+                montarSeletor();
+                renderizar();
+            } catch (e) {
+                console.error('Capital indisponível:', e.message);
+                dados = null;
+                conteudo.innerHTML = '<p class="capital-vazio">Não foi possível carregar a Capital agora. Tenta recarregar a página em instantes.</p>';
+            }
+        }
+
+        // Opções: cada fim de semana + o mês inteiro (soma dos fins de semana)
+        function montarSeletor() {
+            const sel = document.getElementById('seletorPeriodo');
+            const temporadas = dados?.temporadas || [];
+            const meses = [...new Set(temporadas.map(chaveMes).filter(Boolean))];
+
+            let html = '';
+            if (temporadas.length) {
+                html += '<optgroup label="Fim de semana">'
+                    + temporadas.map((t, i) => `<option value="t${i}">${esc(rotuloFimDeSemana(t))}</option>`).join('')
+                    + '</optgroup>';
+            }
+            if (meses.length) {
+                html += '<optgroup label="Mês inteiro">'
+                    + meses.map(m => {
+                        const [a, mm] = m.split('-');
+                        return `<option value="m${m}">${MESES[+mm - 1][0].toUpperCase() + MESES[+mm - 1].slice(1)} de ${a}</option>`;
+                    }).join('')
+                    + '</optgroup>';
+            }
+            sel.innerHTML = html;
+            sel.style.display = temporadas.length ? '' : 'none';
+        }
+
+        function renderInfo() {
+            const box = document.getElementById('capitalInfo');
+            const d = dados;
+            const partes = [];
+            if (d.escudo) partes.push(`<img src="${esc(d.escudo)}" alt="" loading="lazy">`);
+            partes.push(`<strong>${esc(d.nome || CLAS.find(c => c.chave === claAtivo)?.nome)}</strong>`);
+            if (d.salaoCapital) partes.push(`<span class="pilula">🏛️ Salão da Capital nv ${esc(d.salaoCapital)}</span>`);
+            const liga = traduzirLiga(d.ligaCapital);
+            if (liga) partes.push(`<span class="pilula">🏆 ${esc(liga)}</span>`);
+            if (d.pontosCapital) partes.push(`<span class="pilula">⭐ ${num(d.pontosCapital)} pontos</span>`);
+            box.innerHTML = partes.join('');
+        }
+
+        function renderizar() {
+            if (!dados) return;
+            renderInfo();
+            const conteudo = document.getElementById('capitalConteudo');
+            const temporadas = dados.temporadas || [];
+            if (temporadas.length === 0) {
+                conteudo.innerHTML = '<p class="capital-vazio">Nenhum fim de semana de ataques registrado para este clã ainda.</p>';
+                return;
+            }
+
+            const valor = document.getElementById('seletorPeriodo').value || 't0';
+            const ehMes = valor.startsWith('m');
+            const escolhidas = ehMes
+                ? temporadas.filter(t => chaveMes(t) === valor.slice(1))
+                : [temporadas[+valor.slice(1)]].filter(Boolean);
+
+            // Soma por jogador (no fim de semana é só um, no mês junta vários)
+            const porTag = new Map();
+            escolhidas.forEach(t => (t.membros || []).forEach(m => {
+                const j = porTag.get(m.tag) || { tag: m.tag, nome: m.nome, ataques: 0, limite: 0, saque: 0, fins: 0 };
+                j.nome = m.nome;
+                j.ataques += m.ataques;
+                // No mês, o fim de semana em andamento não conta ataque "sobrando" (ainda dá tempo)
+                j.limite += (ehMes && t.estado === 'ongoing') ? m.ataques : m.limite;
+                j.saque += m.saque;
+                j.fins += 1;
+                porTag.set(m.tag, j);
+            }));
+            const ranking = [...porTag.values()].sort((a, b) =>
+                b.saque - a.saque || b.ataques - a.ataques || a.nome.localeCompare(b.nome, 'pt-BR'));
+
+            const total = escolhidas.reduce((o, t) => ({
+                saque: o.saque + t.saqueTotal,
+                ataques: o.ataques + t.ataques,
+                raides: o.raides + t.raidesCompletos,
+                distritos: o.distritos + t.distritosDestruidos
+            }), { saque: 0, ataques: 0, raides: 0, distritos: 0 });
+
+            const atual = !ehMes && escolhidas[0]?.estado === 'ongoing';
+            const sobrando = ranking.reduce((s, j) => s + Math.max(0, j.limite - j.ataques), 0);
+
+            let html = `
+                <div class="stats-summary">
+                    <div class="stat-card"><h3>💰 Ouro saqueado</h3><p>${num(total.saque)}</p></div>
+                    <div class="stat-card"><h3>⚔️ Ataques</h3><p>${num(total.ataques)}</p>
+                        ${sobrando ? `<small>${num(sobrando)} ${atual ? 'ainda disponíveis' : 'não usados'} por quem participou</small>` : ''}</div>
+                    <div class="stat-card"><h3>👥 Participantes</h3><p>${ranking.length}</p>
+                        ${ehMes ? `<small>${escolhidas.length} ${escolhidas.length === 1 ? 'fim de semana' : 'fins de semana'}</small>` : ''}</div>
+                    <div class="stat-card"><h3>🏚️ Distritos destruídos</h3><p>${num(total.distritos)}</p>
+                        <small>${num(total.raides)} ${total.raides === 1 ? 'capital derrubada' : 'capitais derrubadas'}</small></div>
+                </div>`;
+
+            if (ranking.length === 0) {
+                html += '<p class="capital-vazio">Ninguém atacou neste período ainda.</p>';
+            } else {
+                html += `<div class="secao-titulo">Ranking de saque · ${ranking.length}</div><div class="lista-capital">`;
+                ranking.forEach((j, i) => {
+                    const faltam = Math.max(0, j.limite - j.ataques);
+                    const media = j.ataques ? Math.round(j.saque / j.ataques) : 0;
+                    const aviso = faltam > 0
+                        ? `<span class="alerta">${atual ? `faltam ${faltam}` : `deixou ${faltam}`} ${faltam === 1 ? 'ataque' : 'ataques'}</span>`
+                        : '';
+                    html += `
+                        <a class="linha-capital${faltam > 0 && !atual ? ' pendente' : ''}" href="perfil.html?tag=${encodeURIComponent(j.tag)}">
+                            <span class="pos ${i < 3 ? 'p' + (i + 1) : ''}">${i + 1}</span>
+                            <span class="linha-info">
+                                <span class="linha-nome" style="display:block;">${esc(j.nome)}</span>
+                                <span class="linha-sub">
+                                    <span>⚔️ ${j.ataques}/${j.limite}</span>
+                                    ${ehMes ? `<span title="Fins de semana em que atacou">📅 ${j.fins} fds</span>` : ''}
+                                    ${aviso}
+                                </span>
+                            </span>
+                            <span class="linha-saque">${num(j.saque)}<small>${media ? `${num(media)} por ataque` : 'ouro'}</small></span>
+                        </a>`;
+                });
+                html += '</div>';
+            }
+
+            // Quem está no clã agora e não atacou — só faz sentido no fim de semana mais recente
+            const ehMaisRecente = !ehMes && valor === 't0';
+            if (ehMaisRecente && Array.isArray(dados.membrosAtuais) && dados.membrosAtuais.length) {
+                const naoAtacaram = dados.membrosAtuais
+                    .filter(m => !porTag.has(m.tag))
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+                if (naoAtacaram.length) {
+                    html += `<div class="secao-titulo">${atual ? 'Ainda não atacaram' : 'Não atacaram'} · ${naoAtacaram.length}</div>
+                        <div class="sem-ataque">${naoAtacaram.map(m =>
+                            `<a href="perfil.html?tag=${encodeURIComponent(m.tag)}">${esc(m.nome)}</a>`).join('')}</div>
+                        ${atual ? '' : '<p class="capital-nota">Lista de quem está no clã agora. Quem entrou depois do fim de semana também aparece aqui.</p>'}`;
+                }
+            }
+
+            conteudo.innerHTML = html;
+        }
+
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+        const doHash = location.hash.replace('#', '');
+        if (CLAS.some(c => c.chave === doHash)) claAtivo = doHash;
+        carregar();
+    </script>
+</body>
+
+</html>
