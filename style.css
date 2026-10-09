@@ -869,36 +869,9 @@ footer {
    MOBILE (≤ 640px)
    ============================================================ */
 @media (max-width: 640px) {
+    /* No celular o menu vira hambúrguer (menu.js): barra fina com o nome da página */
     :root {
-        --nav-altura: 52px;
-    }
-
-    nav {
-        justify-content: center;
-        padding: 0 4%;
-    }
-
-    nav {
-        gap: 0;
-        padding: 0 1%;
-        overflow-x: auto;      /* rede de segurança: rola de lado em vez de cortar */
-        scrollbar-width: none;
-    }
-
-    nav::-webkit-scrollbar {
-        display: none;
-    }
-
-    .nav-longo { display: none; }
-    .nav-curto { display: inline; }
-
-    /* Compacto o bastante para caber os 7 links em telas de 360px */
-    nav a {
-        font-size: 0.64rem;
-        letter-spacing: 0.1px;
-        padding: 8px 3px;
-        white-space: nowrap;
-        flex-shrink: 0;
+        --nav-altura: 56px;
     }
 
     header {
