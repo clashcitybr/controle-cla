@@ -83,6 +83,12 @@ nav a:hover {
     background: rgba(255, 255, 255, 0.06);
 }
 
+/* Página em que o visitante está */
+nav a.ativo {
+    color: var(--primary);
+    background: rgba(249, 210, 70, 0.12);
+}
+
 /* --- HEADER --- */
 header {
     min-height: 45vh;
@@ -880,11 +886,11 @@ footer {
         display: none;
     }
 
-    /* Compacto o bastante para caber 5 links (perfil) em telas de 360px */
+    /* Compacto o bastante para caber os 6 links em telas de 360px */
     nav a {
-        font-size: 0.68rem;
+        font-size: 0.66rem;
         letter-spacing: 0.2px;
-        padding: 8px 6px;
+        padding: 8px 4px;
         white-space: nowrap;
         flex-shrink: 0;
     }
