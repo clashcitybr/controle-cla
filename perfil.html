@@ -705,6 +705,10 @@
             "Dragon Claws":         "Garras do Dragão",
             "Wind Bow":             "Arco do Vento",
             "Smoldering Horn":      "Chifre Ardente",
+            "Snake Bracelet":       "Bracelete de Serpente",
+            "Action Figure":        "Boneco de Ação",
+            "Heroic Torch":         "Tocha Heroica",
+            "Revenge Deck":         "Baralho da Vingança",
         };
 
         function traduzirEquipamento(nome) {
@@ -1080,8 +1084,9 @@
             const itens = [];
             Object.entries(meta).forEach(([heroi, lista]) => {
                 const h = heroisDoJogador.get(heroi);
-                if (!h || !Array.isArray(lista)) return;   // herói ainda não desbloqueado: não cobra nada
-                const emUso = new Set((h.equipment || []).map(e => e.name));
+                // Herói ainda não desbloqueado: não cobra nada ("Outros" = herói não identificado)
+                if ((!h && heroi !== 'Outros') || !Array.isArray(lista)) return;
+                const emUso = new Set((h?.equipment || []).map(e => e.name));
                 lista.forEach(nome => {
                     const e = equipDoJogador.get(nome);
                     let status, cor, ordem;
@@ -1100,7 +1105,7 @@
             document.getElementById('metaLista').innerHTML = itens.map(i => `
                 <div class="meta-item" style="--cor-meta:${i.cor}">
                     <span class="meta-nome"><b>${esc(traduzirEquipamento(i.nome))}</b>
-                        <small>${esc(traduzirHeroi(i.heroi))}${i.emUso ? ' · em uso' : ''}</small></span>
+                        <small>${esc(i.heroi === 'Outros' ? 'Equipamento' : traduzirHeroi(i.heroi))}${i.emUso ? ' · em uso' : ''}</small></span>
                     <span class="meta-status">${i.status}</span>
                 </div>`).join('');
             document.getElementById('metaLink').href = `ataques.html#cv${j.townHallLevel || ''}`;
