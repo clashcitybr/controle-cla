@@ -11,6 +11,154 @@
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="config.js"></script>
+    <style>
+        /* ---- Abas Temporadas / Guerras ---- */
+        .abas-historico {
+            max-width: 420px;
+            margin: 0 auto 22px;
+            position: relative;
+            z-index: 10;
+        }
+        .abas-historico .aba-btn { flex: 1; font-size: 0.9rem; }
+
+        /* ---- Guerras do clã ---- */
+        .clas-guerra {
+            max-width: var(--largura);
+            margin: 34px auto 18px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .cla-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 2px solid var(--borda);
+            background: var(--light);
+            color: var(--dark);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--sombra-sm);
+        }
+        .cla-chip .bolinha { width: 10px; height: 10px; border-radius: 50%; background: var(--cor-cla); }
+        .cla-chip.ativa { background: var(--dark); border-color: var(--dark); color: #fff; }
+
+        .resumo-guerras { margin-bottom: 14px; }
+        .stat-card small {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.72rem;
+            color: var(--texto-suave);
+            font-weight: 600;
+        }
+
+        .forma-recente {
+            max-width: var(--largura);
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--texto-suave);
+        }
+        .forma-recente .bolinha-res {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #fff;
+        }
+        .res-vitoria { background: #16a34a; }
+        .res-derrota { background: #dc2626; }
+        .res-empate { background: #94a3b8; }
+
+        .lista-guerras {
+            max-width: 860px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .guerra-linha {
+            display: grid;
+            grid-template-columns: 92px 1fr auto;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            background: var(--light);
+            border: 1px solid var(--borda);
+            border-left: 5px solid var(--cor-res);
+            border-radius: 12px;
+            min-width: 0;
+        }
+        .guerra-res {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--cor-res);
+        }
+        .guerra-res small {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0;
+            color: var(--texto-suave);
+        }
+        .guerra-adv {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .guerra-adv img { width: 34px; height: 34px; flex-shrink: 0; }
+        .guerra-adv-nome {
+            font-weight: 700;
+            font-size: 0.92rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .guerra-adv-sub { font-size: 0.74rem; color: var(--texto-suave); }
+        .guerra-placar { text-align: right; white-space: nowrap; }
+        .guerra-placar strong { font-size: 1.05rem; }
+        .guerra-placar small { display: block; font-size: 0.72rem; color: var(--texto-suave); font-weight: 600; }
+
+        .guerras-vazio {
+            max-width: 860px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 30px 14px;
+            color: var(--texto-suave);
+            background: var(--light);
+            border-radius: 14px;
+        }
+
+        @media (max-width: 640px) {
+            .clas-guerra { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; }
+            .forma-recente { gap: 4px; }
+            .forma-recente .bolinha-res { width: 22px; height: 22px; }
+            .forma-recente .seta-recente { display: none; }
+            .cla-chip { justify-content: center; padding: 8px 6px; font-size: 0.74rem; }
+            .resumo-guerras { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .resumo-guerras .stat-card { padding: 14px 10px; }
+            .resumo-guerras .stat-card p { font-size: 1.25rem; }
+            .guerra-linha { grid-template-columns: 1fr auto; gap: 6px 12px; padding: 10px 12px; }
+            .guerra-res { grid-column: 1 / -1; display: flex; gap: 8px; align-items: baseline; }
+            .guerra-res small { display: inline; }
+        }
+    </style>
 </head>
 
 <body>
@@ -24,11 +172,19 @@
     </nav>
 
     <header>
-        <h1 class="scroll-anim">📅 Histórico de Temporadas</h1>
-        <p class="scroll-anim" style="color: var(--primary); font-weight: 600;">Ranking mensal arquivado</p>
+        <h1 class="scroll-anim">📅 Histórico</h1>
+        <p class="scroll-anim" style="color: var(--primary); font-weight: 600;" id="subtituloHistorico">Ranking mensal arquivado</p>
     </header>
 
     <section class="ranking-section">
+
+        <!-- ABAS -->
+        <div class="menu-abas abas-historico">
+            <button type="button" class="aba-btn active" id="abaTemporadas" onclick="mostrarAba('temporadas')">📅 Temporadas</button>
+            <button type="button" class="aba-btn" id="abaGuerras" onclick="mostrarAba('guerras')">⚔️ Guerras do clã</button>
+        </div>
+
+        <div id="painelTemporadas">
 
         <!-- SELETOR DE TEMPORADA -->
         <div class="controles-container scroll-anim" style="justify-content:center;">
@@ -74,6 +230,14 @@
         <div id="estadoVazio" class="ranking-card scroll-anim" style="text-align:center; padding:60px 20px;">
             <p style="font-size:3rem;">📭</p>
             <p style="opacity:0.6;">Nenhuma temporada arquivada ainda.<br>O histórico aparece automaticamente no início de cada mês.</p>
+        </div>
+
+        </div><!-- /painelTemporadas -->
+
+        <!-- GUERRAS DO CLÃ (registro de guerra da Supercell) -->
+        <div id="painelGuerras" style="display:none;">
+            <div class="clas-guerra" id="clasGuerra"></div>
+            <div id="conteudoGuerras"><p class="guerras-vazio">Carregando guerras...</p></div>
         </div>
 
     </section>
@@ -193,6 +357,147 @@
             }
         }
 
+        // ============================================================
+        // ABAS
+        // ============================================================
+        function mostrarAba(aba) {
+            const guerras = aba === 'guerras';
+            document.getElementById('painelTemporadas').style.display = guerras ? 'none' : '';
+            document.getElementById('painelGuerras').style.display = guerras ? '' : 'none';
+            document.getElementById('abaTemporadas').classList.toggle('active', !guerras);
+            document.getElementById('abaGuerras').classList.toggle('active', guerras);
+            document.getElementById('subtituloHistorico').innerText = guerras
+                ? 'Resultado das últimas guerras do clã'
+                : 'Ranking mensal arquivado';
+            history.replaceState(null, '', guerras ? '#guerras' : location.pathname + location.search);
+            if (guerras && !guerrasIniciadas) { guerrasIniciadas = true; carregarGuerras(); }
+        }
+
+        // ============================================================
+        // GUERRAS DO CLÃ
+        // ============================================================
+        const CLAS_GUERRA = [
+            { chave: 'principal', nome: 'Clash City BR', curto: 'City BR', cor: '#f9d246' },
+            { chave: 'cla2', nome: 'Clash City BR 2', curto: 'City BR 2', cor: '#077187' },
+            { chave: 'cla3', nome: 'Clash City BR 3', curto: 'City BR 3', cor: '#8b5cf6' }
+        ];
+        const RES = {
+            vitoria: { txt: 'VITÓRIA', letra: 'V', cor: '#16a34a', classe: 'res-vitoria' },
+            derrota: { txt: 'DERROTA', letra: 'D', cor: '#dc2626', classe: 'res-derrota' },
+            empate: { txt: 'EMPATE', letra: 'E', cor: '#94a3b8', classe: 'res-empate' }
+        };
+        let guerrasIniciadas = false;
+        let claGuerra = 'principal';
+        const cacheGuerras = {};
+
+        function esc(txt) {
+            return String(txt ?? '').replace(/[&<>"']/g, c => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        const num = n => Number(n || 0).toLocaleString('pt-BR');
+        const pct = n => `${Number(n || 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
+
+        // A Supercell manda datas como "20261009T070000.000Z"
+        function parseDataCoC(s) {
+            const m = String(s || '').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/);
+            return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])) : null;
+        }
+        function dataCurta(s) {
+            const d = parseDataCoC(s);
+            return d ? d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short' }).replace('.', '') : '';
+        }
+
+        function renderChipsGuerra() {
+            document.getElementById('clasGuerra').innerHTML = CLAS_GUERRA.map(c => `
+                <button type="button" class="cla-chip${c.chave === claGuerra ? ' ativa' : ''}" style="--cor-cla:${c.cor}"
+                    onclick="trocarClaGuerra('${c.chave}')"><span class="bolinha"></span>${esc(window.innerWidth <= 640 ? c.curto : c.nome)}</button>`).join('');
+        }
+
+        function trocarClaGuerra(chave) {
+            if (chave === claGuerra) return;
+            claGuerra = chave;
+            carregarGuerras();
+        }
+
+        async function carregarGuerras() {
+            renderChipsGuerra();
+            const box = document.getElementById('conteudoGuerras');
+            box.innerHTML = '<p class="guerras-vazio">Carregando guerras...</p>';
+            try {
+                if (!cacheGuerras[claGuerra]) {
+                    const r = await fetch(`${BACKEND_URL}/guerras/${claGuerra}`, FETCH_OPTS);
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    cacheGuerras[claGuerra] = await r.json();
+                }
+                renderGuerras(cacheGuerras[claGuerra]);
+            } catch (e) {
+                console.error('Guerras indisponíveis:', e.message);
+                box.innerHTML = '<p class="guerras-vazio">Não foi possível carregar as guerras agora. Tenta recarregar a página em instantes.</p>';
+            }
+        }
+
+        function renderGuerras(d) {
+            const box = document.getElementById('conteudoGuerras');
+            const guerras = Array.isArray(d.guerras) ? d.guerras : [];
+            const totalGeral = (d.vitorias || 0) + (d.derrotas || 0) + (d.empates || 0);
+            const aproveitamento = totalGeral ? Math.round((d.vitorias || 0) / totalGeral * 100) : null;
+
+            const recentes = guerras.length;
+            const vitRecentes = guerras.filter(g => g.resultado === 'vitoria').length;
+
+            let html = `
+                <div class="stats-summary resumo-guerras">
+                    <div class="stat-card"><h3>🏆 Vitórias</h3><p>${d.vitorias != null ? num(d.vitorias) : '--'}</p>
+                        ${aproveitamento != null ? `<small>${aproveitamento}% de aproveitamento</small>` : ''}</div>
+                    <div class="stat-card"><h3>💀 Derrotas</h3><p>${d.derrotas != null ? num(d.derrotas) : '--'}</p>
+                        ${d.empates ? `<small>${num(d.empates)} ${d.empates === 1 ? 'empate' : 'empates'}</small>` : ''}</div>
+                    <div class="stat-card"><h3>🔥 Sequência atual</h3><p>${d.sequencia != null ? num(d.sequencia) : '--'}</p>
+                        <small>${d.sequencia === 1 ? 'vitória seguida' : 'vitórias seguidas'}</small></div>
+                    <div class="stat-card"><h3>📈 Últimas ${recentes || ''}</h3><p>${recentes ? `${vitRecentes}/${recentes}` : '--'}</p>
+                        <small>${recentes ? 'vitórias nas guerras recentes' : 'sem guerras no registro'}</small></div>
+                </div>`;
+
+            if (!d.logPublico) {
+                html += `<p class="guerras-vazio">O registro de guerra deste clã está <strong>privado</strong> no jogo, então a lista de guerras não aparece.
+                    Para liberar: no jogo, Configurações do clã → Registro de guerra público.</p>`;
+                box.innerHTML = html;
+                return;
+            }
+
+            if (recentes === 0) {
+                html += '<p class="guerras-vazio">Nenhuma guerra no registro ainda.</p>';
+                box.innerHTML = html;
+                return;
+            }
+
+            // Últimas 10, da mais antiga para a mais recente (da esquerda para a direita)
+            const forma = guerras.slice(0, 10).reverse();
+            html += `<div class="forma-recente"><span>Últimas ${forma.length}:</span>${forma.map(g =>
+                `<span class="bolinha-res ${RES[g.resultado].classe}" title="${RES[g.resultado].txt} contra ${esc(g.adversario.nome)}">${RES[g.resultado].letra}</span>`).join('')}<span class="seta-recente">→ mais recente</span></div>`;
+
+            html += '<div class="lista-guerras">' + guerras.map(g => {
+                const r = RES[g.resultado];
+                const maxEstrelas = (g.tamanho || 0) * 3;
+                return `
+                    <div class="guerra-linha" style="--cor-res:${r.cor}">
+                        <div class="guerra-res">${r.txt}<small>${esc(dataCurta(g.fim))} · ${esc(g.tamanho)}x${esc(g.tamanho)}</small></div>
+                        <div class="guerra-adv">
+                            ${g.adversario.escudo ? `<img src="${esc(g.adversario.escudo)}" alt="" loading="lazy">` : ''}
+                            <div style="min-width:0;">
+                                <div class="guerra-adv-nome">${esc(g.adversario.nome)}</div>
+                                <div class="guerra-adv-sub">${g.adversario.nivel ? `Nível ${esc(g.adversario.nivel)}` : ''}</div>
+                            </div>
+                        </div>
+                        <div class="guerra-placar">
+                            <strong>${g.nos.estrelas}★ × ${g.adversario.estrelas}★</strong>
+                            <small>${pct(g.nos.destruicao)} × ${pct(g.adversario.destruicao)}${maxEstrelas ? ` · de ${maxEstrelas}★` : ''}</small>
+                        </div>
+                    </div>`;
+            }).join('') + '</div>';
+
+            box.innerHTML = html;
+        }
+
         // Animação scroll
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -201,7 +506,10 @@
         }, { threshold: 0.1 });
         document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
 
-        window.addEventListener('DOMContentLoaded', inicializar);
+        window.addEventListener('DOMContentLoaded', () => {
+            inicializar();
+            if (location.hash === '#guerras') mostrarAba('guerras');
+        });
     </script>
 </body>
 
