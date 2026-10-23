@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
+    <title>Clash City BR - Mapa da Guerra</title>
+    <meta name="description" content="Mapa da guerra ao vivo do Clash City BR: vilas livres, vilas pra limpar e quem ainda tem ataque.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <style>
+        /* Estilos só desta página — o resto vem do style.css compartilhado */
+        header { min-height: 30vh; padding-bottom: 90px; }
+
+        .mapa-section { padding: 0 5% 40px; margin-top: -60px; position: relative; z-index: 10; }
+        .mapa-wrap { max-width: 820px; margin: 0 auto; }
+
+        .cartao {
+            background: var(--light);
+            border-radius: var(--raio);
+            box-shadow: var(--sombra-md);
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+        .cartao h2 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+        .suave { color: var(--texto-suave); font-size: 0.85rem; }
+
+        /* PLACAR */
+        .placar { text-align: center; }
+        .placar-selo {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: var(--dark);
+            color: var(--primary);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .placar-times {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            gap: 10px;
+            align-items: center;
+        }
+        .placar-time { min-width: 0; }
+        .placar-time .nome { font-weight: 700; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .placar-time .estrelas { font-size: 1.8rem; font-weight: 800; line-height: 1.1; }
+        .placar-time .pct { font-size: 0.75rem; color: var(--texto-suave); }
+        .placar-vs { font-weight: 800; color: var(--texto-suave); }
+        .placar-info { margin-top: 10px; font-size: 0.85rem; font-weight: 700; color: var(--secondary); }
+
+        /* MINHAS CONTAS */
+        .minhas { display: grid; gap: 8px; }
+        .minha {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: #fffbeb;
+            border: 1px solid rgba(249, 210, 70, 0.6);
+            font-size: 0.85rem;
+        }
+        .minha.feito { background: #f0fdf4; border-color: rgba(34, 197, 94, 0.4); }
+        .minha b { overflow-wrap: anywhere; }
+
+        /* FILTROS */
+        .filtros { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+        .filtros::-webkit-scrollbar { display: none; }
+        .filtro {
+            flex-shrink: 0;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 2px solid var(--borda);
+            background: var(--light);
+            color: var(--dark);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: var(--sombra-sm);
+        }
+        .filtro.ativo { background: var(--dark); border-color: var(--dark); color: #fff; }
+
+        /* VILAS INIMIGAS */
+        .vilas { display: grid; gap: 8px; }
+        .vila {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--light);
+            border-radius: 12px;
+            box-shadow: var(--sombra-sm);
+            border-left: 5px solid #cbd5e1;
+        }
+        .vila.livre { border-left-color: #22c55e; }
+        .vila.limpar { border-left-color: var(--primary); }
+        .vila.caiu { border-left-color: #94a3b8; opacity: 0.6; }
+        .vila .pos { font-weight: 800; font-size: 0.95rem; text-align: center; }
+        .vila .info { min-width: 0; }
+        .vila .info b { display: block; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vila .info small { font-size: 0.72rem; color: var(--texto-suave); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vila .status { text-align: right; font-size: 0.78rem; font-weight: 800; white-space: nowrap; }
+        .vila .status .est { color: #f5b301; letter-spacing: 1px; font-size: 0.95rem; }
+        .vila .status .est .vazia { color: #d6dae3; }
+        .vila.livre .status { color: #15803d; }
+        .vila.espelho-meu { box-shadow: 0 0 0 2px var(--dark), var(--sombra-sm); }
+
+        /* QUEM AINDA TEM ATAQUE */
+        .pendentes { display: flex; flex-wrap: wrap; gap: 6px; }
+        .pendente {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .pendente.eu { background: var(--dark); color: #fff; }
+
+        .carregando { text-align: center; padding: 30px 0; color: var(--texto-suave); }
+        .legenda { font-size: 0.72rem; color: var(--texto-suave); margin-top: 10px; text-align: center; }
+    </style>
+</head>
+
+<body>
+    <nav data-titulo="Mapa da Guerra">
+        <a href="https://clashcitybr.github.io">Home</a>
+        <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="https://clashcitybr.github.io/controle-cla/"><span class="nav-longo">Desempenho</span><span class="nav-curto">Ranking</span></a>
+        <a href="https://clashcitybr.github.io/controle-cla/membros.html">Membros</a>
+        <a href="https://clashcitybr.github.io/controle-cla/capital.html">Capital</a>
+        <a href="https://clashcitybr.github.io/controle-cla/ataques.html">Ataques</a>
+        <a href="https://clashcitybr.github.io/controle-cla/historico.html">Histórico</a>
+    </nav>
+    <script src="menu.js"></script>
+
+    <header>
+        <h1 class="scroll-anim show">Mapa da Guerra</h1>
+        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">Quem atacar, quem limpar e quem ainda falta</p>
+    </header>
+
+    <section class="mapa-section">
+        <div class="mapa-wrap" id="conteudo">
+            <div class="cartao"><p class="carregando">Carregando a guerra...</p></div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
+    </footer>
+
+    <script>
+        const FETCH_OPTS = { headers: { 'ngrok-skip-browser-warning': 'true' } };
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+
+        let filtroAtual = 'todas';
+        let ultimaGuerra = null;
+
+        function escapar(t) {
+            return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        function dataCoC(str) {
+            if (!str || str.length < 15) return null;
+            const d = new Date(`${str.slice(0,4)}-${str.slice(4,6)}-${str.slice(6,8)}T${str.slice(9,11)}:${str.slice(11,13)}:${str.slice(13,15)}Z`);
+            return isNaN(d) ? null : d;
+        }
+        function tempoAte(data) {
+            if (!data) return null;
+            const ms = data - Date.now();
+            if (ms <= 0) return null;
+            const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
+            return h > 0 ? `${h}h ${String(m).padStart(2, '0')}min` : `${m}min`;
+        }
+        function estrelas(n) {
+            let h = '';
+            for (let i = 0; i < 3; i++) h += i < n ? '★' : '<span class="vazia">★</span>';
+            return h;
+        }
+        // Contas marcadas no Meu Painel (mesmo celular)
+        function minhasTags() {
+            try {
+                const v = JSON.parse(localStorage.getItem('ccbr_minhas_contas') || '[]');
+                return new Set((Array.isArray(v) ? v : []).map(c => c && c.tag).filter(Boolean));
+            } catch (_) { return new Set(); }
+        }
+
+        function statusVila(m) {
+            const melhor = m.bestOpponentAttack;
+            if (!melhor || !(m.opponentAttacks > 0)) return 'livre';
+            return (melhor.stars || 0) >= 3 ? 'caiu' : 'limpar';
+        }
+
+        async function carregar() {
+            try {
+                const r = await fetch(`${BACKEND_URL}/guerra-atual`, FETCH_OPTS);
+                if (!r.ok) throw new Error(r.status);
+                ultimaGuerra = await r.json();
+                render();
+            } catch (e) {
+                if (!ultimaGuerra) {
+                    document.getElementById('conteudo').innerHTML =
+                        '<div class="cartao"><p class="carregando">Não consegui carregar a guerra agora. Tente de novo em instantes.</p></div>';
+                }
+            }
+        }
+
+        function render() {
+            const g = ultimaGuerra;
+            const alvo = document.getElementById('conteudo');
+
+            if (!g || g.state === 'notInWar' || !g.state) {
+                alvo.innerHTML = '<div class="cartao"><p class="carregando">😴 O clã não está em guerra agora.<br>O mapa aparece quando começar a próxima.</p></div>';
+                return;
+            }
+
+            const nossos = g.clan?.members || [];
+            const inimigos = [...(g.opponent?.members || [])].sort((a, b) => a.mapPosition - b.mapPosition);
+            const nomePorTag = new Map(nossos.map(m => [m.tag, m.name]));
+            const permitidos = g.attacksPerMember || (g.liga ? 1 : 2);
+            const minhas = minhasTags();
+            const naLiga = !!g.liga;
+
+            // ---------- placar ----------
+            let selo = '⚔️ GUERRA EM ANDAMENTO', info = '';
+            if (g.state === 'preparation') {
+                selo = '⏳ PREPARAÇÃO';
+                const t = tempoAte(dataCoC(g.startTime));
+                info = t ? `A batalha começa em ${t}` : 'A batalha já vai começar';
+            } else if (g.state === 'inWar') {
+                const t = tempoAte(dataCoC(g.endTime));
+                const usados = nossos.reduce((n, m) => n + (m.attacks?.length || 0), 0);
+                info = `${t ? `Faltam ${t}` : 'Terminando'} · ${usados} de ${nossos.length * permitidos} ataques usados`;
+            } else if (g.state === 'warEnded') {
+                selo = '🏁 GUERRA ENCERRADA';
+                info = 'Resultado final';
+            }
+            if (naLiga) selo = `🏅 LIGA · ${selo}`;
+
+            const placar = `
+                <div class="cartao placar">
+                    <span class="placar-selo">${selo}</span>
+                    <div class="placar-times">
+                        <div class="placar-time">
+                            <div class="nome">${escapar(g.clan?.name || 'Nós')}</div>
+                            <div class="estrelas">${g.clan?.stars ?? 0}★</div>
+                            <div class="pct">${(g.clan?.destructionPercentage ?? 0).toFixed(1)}%</div>
+                        </div>
+                        <div class="placar-vs">×</div>
+                        <div class="placar-time">
+                            <div class="nome">${escapar(g.opponent?.name || 'Adversário')}</div>
+                            <div class="estrelas">${g.opponent?.stars ?? 0}★</div>
+                            <div class="pct">${(g.opponent?.destructionPercentage ?? 0).toFixed(1)}%</div>
+                        </div>
+                    </div>
+                    <div class="placar-info">${info}</div>
+                </div>`;
+
+            // ---------- minhas contas nesta guerra ----------
+            const espelhosMeus = new Set();
+            const minhasNaGuerra = nossos.filter(m => minhas.has(m.tag)).sort((a, b) => a.mapPosition - b.mapPosition);
+            let blocoMinhas = '';
+            if (minhasNaGuerra.length && g.state !== 'warEnded') {
+                const linhas = minhasNaGuerra.map(m => {
+                    espelhosMeus.add(m.mapPosition);
+                    const faltam = permitidos - (m.attacks?.length || 0);
+                    const espelho = inimigos.find(x => x.mapPosition === m.mapPosition);
+                    const st = espelho ? statusVila(espelho) : null;
+                    const txtEspelho = espelho
+                        ? `espelho #${espelho.mapPosition} (CV${espelho.townhallLevel}) ${st === 'livre' ? 'livre' : st === 'caiu' ? 'já caiu' : 'pra limpar'}`
+                        : '';
+                    return `<div class="minha${faltam ? '' : ' feito'}">
+                        <span><b>${escapar(m.name)}</b> · #${m.mapPosition}<br><small class="suave">${txtEspelho}</small></span>
+                        <span>${faltam ? `⏳ ${faltam} ${faltam === 1 ? 'ataque' : 'ataques'}` : '✓ atacou'}</span>
+                    </div>`;
+                });
+                blocoMinhas = `<div class="cartao"><h2>👤 Suas contas</h2><div class="minhas">${linhas.join('')}</div></div>`;
+            }
+
+            // ---------- vilas inimigas ----------
+            const contagem = { livre: 0, limpar: 0, caiu: 0 };
+            inimigos.forEach(m => contagem[statusVila(m)]++);
+            const emBatalha = g.state !== 'preparation';
+
+            const filtros = emBatalha ? `
+                <div class="filtros">
+                    ${[['todas', `Todas (${inimigos.length})`], ['livre', `🟢 Livres (${contagem.livre})`],
+                       ['limpar', `🟡 Pra limpar (${contagem.limpar})`], ['caiu', `⚫ Caíram (${contagem.caiu})`]]
+                        .map(([k, txt]) => `<button type="button" class="filtro${filtroAtual === k ? ' ativo' : ''}" data-filtro="${k}">${txt}</button>`).join('')}
+                </div>` : '';
+
+            const vilas = inimigos
+                .filter(m => !emBatalha || filtroAtual === 'todas' || statusVila(m) === filtroAtual)
+                .map(m => {
+                    const st = emBatalha ? statusVila(m) : '';
+                    const melhor = m.bestOpponentAttack;
+                    let status = '', detalhe = `CV${m.townhallLevel}`;
+                    if (!emBatalha) status = '';
+                    else if (st === 'livre') status = 'LIVRE';
+                    else {
+                        status = `<span class="est">${estrelas(melhor.stars || 0)}</span><br>${Math.round(melhor.destructionPercentage || 0)}%`;
+                        const quem = nomePorTag.get(melhor.attackerTag);
+                        detalhe += ` · ${m.opponentAttacks} ${m.opponentAttacks === 1 ? 'ataque' : 'ataques'}${quem ? ` · melhor: ${escapar(quem)}` : ''}`;
+                    }
+                    return `<div class="vila ${st}${espelhosMeus.has(m.mapPosition) ? ' espelho-meu' : ''}">
+                        <div class="pos">#${m.mapPosition}</div>
+                        <div class="info"><b>${escapar(m.name)}</b><small>${detalhe}</small></div>
+                        <div class="status">${status}</div>
+                    </div>`;
+                });
+
+            const blocoVilas = `
+                <div class="cartao">
+                    <h2>🗺️ Vilas do adversário</h2>
+                    ${filtros}
+                    <div class="vilas">${vilas.join('') || '<p class="suave">Nenhuma vila nesse filtro.</p>'}</div>
+                    ${emBatalha ? '<p class="legenda">Estrelas e % mostram o melhor ataque nosso em cada vila. Contorno escuro = espelho da sua conta.</p>' : ''}
+                </div>`;
+
+            // ---------- quem ainda tem ataque ----------
+            let blocoPendentes = '';
+            if (g.state === 'inWar') {
+                const pend = nossos
+                    .filter(m => (m.attacks?.length || 0) < permitidos)
+                    .sort((a, b) => a.mapPosition - b.mapPosition);
+                blocoPendentes = `<div class="cartao"><h2>⏳ Ainda têm ataque (${pend.length})</h2>
+                    <div class="pendentes">${pend.length
+                        ? pend.map(m => `<span class="pendente${minhas.has(m.tag) ? ' eu' : ''}">#${m.mapPosition} ${escapar(m.name)} · CV${m.townhallLevel} (${m.attacks?.length || 0}/${permitidos})</span>`).join('')
+                        : '<span class="suave">Todo mundo já atacou! 🎉</span>'}</div></div>`;
+            }
+
+            alvo.innerHTML = placar + blocoMinhas + blocoVilas + blocoPendentes;
+        }
+
+        document.getElementById('conteudo').addEventListener('click', e => {
+            const b = e.target.closest('[data-filtro]');
+            if (!b) return;
+            filtroAtual = b.dataset.filtro;
+            render();
+        });
+
+        carregar();
+        setInterval(carregar, 2 * 60 * 1000);   // atualiza sozinho a cada 2 min
+    </script>
+</body>
+
+</html>

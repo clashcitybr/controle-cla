@@ -167,6 +167,7 @@
         .atq-pilula .est .vazia { color: #d6dae3; }
         .atq-pilula.falta { background: #fef3c7; color: #92400e; }
 
+        .link-mapa { display: inline-block; margin-top: 12px; font-weight: 800; font-size: 0.85rem; color: var(--secondary); text-decoration: none; }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -468,7 +469,8 @@
                 const comeca = tempoAte(dataCoC(g.inicio));
                 return `<div class="cartao guerra-box"><h2>⚔️ ${tipo}${adv}</h2>
                     <div class="guerra-grande">Preparação</div>
-                    <p class="suave">${comeca ? `A batalha começa em ${comeca}.` : 'A batalha já vai começar.'} Você está na posição #${g.posicao}.</p></div>`;
+                    <p class="suave">${comeca ? `A batalha começa em ${comeca}.` : 'A batalha já vai começar.'} Você está na posição #${g.posicao}.</p>
+                    <a class="link-mapa" href="mapa.html">🗺️ Ver mapa da guerra →</a></div>`;
             }
 
             const feitos = g.ataques.length;
@@ -492,7 +494,8 @@
                     <span class="suave">${g.placar.nos} × ${g.placar.eles}</span>
                 </div>
                 <p class="suave">${termina ? `Termina em ${termina}` : 'Terminando'} · você é o #${g.posicao} do mapa</p>
-                <div class="guerra-ataques">${pilulas.join('')}</div></div>`;
+                <div class="guerra-ataques">${pilulas.join('')}</div>
+                <a class="link-mapa" href="mapa.html">🗺️ Ver mapa da guerra →</a></div>`;
         }
 
         function montarStats(d) {

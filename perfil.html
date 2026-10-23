@@ -370,6 +370,47 @@
             .chart-wrap { height: 230px; }
         }
 
+        /* CONQUISTAS */
+        .conquistas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+            gap: 10px;
+        }
+        .conquista {
+            position: relative;
+            background: #fff;
+            border-radius: 14px;
+            padding: 14px 10px 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+            border-top: 3px solid #f9d246;
+            min-width: 0;
+        }
+        .conquista .icone { font-size: 2rem; line-height: 1; }
+        .conquista .nome { font-weight: 800; font-size: 0.82rem; margin-top: 6px; color: #11032c; }
+        .conquista .desc { font-size: 0.68rem; color: #5b6475; margin-top: 2px; line-height: 1.35; }
+        .conquista .selo {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.66rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #11032c;
+            color: #f9d246;
+        }
+        .conquista.nivel-Bronze { border-top-color: #cd7f32; }
+        .conquista.nivel-Prata { border-top-color: #9aa5b4; }
+        .conquista.nivel-Ouro { border-top-color: #f5c518; }
+        .conquista.nivel-Diamante { border-top-color: #38bdf8; }
+        .conquista.bloqueada { background: #f6f7f9; border-top-color: #d6dae3; box-shadow: none; }
+        .conquista.bloqueada .icone { filter: grayscale(1); opacity: 0.35; }
+        .conquista.bloqueada .nome { color: #94a3b8; }
+        .conquista .barra { height: 5px; border-radius: 5px; background: #e5e7eb; margin-top: 8px; overflow: hidden; }
+        .conquista .barra span { display: block; height: 100%; background: #077187; border-radius: 5px; }
+        .conquista .prog { font-size: 0.66rem; color: #5b6475; margin-top: 4px; font-weight: 700; }
+
         /* ÚLTIMAS GUERRAS */
         .guerras-resumo {
             display: flex;
@@ -644,6 +685,12 @@
                         <div class="label">🌟 Estrelas Históricas</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- CONQUISTAS -->
+            <div class="perfil-section" id="secaoConquistas" style="display:none;">
+                <h2 id="tituloConquistas">🏅 Conquistas</h2>
+                <div class="conquistas-grid" id="conquistasGrid"></div>
             </div>
 
             <!-- ÚLTIMAS GUERRAS (ataques e defesa guerra a guerra) -->
@@ -933,6 +980,8 @@
                 const promessaMeta = fetch(`${BACKEND_URL}/ataques`, FETCH_OPTS)
                     .then(r => r.ok ? r.json() : null).catch(() => null);
                 // Últimas guerras: também opcional (backend antigo não tem a rota)
+                const promessaConquistas = fetch(`${BACKEND_URL}/jogador/${encodeURIComponent('#' + normalizarTag(tag))}/conquistas`, FETCH_OPTS)
+                    .then(r => r.ok ? r.json() : null).catch(() => null);
                 const promessaGuerras = fetch(`${BACKEND_URL}/jogador/${encodeURIComponent('#' + normalizarTag(tag))}/guerras?limite=10`, FETCH_OPTS)
                     .then(r => r.ok ? r.json() : null).catch(() => null);
                 const [resJogador, resMembros, resHistorico] = await Promise.all([
@@ -972,6 +1021,7 @@
                 document.getElementById('conteudoPerfil').style.display = 'block';
 
                 promessaGuerras.then(renderUltimasGuerras);
+                promessaConquistas.then(renderConquistas);
 
             } catch (e) {
                 console.error(e);
@@ -1495,6 +1545,46 @@
         }
 
         // ============================================================
+        // CONQUISTAS
+        // ============================================================
+        let ultimasConquistas = null;
+
+        function renderConquistas(dados) {
+            const lista = dados?.conquistas || [];
+            if (!lista.length) return;
+            ultimasConquistas = lista;
+
+            // Conquistadas primeiro, depois as que estão mais perto de sair
+            const ordenadas = [...lista].sort((a, b) => {
+                if (a.conquistada !== b.conquistada) return a.conquistada ? -1 : 1;
+                const pa = a.progresso ? a.progresso.atual / a.progresso.meta : 0;
+                const pb = b.progresso ? b.progresso.atual / b.progresso.meta : 0;
+                return pb - pa;
+            });
+
+            document.getElementById('conquistasGrid').innerHTML = ordenadas.map(c => {
+                let selo = '';
+                if (c.conquistada && c.nivel) selo = `<span class="selo">${c.nivel}</span>`;
+                else if (c.conquistada && c.vezes > 1) selo = `<span class="selo">${c.vezes}x</span>`;
+                const prog = c.progresso
+                    ? `<div class="barra"><span style="width:${Math.min(100, Math.round(c.progresso.atual / c.progresso.meta * 100))}%"></span></div>
+                       <div class="prog">${c.progresso.atual}/${c.progresso.meta}${c.conquistada ? ' pro próximo nível' : ''}</div>`
+                    : '';
+                return `<div class="conquista ${c.conquistada ? (c.nivel ? `nivel-${c.nivel}` : '') : 'bloqueada'}">
+                    ${selo}
+                    <div class="icone">${c.icone}</div>
+                    <div class="nome">${c.nome}</div>
+                    <div class="desc">${c.descricao}</div>
+                    ${prog}
+                </div>`;
+            }).join('');
+
+            document.getElementById('tituloConquistas').textContent =
+                `🏅 Conquistas (${dados.conquistadas}/${dados.total})`;
+            document.getElementById('secaoConquistas').style.display = 'block';
+        }
+
+        // ============================================================
         // ÚLTIMAS GUERRAS
         // ============================================================
         const GUERRAS_VISIVEIS = 5;
@@ -1659,7 +1749,8 @@
                 ]);
             } catch (e) { /* segue mesmo se falhar, usa fonte padrão */ }
 
-            const W = 1080, H = 1180;
+            const conquistasCartao = (ultimasConquistas || []).filter(c => c.conquistada);
+            const W = 1080, H = conquistasCartao.length ? 1390 : 1180;
             const canvas = document.createElement('canvas');
             canvas.width = W;
             canvas.height = H;
@@ -1745,6 +1836,29 @@
                 ctx.font = '600 18px Lexend, sans-serif';
                 ctx.fillText(s.label, bx + bw / 2, by + 130);
             });
+
+            // Conquistas (só as que ele já tem)
+            if (conquistasCartao.length) {
+                const topo = 1120;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.font = '600 22px Lexend, sans-serif';
+                ctx.fillText('CONQUISTAS', W / 2, topo);
+                const itens = conquistasCartao.slice(0, 6);
+                const passo = 150, inicioX = W / 2 - ((itens.length - 1) * passo) / 2;
+                itens.forEach((c, i) => {
+                    const x = inicioX + i * passo;
+                    ctx.font = '56px sans-serif';
+                    ctx.fillText(c.icone, x, topo + 80);
+                    const extra = c.nivel || (c.vezes > 1 ? `${c.vezes}x` : '');
+                    if (extra) {
+                        ctx.fillStyle = '#f9d246';
+                        ctx.font = '700 18px Lexend, sans-serif';
+                        ctx.fillText(extra, x, topo + 112);
+                        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    }
+                });
+            }
 
             // Rodapé — CTA orgânico pra quem ver no status
             ctx.fillStyle = 'rgba(255,255,255,0.55)';
