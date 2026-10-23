@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
+    <title>Clash City BR - Meu Painel</title>
+    <meta name="description" content="Seu painel na família Clash City BR: guerra atual, posição no ranking, sequência de 3 estrelas e avisos das suas contas.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <style>
+        /* Estilos só desta página — o resto vem do style.css compartilhado */
+        header { min-height: 32vh; padding-bottom: 90px; }
+
+        .painel-section {
+            padding: 0 5% 40px;
+            margin-top: -60px;
+            position: relative;
+            z-index: 10;
+        }
+        .painel-wrap { max-width: 760px; margin: 0 auto; }
+
+        .cartao {
+            background: var(--light);
+            border-radius: var(--raio);
+            box-shadow: var(--sombra-md);
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+        .cartao h2 {
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        .suave { color: var(--texto-suave); font-size: 0.85rem; }
+
+        /* ---------- ESCOLHA DE CONTAS ---------- */
+        .busca {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 2px solid var(--borda);
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin: 6px 0 14px;
+            outline: none;
+        }
+        .busca:focus { border-color: var(--secondary); }
+        .grupo-cla { margin-bottom: 16px; }
+        .grupo-cla h3 {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--texto-suave);
+            margin-bottom: 8px;
+        }
+        .lista-membros {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+            gap: 8px;
+        }
+        .opcao-conta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 2px solid var(--borda);
+            border-radius: 12px;
+            cursor: pointer;
+            min-width: 0;
+            background: #fff;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .opcao-conta input { width: 18px; height: 18px; accent-color: var(--dark); flex-shrink: 0; }
+        .opcao-conta .nome { font-weight: 700; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .opcao-conta .info { font-size: 0.72rem; color: var(--texto-suave); }
+        .opcao-conta > div { min-width: 0; }
+        .opcao-conta:has(input:checked) { border-color: var(--dark); background: #f6f4fb; }
+        .barra-salvar {
+            position: sticky;
+            bottom: 12px;
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn {
+            flex: 1;
+            padding: 13px 18px;
+            border-radius: 999px;
+            border: none;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-principal { background: var(--primary); color: var(--dark); box-shadow: 0 6px 18px rgba(249, 210, 70, 0.45); }
+        .btn-principal:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+        .btn-secundario { background: #fff; color: var(--dark); border: 2px solid var(--borda); flex: 0 0 auto; }
+
+        /* ---------- PAINEL ---------- */
+        .contas-topo {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 14px;
+            scrollbar-width: none;
+        }
+        .contas-topo::-webkit-scrollbar { display: none; }
+        .chip-conta {
+            flex-shrink: 0;
+            padding: 9px 16px;
+            border-radius: 999px;
+            border: 2px solid var(--borda);
+            background: var(--light);
+            color: var(--dark);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--sombra-sm);
+            white-space: nowrap;
+        }
+        .chip-conta.ativa { background: var(--dark); border-color: var(--dark); color: #fff; }
+        .chip-editar { color: var(--secondary); }
+
+        .conta-cabecalho {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+        .selo-cv {
+            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f9d246, #f97316);
+            color: var(--dark);
+            font-weight: 800;
+            font-size: 0.85rem;
+            display: grid;
+            place-items: center;
+        }
+        .conta-cabecalho h2 { margin: 0; font-size: 1.25rem; text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
+        .conta-cabecalho a { color: var(--secondary); font-weight: 700; font-size: 0.85rem; text-decoration: none; }
+
+        .guerra-box { border-left: 5px solid #cbd5e1; }
+        .guerra-box.pendente { border-left-color: var(--primary); background: #fffbeb; }
+        .guerra-box.ok { border-left-color: #22c55e; }
+        .guerra-linha-topo { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+        .guerra-grande { font-size: 1.6rem; font-weight: 800; line-height: 1.2; }
+        .guerra-ataques { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .atq-pilula {
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+        .atq-pilula .est { color: #f5b301; letter-spacing: 1px; }
+        .atq-pilula .est .vazia { color: #d6dae3; }
+        .atq-pilula.falta { background: #fef3c7; color: #92400e; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .stat {
+            background: var(--light);
+            border-radius: var(--raio);
+            box-shadow: var(--sombra-sm);
+            padding: 16px 14px;
+            border-top: 3px solid var(--primary);
+            min-width: 0;
+        }
+        .stat .rotulo { font-size: 0.72rem; color: var(--texto-suave); font-weight: 600; }
+        .stat .valor { font-size: 1.45rem; font-weight: 800; line-height: 1.25; margin-top: 2px; }
+        .stat .detalhe { font-size: 0.75rem; color: var(--texto-suave); margin-top: 2px; }
+        .stat.destaque { border-top-color: #f97316; background: #fff7ed; }
+
+        .avisos-lista { list-style: none; margin: 8px 0 14px; display: grid; gap: 6px; font-size: 0.85rem; }
+        .avisos-status { font-weight: 800; font-size: 0.85rem; margin-bottom: 10px; }
+        .avisos-status.ligado { color: #15803d; }
+        .avisos-botoes { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .carregando { text-align: center; padding: 30px 0; color: var(--texto-suave); }
+        .oculto { display: none !important; }
+
+        @media (max-width: 420px) {
+            .cartao { padding: 16px; }
+            .stat .valor { font-size: 1.25rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="https://clashcitybr.github.io">Home</a>
+        <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="https://clashcitybr.github.io/controle-cla/"><span class="nav-longo">Desempenho</span><span class="nav-curto">Ranking</span></a>
+        <a href="https://clashcitybr.github.io/controle-cla/membros.html">Membros</a>
+        <a href="https://clashcitybr.github.io/controle-cla/capital.html">Capital</a>
+        <a href="https://clashcitybr.github.io/controle-cla/ataques.html">Ataques</a>
+        <a href="https://clashcitybr.github.io/controle-cla/historico.html">Histórico</a>
+    </nav>
+    <script src="menu.js"></script>
+
+    <header>
+        <h1 class="scroll-anim show">Meu Painel</h1>
+        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">Suas contas, sua guerra e seus avisos</p>
+    </header>
+
+    <section class="painel-section">
+        <div class="painel-wrap">
+
+            <!-- ESCOLHA DAS CONTAS -->
+            <div id="vistaEscolha" class="oculto">
+                <div class="cartao">
+                    <h2>👤 Quais contas são suas?</h2>
+                    <p class="suave">Marque todas as suas contas da família. Fica salvo só neste celular e dá pra mudar quando quiser.</p>
+                    <input type="search" class="busca" id="busca" placeholder="Buscar pelo nome..." autocomplete="off">
+                    <div id="listaClas"><p class="carregando">Carregando membros...</p></div>
+                    <div class="barra-salvar">
+                        <button type="button" class="btn btn-secundario oculto" id="btnCancelar">Cancelar</button>
+                        <button type="button" class="btn btn-principal" id="btnSalvar" disabled>Salvar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL -->
+            <div id="vistaPainel" class="oculto">
+                <div class="contas-topo" id="contasTopo"></div>
+                <div id="conteudoConta"><p class="carregando">Carregando...</p></div>
+
+                <div class="cartao" id="cartaoAvisos">
+                    <h2>🔔 Avisos das minhas contas</h2>
+                    <div class="avisos-status" id="avisosStatus"></div>
+                    <ul class="avisos-lista">
+                        <li>⏰ Quando faltar 3h pra guerra acabar e você ainda tiver ataques</li>
+                        <li>🏁 O resumo da guerra: suas estrelas e como foi sua defesa</li>
+                        <li>🔥 Quando fizer 5, 10, 15... ataques seguidos com 3★</li>
+                    </ul>
+                    <div class="avisos-botoes">
+                        <button type="button" class="btn btn-principal" id="btnAvisos">Ativar avisos</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
+    </footer>
+
+    <script>
+        const FETCH_OPTS = { headers: { 'ngrok-skip-browser-warning': 'true' } };
+        const CHAVE_CONTAS = 'ccbr_minhas_contas';
+        const CHAVE_ATIVA = 'ccbr_conta_ativa';
+        const NOMES_CARGO = { leader: 'Líder', coLeader: 'Colíder', admin: 'Ancião', member: 'Membro' };
+
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+
+        // ---------- armazenamento local (só neste celular) ----------
+        function lerContas() {
+            try {
+                const v = JSON.parse(localStorage.getItem(CHAVE_CONTAS) || '[]');
+                return Array.isArray(v) ? v.filter(c => c && c.tag) : [];
+            } catch (_) { return []; }
+        }
+        function gravarContas(lista) {
+            try { localStorage.setItem(CHAVE_CONTAS, JSON.stringify(lista)); } catch (_) {}
+        }
+        function lerAtiva() {
+            try { return localStorage.getItem(CHAVE_ATIVA); } catch (_) { return null; }
+        }
+        function gravarAtiva(tag) {
+            try { localStorage.setItem(CHAVE_ATIVA, tag); } catch (_) {}
+        }
+
+        function escapar(t) {
+            return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        function dataCoC(str) {
+            if (!str || str.length < 15) return null;
+            const d = new Date(`${str.slice(0,4)}-${str.slice(4,6)}-${str.slice(6,8)}T${str.slice(9,11)}:${str.slice(11,13)}:${str.slice(13,15)}Z`);
+            return isNaN(d) ? null : d;
+        }
+        function tempoAte(data) {
+            const ms = data - Date.now();
+            if (ms <= 0) return null;
+            const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
+            return h > 0 ? `${h}h ${String(m).padStart(2, '0')}min` : `${m}min`;
+        }
+        function estrelas(n) {
+            let h = '';
+            for (let i = 0; i < 3; i++) h += i < n ? '★' : '<span class="vazia">★</span>';
+            return h;
+        }
+        const mostrar = (id, sim) => document.getElementById(id).classList.toggle('oculto', !sim);
+
+        // ============================================================
+        // ESCOLHA DE CONTAS
+        // ============================================================
+        let familia = null;
+
+        async function abrirEscolha() {
+            mostrar('vistaPainel', false);
+            mostrar('vistaEscolha', true);
+            mostrar('btnCancelar', lerContas().length > 0);
+
+            if (!familia) {
+                try {
+                    const r = await fetch(`${BACKEND_URL}/membros-familia`, FETCH_OPTS);
+                    if (!r.ok) throw new Error(r.status);
+                    familia = await r.json();
+                } catch (e) {
+                    document.getElementById('listaClas').innerHTML =
+                        '<p class="carregando">Não consegui carregar os membros agora. Tente de novo em instantes.</p>';
+                    return;
+                }
+            }
+            renderEscolha();
+        }
+
+        function renderEscolha() {
+            const marcadas = new Set(lerContas().map(c => c.tag));
+            const html = (familia?.clas || [])
+                .filter(c => c.membros?.length)
+                .map(c => {
+                    const membros = [...c.membros].sort((a, b) => (b.cv || 0) - (a.cv || 0) || a.nome.localeCompare(b.nome));
+                    return `
+                        <div class="grupo-cla" data-cla="${escapar(c.nome || '')}">
+                            <h3>${escapar(c.nome || 'Clã')}</h3>
+                            <div class="lista-membros">
+                                ${membros.map(m => `
+                                    <label class="opcao-conta" data-busca="${escapar(m.nome.toLowerCase())}">
+                                        <input type="checkbox" value="${escapar(m.tag)}" data-nome="${escapar(m.nome)}" data-cla="${escapar(c.nome || '')}" ${marcadas.has(m.tag) ? 'checked' : ''}>
+                                        <div>
+                                            <div class="nome">${escapar(m.nome)}</div>
+                                            <div class="info">CV${m.cv} · ${NOMES_CARGO[m.cargo] || 'Membro'}</div>
+                                        </div>
+                                    </label>`).join('')}
+                            </div>
+                        </div>`;
+                }).join('');
+            document.getElementById('listaClas').innerHTML = html || '<p class="carregando">Nenhum membro encontrado.</p>';
+            atualizarBotaoSalvar();
+        }
+
+        function atualizarBotaoSalvar() {
+            const n = document.querySelectorAll('#listaClas input:checked').length;
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = n === 0;
+            btn.textContent = n === 0 ? 'Marque pelo menos 1 conta' : `Salvar ${n} ${n === 1 ? 'conta' : 'contas'}`;
+        }
+
+        document.getElementById('listaClas').addEventListener('change', atualizarBotaoSalvar);
+
+        document.getElementById('busca').addEventListener('input', e => {
+            const termo = e.target.value.trim().toLowerCase();
+            document.querySelectorAll('.opcao-conta').forEach(el => {
+                el.classList.toggle('oculto', termo && !el.dataset.busca.includes(termo));
+            });
+            document.querySelectorAll('.grupo-cla').forEach(g => {
+                g.classList.toggle('oculto', !g.querySelector('.opcao-conta:not(.oculto)'));
+            });
+        });
+
+        document.getElementById('btnCancelar').addEventListener('click', abrirPainel);
+
+        document.getElementById('btnSalvar').addEventListener('click', async () => {
+            const contas = [...document.querySelectorAll('#listaClas input:checked')].map(i => ({
+                tag: i.value, nome: i.dataset.nome, cla: i.dataset.cla
+            }));
+            if (!contas.length) return;
+            gravarContas(contas);
+            if (!contas.some(c => c.tag === lerAtiva())) gravarAtiva(contas[0].tag);
+            await sincronizarAvisos();          // se os avisos já estão ligados, passa a seguir as novas contas
+            document.getElementById('busca').value = '';
+            abrirPainel();
+        });
+
+        // ============================================================
+        // PAINEL
+        // ============================================================
+        function abrirPainel() {
+            const contas = lerContas();
+            if (!contas.length) { abrirEscolha(); return; }
+            mostrar('vistaEscolha', false);
+            mostrar('vistaPainel', true);
+
+            let ativa = lerAtiva();
+            if (!contas.some(c => c.tag === ativa)) { ativa = contas[0].tag; gravarAtiva(ativa); }
+
+            document.getElementById('contasTopo').innerHTML =
+                contas.map(c => `<button type="button" class="chip-conta${c.tag === ativa ? ' ativa' : ''}" data-tag="${escapar(c.tag)}">${escapar(c.nome)}</button>`).join('') +
+                '<button type="button" class="chip-conta chip-editar" id="btnEditar">✏️ Minhas contas</button>';
+
+            carregarConta(contas.find(c => c.tag === ativa));
+            atualizarStatusAvisos();
+        }
+
+        document.getElementById('contasTopo').addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            if (btn.id === 'btnEditar') { abrirEscolha(); return; }
+            gravarAtiva(btn.dataset.tag);
+            abrirPainel();
+        });
+
+        let pedidoAtual = 0;
+        async function carregarConta(conta) {
+            const alvo = document.getElementById('conteudoConta');
+            alvo.innerHTML = '<p class="carregando">Carregando...</p>';
+            const meuPedido = ++pedidoAtual;
+            let dados = null;
+            try {
+                const r = await fetch(`${BACKEND_URL}/painel/${encodeURIComponent(conta.tag)}`, FETCH_OPTS);
+                if (r.ok) dados = await r.json();
+            } catch (_) {}
+            if (meuPedido !== pedidoAtual) return;   // trocou de conta no meio do carregamento
+            alvo.innerHTML = montarConta(conta, dados);
+        }
+
+        function montarConta(conta, d) {
+            const linkPerfil = `perfil.html?tag=${encodeURIComponent(conta.tag)}`;
+            const nome = d?.nome || conta.nome;
+            const cabecalho = `
+                <div class="cartao">
+                    <div class="conta-cabecalho">
+                        <div class="selo-cv">${d?.cv ? `CV${d.cv}` : '👤'}</div>
+                        <div style="min-width:0;">
+                            <h2>${escapar(nome)}</h2>
+                            <span class="suave">${escapar(conta.cla || '')}</span><br>
+                            <a href="${linkPerfil}">Ver perfil completo →</a>
+                        </div>
+                    </div>
+                </div>`;
+
+            if (!d) {
+                return cabecalho + '<div class="cartao"><p class="suave">Não consegui carregar os dados agora. Tente de novo em instantes.</p></div>';
+            }
+
+            return cabecalho + montarGuerra(d.guerraAtual) + montarStats(d);
+        }
+
+        function montarGuerra(g) {
+            if (!g) {
+                return '<div class="cartao guerra-box"><h2>⚔️ Guerra atual</h2><p class="suave">O clã não está em guerra agora.</p></div>';
+            }
+            const adv = g.adversario ? ` contra <b>${escapar(g.adversario)}</b>` : '';
+            const tipo = g.liga ? 'Liga' : 'Guerra';
+
+            if (!g.participa) {
+                return `<div class="cartao guerra-box"><h2>⚔️ ${tipo} atual</h2><p class="suave">Essa conta não está escalada na ${tipo.toLowerCase()}${adv}.</p></div>`;
+            }
+
+            if (g.estado === 'preparation') {
+                const comeca = tempoAte(dataCoC(g.inicio));
+                return `<div class="cartao guerra-box"><h2>⚔️ ${tipo}${adv}</h2>
+                    <div class="guerra-grande">Preparação</div>
+                    <p class="suave">${comeca ? `A batalha começa em ${comeca}.` : 'A batalha já vai começar.'} Você está na posição #${g.posicao}.</p></div>`;
+            }
+
+            const feitos = g.ataques.length;
+            const faltam = Math.max(0, g.ataquesPermitidos - feitos);
+            const pilulas = g.ataques.map(a =>
+                `<span class="atq-pilula"><span class="est">${estrelas(a.estrelas)}</span> ${Math.round(a.destruicao)}%</span>`);
+
+            if (g.estado === 'warEnded') {
+                const total = g.ataques.reduce((n, a) => n + a.estrelas, 0);
+                return `<div class="cartao guerra-box ok"><h2>⚔️ ${tipo}${adv}</h2>
+                    <div class="guerra-grande">Encerrada · ${g.placar.nos} × ${g.placar.eles}</div>
+                    <p class="suave">Você fez ${total}★ em ${feitos} ${feitos === 1 ? 'ataque' : 'ataques'}.</p>
+                    <div class="guerra-ataques">${pilulas.join('')}</div></div>`;
+            }
+
+            for (let i = 0; i < faltam; i++) pilulas.push('<span class="atq-pilula falta">⏳ Ataque disponível</span>');
+            const termina = tempoAte(dataCoC(g.fim));
+            return `<div class="cartao guerra-box ${faltam ? 'pendente' : 'ok'}"><h2>⚔️ ${tipo}${adv}</h2>
+                <div class="guerra-linha-topo">
+                    <div class="guerra-grande">${faltam ? `Falta${faltam > 1 ? 'm' : ''} ${faltam} ${faltam === 1 ? 'ataque' : 'ataques'}` : 'Ataques feitos ✓'}</div>
+                    <span class="suave">${g.placar.nos} × ${g.placar.eles}</span>
+                </div>
+                <p class="suave">${termina ? `Termina em ${termina}` : 'Terminando'} · você é o #${g.posicao} do mapa</p>
+                <div class="guerra-ataques">${pilulas.join('')}</div></div>`;
+        }
+
+        function montarStats(d) {
+            const virgula = n => String(n).replace('.', ',');
+            const cards = [];
+
+            cards.push(d.mes
+                ? `<div class="stat"><div class="rotulo">🏆 Ranking do mês</div><div class="valor">${d.mes.posicao}º</div><div class="detalhe">de ${d.mes.total} · ${d.mes.guerras} ${d.mes.guerras === 1 ? 'guerra' : 'guerras'}</div></div>`
+                : `<div class="stat"><div class="rotulo">🏆 Ranking do mês</div><div class="valor">—</div><div class="detalhe">Ainda sem guerra no mês</div></div>`);
+
+            cards.push(d.mes
+                ? `<div class="stat"><div class="rotulo">⭐ Média por guerra</div><div class="valor">${virgula(d.mes.mediaEstrelas.toFixed(1))}★</div><div class="detalhe">${Math.round(d.mes.mediaDestruicao)}% de destruição</div></div>`
+                : `<div class="stat"><div class="rotulo">⭐ Média por guerra</div><div class="valor">—</div><div class="detalhe">Aparece depois da 1ª guerra</div></div>`);
+
+            const seq = d.sequencia || { atual: 0, melhor: 0 };
+            cards.push(seq.atual >= 3
+                ? `<div class="stat destaque"><div class="rotulo">🔥 Sequência de 3★</div><div class="valor">${seq.atual} seguidos</div><div class="detalhe">Recorde recente: ${seq.melhor}</div></div>`
+                : `<div class="stat"><div class="rotulo">🔥 Sequência de 3★</div><div class="valor">${seq.atual}</div><div class="detalhe">${seq.melhor ? `Recorde recente: ${seq.melhor}` : 'Bora começar a sequência!'}</div></div>`);
+
+            const def = d.defesasMes;
+            cards.push(def
+                ? (def.muralha
+                    ? `<div class="stat destaque"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">Muralha!</div><div class="detalhe">Segurou ${def.seguradas} de ${def.ataquesSofridos} ataques</div></div>`
+                    : `<div class="stat"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">${def.seguradas} seguradas</div><div class="detalhe">${def.posicao}º na Muralha do Mês</div></div>`)
+                : `<div class="stat"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">0</div><div class="detalhe">Nenhuma defesa segurada ainda</div></div>`);
+
+            return `<div class="stats-grid">${cards.join('')}</div>`;
+        }
+
+        // ============================================================
+        // AVISOS (push) — o celular segue as contas escolhidas
+        // ============================================================
+        let swRegistration = null;
+        const suportaPush = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+        async function registrarSW() {
+            if (!suportaPush) return null;
+            if (swRegistration) return swRegistration;
+            try { swRegistration = await navigator.serviceWorker.register('/controle-cla/sw.js'); }
+            catch (e) { swRegistration = null; }
+            return swRegistration;
+        }
+
+        async function inscricaoAtual() {
+            const reg = await registrarSW();
+            return reg ? reg.pushManager.getSubscription() : null;
+        }
+
+        async function enviarInscricao(sub) {
+            const corpo = { ...sub.toJSON(), tags: lerContas().map(c => c.tag) };
+            const r = await fetch(`${BACKEND_URL}/subscribe`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                body: JSON.stringify(corpo)
+            });
+            if (!r.ok) throw new Error(r.status);
+        }
+
+        // Chamado ao salvar as contas: atualiza no servidor quais contas este celular segue
+        async function sincronizarAvisos() {
+            try {
+                const sub = await inscricaoAtual();
+                if (sub) await enviarInscricao(sub);
+            } catch (_) {}
+        }
+
+        async function atualizarStatusAvisos() {
+            const status = document.getElementById('avisosStatus');
+            const btn = document.getElementById('btnAvisos');
+            if (!suportaPush) {
+                status.textContent = 'Este navegador não recebe avisos. Instale o app Clash City BR pela Play Store.';
+                status.className = 'avisos-status';
+                btn.classList.add('oculto');
+                return;
+            }
+            const sub = await inscricaoAtual();
+            const ligado = !!sub && Notification.permission === 'granted';
+            const nomes = lerContas().map(c => c.nome);
+            status.textContent = ligado
+                ? `✓ Avisos ligados para: ${nomes.join(', ')}`
+                : (Notification.permission === 'denied'
+                    ? 'As notificações estão bloqueadas nas configurações do celular para este app.'
+                    : 'Avisos desligados.');
+            status.className = `avisos-status${ligado ? ' ligado' : ''}`;
+            btn.textContent = ligado ? 'Desligar avisos' : 'Ativar avisos';
+            btn.className = `btn ${ligado ? 'btn-secundario' : 'btn-principal'}`;
+            btn.classList.toggle('oculto', !ligado && Notification.permission === 'denied');
+            btn.dataset.ligado = ligado ? '1' : '';
+        }
+
+        document.getElementById('btnAvisos').addEventListener('click', async () => {
+            const btn = document.getElementById('btnAvisos');
+            btn.disabled = true;
+            try {
+                const reg = await registrarSW();
+                if (!reg) throw new Error('sem service worker');
+
+                if (btn.dataset.ligado) {
+                    const sub = await reg.pushManager.getSubscription();
+                    if (sub) {
+                        await fetch(`${BACKEND_URL}/subscribe`, {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                            body: JSON.stringify({ endpoint: sub.endpoint })
+                        }).catch(() => {});
+                        await sub.unsubscribe();
+                    }
+                } else {
+                    const permissao = await Notification.requestPermission();
+                    if (permissao === 'granted') {
+                        let sub = await reg.pushManager.getSubscription();
+                        if (!sub) {
+                            const r = await fetch(`${BACKEND_URL}/vapid-public-key`, FETCH_OPTS);
+                            const { publicKey } = await r.json();
+                            sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: publicKey });
+                        }
+                        await enviarInscricao(sub);
+                    }
+                }
+            } catch (e) {
+                console.error('Avisos:', e);
+                document.getElementById('avisosStatus').textContent = 'Não deu pra ativar agora. Tente de novo em instantes.';
+            }
+            btn.disabled = false;
+            atualizarStatusAvisos();
+        });
+
+        // ---------- início ----------
+        abrirPainel();
+    </script>
+</body>
+
+</html>

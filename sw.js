@@ -6,7 +6,8 @@ self.addEventListener('push', function(event) {
         icon: data.icone || '/img/Perfil_COC-removebg-preview.png',
         badge: '/img/Perfil_COC-removebg-preview.png',
         vibrate: [200, 100, 200],
-        data: { url: 'https://clashcitybr.github.io/controle-cla/' }
+        // Avisos pessoais (Meu Painel) mandam a própria página; os gerais abrem o Desempenho
+        data: { url: data.url || 'https://clashcitybr.github.io/controle-cla/' }
     };
 
     event.waitUntil(

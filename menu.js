@@ -11,7 +11,7 @@
 
     const estilo = document.createElement('style');
     estilo.textContent = `
-        .menu-titulo, .menu-botao, .menu-fundo { display: none; }
+        .menu-titulo, .menu-botao, .menu-fundo, .menu-so-celular { display: none; }
         .menu-painel { display: contents; }
 
         @media (max-width: ${LARGURA_CELULAR}px) {
@@ -128,12 +128,37 @@
             }
             body.menu-aberto .menu-fundo { opacity: 1; pointer-events: auto; }
 
+            /* Atalho do Meu Painel: só aparece na lista do celular */
+            nav.menu-pronto .menu-painel .menu-so-celular { display: block !important; }
+            nav.menu-pronto .menu-painel a.menu-atalho-painel { color: #f9d246; font-weight: 800; }
+
             /* Nos links o nome completo; o atalho "Ranking" não é mais necessário */
             nav.menu-pronto .nav-longo { display: inline !important; }
             nav.menu-pronto .nav-curto { display: none !important; }
         }
     `;
     document.head.appendChild(estilo);
+
+    // Atalho "Meu Painel" no topo da lista do celular (no computador fica escondido)
+    const URL_PAINEL = 'https://clashcitybr.github.io/controle-cla/meu-painel.html';
+    const atalho = document.createElement('a');
+    atalho.href = URL_PAINEL;
+    atalho.className = 'menu-atalho-painel';
+    atalho.textContent = '👤 Meu Painel';
+    if (/meu-painel\.html$/.test(location.pathname)) {
+        atalho.classList.add('ativo');
+        atalho.setAttribute('aria-current', 'page');
+    }
+    const listaLiga = nav.querySelector('ul');
+    if (listaLiga) {
+        const li = document.createElement('li');
+        li.className = 'menu-so-celular';
+        li.appendChild(atalho);
+        listaLiga.prepend(li);
+    } else {
+        atalho.classList.add('menu-so-celular');
+        nav.prepend(atalho);
+    }
 
     // Move os links (ou a <ul> da Liga) para dentro do painel
     const painel = document.createElement('div');
