@@ -518,7 +518,7 @@
             const def = d.defesasMes;
             cards.push(def
                 ? (def.muralha
-                    ? `<div class="stat destaque"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">Muralha!</div><div class="detalhe">Segurou ${def.seguradas} de ${def.ataquesSofridos} ataques</div></div>`
+                    ? `<div class="stat destaque"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">Muralha!</div><div class="detalhe">${def.seguradas} ${def.seguradas === 1 ? 'defesa' : 'defesas'} no mês</div></div>`
                     : `<div class="stat"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">${def.seguradas} seguradas</div><div class="detalhe">${def.posicao}º na Muralha do Mês</div></div>`)
                 : `<div class="stat"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">0</div><div class="detalhe">Nenhuma defesa segurada ainda</div></div>`);
 

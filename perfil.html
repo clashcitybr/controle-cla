@@ -370,6 +370,23 @@
             .chart-wrap { height: 230px; }
         }
 
+        /* LIGA DE CLÃS */
+        .liga-temporadas { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+        .liga-temp {
+            background: #fff;
+            border-radius: 14px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+            border-left: 4px solid #077187;
+            min-width: 0;
+        }
+        .liga-temp-topo { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+        .liga-temp-topo b { font-size: 0.9rem; color: #11032c; }
+        .liga-temp-topo small { font-size: 0.72rem; color: #5b6475; font-weight: 700; }
+        .liga-temp-numeros { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 0.8rem; color: #11032c; }
+        .liga-temp-numeros b { font-weight: 800; }
+        .liga-temp-numeros .falta { color: #b91c1c; }
+
         /* CONQUISTAS */
         .conquistas-grid {
             display: grid;
@@ -702,6 +719,12 @@
                 <p class="guerras-nota" id="guerrasNota" style="display:none;"></p>
             </div>
 
+            <!-- LIGA DE CLÃS: desempenho em cada temporada guardada -->
+            <div class="perfil-section" id="secaoLiga" style="display:none;">
+                <h2>🏆 Liga de Clãs</h2>
+                <div class="liga-temporadas" id="ligaTemporadas"></div>
+            </div>
+
             <!-- EQUIPAMENTOS META (lista marcada pela liderança na página Ataques) -->
             <div class="perfil-section" id="secaoMeta" style="display:none;">
                 <h2>🎯 Equipamentos Meta</h2>
@@ -982,6 +1005,8 @@
                 // Últimas guerras: também opcional (backend antigo não tem a rota)
                 const promessaConquistas = fetch(`${BACKEND_URL}/jogador/${encodeURIComponent('#' + normalizarTag(tag))}/conquistas`, FETCH_OPTS)
                     .then(r => r.ok ? r.json() : null).catch(() => null);
+                const promessaLiga = fetch(`${BACKEND_URL}/liga/jogador/${encodeURIComponent('#' + normalizarTag(tag))}`, FETCH_OPTS)
+                    .then(r => r.ok ? r.json() : null).catch(() => null);
                 const promessaGuerras = fetch(`${BACKEND_URL}/jogador/${encodeURIComponent('#' + normalizarTag(tag))}/guerras?limite=10`, FETCH_OPTS)
                     .then(r => r.ok ? r.json() : null).catch(() => null);
                 const [resJogador, resMembros, resHistorico] = await Promise.all([
@@ -1022,6 +1047,7 @@
 
                 promessaGuerras.then(renderUltimasGuerras);
                 promessaConquistas.then(renderConquistas);
+                promessaLiga.then(renderLiga);
 
             } catch (e) {
                 console.error(e);
@@ -1542,6 +1568,32 @@
 
             document.getElementById('historicoBody').innerHTML = html;
             document.getElementById('secaoHistorico').style.display = 'block';
+        }
+
+        // ============================================================
+        // LIGA DE CLÃS
+        // ============================================================
+        function renderLiga(lista) {
+            if (!Array.isArray(lista) || !lista.length) return;   // sem liga guardada: seção some
+            const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            document.getElementById('ligaTemporadas').innerHTML = lista.map(l => {
+                const [ano, mes] = String(l.temporada).split('-');
+                const nome = mes ? `${meses[parseInt(mes, 10) - 1]} ${ano}` : l.temporada;
+                const media = l.ataques ? String((l.estrelas / l.ataques).toFixed(1)).replace('.', ',') : '0';
+                return `<div class="liga-temp">
+                    <div class="liga-temp-topo">
+                        <b>${nome}${l.estado !== 'ended' ? ' (em andamento)' : ''}</b>
+                        <small>${l.nomeCla || ''}${l.posicaoDoCla ? ` · ${l.posicaoDoCla}º no grupo` : ''}</small>
+                    </div>
+                    <div class="liga-temp-numeros">
+                        <span><b>${l.estrelas}★</b> em ${l.ataques}/${l.guerras} ataques</span>
+                        <span>média <b>${media}★</b> · <b>${Math.round(l.destruicao)}%</b></span>
+                        ${l.faltas ? `<span class="falta"><b>${l.faltas}</b> ${l.faltas === 1 ? 'falta' : 'faltas'}</span>` : ''}
+                        <span><b>${l.posicaoNoCla}º</b> de ${l.jogadoresNoCla} no clã</span>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('secaoLiga').style.display = 'block';
         }
 
         // ============================================================
