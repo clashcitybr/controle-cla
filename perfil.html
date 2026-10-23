@@ -370,6 +370,33 @@
             .chart-wrap { height: 230px; }
         }
 
+        /* EVOLUÇÃO DA CONTA */
+        .evo-grafico-wrap {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+            padding: 12px;
+            height: 200px;
+            margin-bottom: 12px;
+        }
+        .evo-lista { display: grid; gap: 8px; }
+        .evo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 10px 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            min-width: 0;
+        }
+        .evo-item .icone { font-size: 1.3rem; flex-shrink: 0; }
+        .evo-item .texto { flex: 1; min-width: 0; font-size: 0.85rem; color: #11032c; font-weight: 700; overflow-wrap: anywhere; }
+        .evo-item .texto small { display: block; font-weight: 600; color: #5b6475; font-size: 0.72rem; }
+        .evo-item .niveis { flex-shrink: 0; font-weight: 800; font-size: 0.85rem; color: #077187; white-space: nowrap; }
+        .evo-item.cv { border-left: 4px solid #f97316; }
+        .evo-oculto { display: none; }
+
         /* LIGA DE CLÃS */
         .liga-temporadas { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
         .liga-temp {
@@ -738,6 +765,16 @@
                 <div id="heroisList"></div>
             </div>
 
+            <!-- EVOLUÇÃO DA CONTA (foto diária do backend) -->
+            <div class="perfil-section" id="secaoEvolucao" style="display:none;">
+                <h2>📈 Evolução da conta</h2>
+                <div class="guerras-resumo" id="evoResumo"></div>
+                <div class="evo-grafico-wrap" id="evoGraficoWrap" style="display:none;"><canvas id="evoGrafico"></canvas></div>
+                <div class="evo-lista" id="evoLista"></div>
+                <button type="button" class="guerras-mais" id="evoMais" style="display:none;">Ver mais melhorias</button>
+                <p class="guerras-nota" id="evoNota" style="display:none;"></p>
+            </div>
+
             <!-- EQUIPAMENTOS -->
             <div class="perfil-section">
                 <details class="perfil-details" id="detalhesEquip">
@@ -1005,6 +1042,8 @@
                 // Últimas guerras: também opcional (backend antigo não tem a rota)
                 const promessaConquistas = fetch(`${BACKEND_URL}/jogador/${encodeURIComponent('#' + normalizarTag(tag))}/conquistas`, FETCH_OPTS)
                     .then(r => r.ok ? r.json() : null).catch(() => null);
+                const promessaEvolucao = fetch(`${BACKEND_URL}/jogador/${encodeURIComponent('#' + normalizarTag(tag))}/evolucao`, FETCH_OPTS)
+                    .then(r => r.ok ? r.json() : null).catch(() => null);
                 const promessaLiga = fetch(`${BACKEND_URL}/liga/jogador/${encodeURIComponent('#' + normalizarTag(tag))}`, FETCH_OPTS)
                     .then(r => r.ok ? r.json() : null).catch(() => null);
                 const promessaGuerras = fetch(`${BACKEND_URL}/jogador/${encodeURIComponent('#' + normalizarTag(tag))}/guerras?limite=10`, FETCH_OPTS)
@@ -1048,6 +1087,7 @@
                 promessaGuerras.then(renderUltimasGuerras);
                 promessaConquistas.then(renderConquistas);
                 promessaLiga.then(renderLiga);
+                promessaEvolucao.then(renderEvolucao);
 
             } catch (e) {
                 console.error(e);
@@ -1568,6 +1608,105 @@
 
             document.getElementById('historicoBody').innerHTML = html;
             document.getElementById('secaoHistorico').style.display = 'block';
+        }
+
+        // ============================================================
+        // EVOLUÇÃO DA CONTA
+        // ============================================================
+        let graficoEvo = null;
+        const EVO_VISIVEIS = 6;
+
+        function dataCurta(iso) {
+            const [a, m, d] = String(iso).split('-');
+            return `${parseInt(d, 10)} ${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][parseInt(m, 10) - 1]}`;
+        }
+
+        function renderEvolucao(dados) {
+            if (!dados) return;   // backend antigo: seção fica escondida
+            const secao = document.getElementById('secaoEvolucao');
+            const nota = document.getElementById('evoNota');
+
+            if (!dados.acompanhandoDesde) {
+                nota.textContent = 'A evolução desta conta começa a ser registrada a partir de hoje. As melhorias aparecem aqui nos próximos dias.';
+                nota.style.display = 'block';
+                secao.style.display = 'block';
+                return;
+            }
+
+            const r = dados.ultimos30Dias || {};
+            const chips = [`<span class="guerras-chip">Acompanhando desde <b>${dataCurta(dados.acompanhandoDesde)}</b></span>`];
+            if (r.herois) chips.push(`<span class="guerras-chip bom">👑 <b>+${r.herois}</b> ${r.herois === 1 ? 'nível' : 'níveis'} de heróis em 30 dias</span>`);
+            if (r.equipamentos) chips.push(`<span class="guerras-chip">🛡️ <b>+${r.equipamentos}</b> em equipamentos</span>`);
+            if (r.cv) chips.push(`<span class="guerras-chip bom">🏰 Subiu de CV no último mês</span>`);
+            if (dados.construtorDoMes?.length) chips.push(`<span class="guerras-chip bom">🔨 Construtor do Mês ${dados.construtorDoMes.length > 1 ? `(${dados.construtorDoMes.length}x)` : ''}</span>`);
+            document.getElementById('evoResumo').innerHTML = chips.join('');
+
+            const ICONES = { cv: '🏰', arma: '🔥', heroi: '👑', equip: '🛡️' };
+            const lista = dados.melhorias || [];
+            document.getElementById('evoLista').innerHTML = lista.map((m, i) => {
+                let nome = m.nome;
+                if (m.tipo === 'heroi') nome = traducoesHerois[m.nome] || m.nome;
+                if (m.tipo === 'equip') nome = traduzirEquipamento(m.nome);
+                const niveis = m.de === 0 ? 'novo!' : `${m.de} → ${m.para}`;
+                return `<div class="evo-item ${m.tipo === 'cv' ? 'cv' : ''}${i >= EVO_VISIVEIS ? ' evo-oculto' : ''}">
+                    <span class="icone">${ICONES[m.tipo] || '⬆️'}</span>
+                    <span class="texto">${nome}<small>${dataCurta(m.data)}</small></span>
+                    <span class="niveis">${niveis}</span>
+                </div>`;
+            }).join('');
+
+            const botao = document.getElementById('evoMais');
+            if (lista.length > EVO_VISIVEIS) {
+                botao.style.display = 'block';
+                botao.onclick = () => {
+                    document.querySelectorAll('#evoLista .evo-oculto').forEach(el => el.classList.remove('evo-oculto'));
+                    botao.style.display = 'none';
+                };
+            }
+            if (!lista.length) {
+                nota.textContent = dados.serie.length < 2
+                    ? 'Primeiro registro feito. A partir de amanhã as melhorias de heróis, equipamentos e CV aparecem aqui.'
+                    : 'Nenhuma melhoria registrada desde que o acompanhamento começou.';
+                nota.style.display = 'block';
+            }
+
+            // Gráfico: soma dos níveis dos heróis ao longo do tempo
+            const serie = dados.serie || [];
+            if (serie.length >= 3 && typeof Chart !== 'undefined') {
+                document.getElementById('evoGraficoWrap').style.display = 'block';
+                const fonte = { family: 'Lexend', size: 11 };
+                if (graficoEvo) graficoEvo.destroy();
+                graficoEvo = new Chart(document.getElementById('evoGrafico'), {
+                    type: 'line',
+                    data: {
+                        labels: serie.map(p => dataCurta(p.data)),
+                        datasets: [{
+                            label: 'Níveis de heróis (soma)',
+                            data: serie.map(p => p.herois),
+                            borderColor: '#077187',
+                            backgroundColor: 'rgba(7,113,135,0.08)',
+                            borderWidth: 3,
+                            pointRadius: serie.length > 40 ? 0 : 3,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { titleFont: fonte, bodyFont: fonte, callbacks: { label: c => ` ${c.parsed.y} níveis de heróis` } }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#555', font: fonte, maxTicksLimit: 6, maxRotation: 0 }, grid: { display: false } },
+                            y: { ticks: { color: '#555', font: fonte, precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } }
+                        }
+                    }
+                });
+            }
+
+            secao.style.display = 'block';
         }
 
         // ============================================================
