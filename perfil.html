@@ -370,6 +370,113 @@
             .chart-wrap { height: 230px; }
         }
 
+        /* ÚLTIMAS GUERRAS */
+        .guerras-resumo {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .guerras-chip {
+            background: #fff;
+            border: 1px solid rgba(17, 3, 44, 0.08);
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            color: #11032c;
+            white-space: nowrap;
+        }
+        .guerras-chip b { font-weight: 800; }
+        .guerras-chip.ruim { color: #b91c1c; border-color: rgba(239, 68, 68, 0.35); background: #fef2f2; }
+        .guerras-lista {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+            gap: 10px;
+        }
+        .guerra-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+            border-left: 4px solid #cbd5e1;
+            min-width: 0;
+        }
+        .guerra-card.vitoria { border-left-color: #22c55e; }
+        .guerra-card.derrota { border-left-color: #ef4444; }
+        .guerra-card.empate  { border-left-color: #94a3b8; }
+        .guerra-card.andamento { border-left-color: #f9d246; }
+        .guerra-oculta { display: none; }
+        .guerra-topo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            min-width: 0;
+        }
+        .guerra-data { font-size: 0.72rem; font-weight: 700; color: #5b6475; flex-shrink: 0; }
+        .guerra-adv {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #11032c;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .guerra-res {
+            flex-shrink: 0;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .guerra-res.vitoria { background: #dcfce7; color: #15803d; }
+        .guerra-res.derrota { background: #fee2e2; color: #b91c1c; }
+        .guerra-res.andamento { background: #fef9c3; color: #854d0e; }
+        .guerra-ataques { display: grid; gap: 6px; }
+        .guerra-atq {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: #11032c;
+        }
+        .guerra-atq .estrelas { font-size: 1rem; letter-spacing: 1px; color: #f5b301; flex-shrink: 0; }
+        .guerra-atq .estrelas .vazia { color: #d6dae3; }
+        .guerra-atq .pct { font-weight: 800; min-width: 42px; }
+        .guerra-atq small { color: #5b6475; font-size: 0.72rem; }
+        .guerra-atq.perdido { color: #b91c1c; font-weight: 700; font-size: 0.78rem; }
+        .guerra-defesa {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(17, 3, 44, 0.1);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #334155;
+        }
+        .guerra-defesa.boa { color: #15803d; }
+        .guerra-defesa.fresh { color: #b91c1c; }
+        .guerra-defesa.sem-dado { color: #94a3b8; font-weight: 600; }
+        .guerras-mais {
+            display: block;
+            margin: 14px auto 0;
+            background: #11032c;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 20px;
+            font-family: Lexend, sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+        .guerras-nota { margin-top: 10px; font-size: 0.72rem; color: #5b6475; text-align: center; }
+
         /* BOTÃO COMPARTILHAR */
         .btn-compartilhar {
             background: #f9d246;
@@ -536,6 +643,15 @@
                         <div class="label">🌟 Estrelas Históricas</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- ÚLTIMAS GUERRAS (ataques e defesa guerra a guerra) -->
+            <div class="perfil-section" id="secaoGuerras" style="display:none;">
+                <h2>⚔️ Últimas Guerras</h2>
+                <div class="guerras-resumo" id="guerrasResumo"></div>
+                <div class="guerras-lista" id="guerrasLista"></div>
+                <button type="button" class="guerras-mais" id="guerrasMais" style="display:none;">Ver mais guerras</button>
+                <p class="guerras-nota" id="guerrasNota" style="display:none;"></p>
             </div>
 
             <!-- EQUIPAMENTOS META (lista marcada pela liderança na página Ataques) -->
@@ -815,6 +931,9 @@
                 // Lista de equipamentos meta: opcional, se falhar o perfil abre igual
                 const promessaMeta = fetch(`${BACKEND_URL}/ataques`, FETCH_OPTS)
                     .then(r => r.ok ? r.json() : null).catch(() => null);
+                // Últimas guerras: também opcional (backend antigo não tem a rota)
+                const promessaGuerras = fetch(`${BACKEND_URL}/jogador/${encodeURIComponent('#' + normalizarTag(tag))}/guerras?limite=10`, FETCH_OPTS)
+                    .then(r => r.ok ? r.json() : null).catch(() => null);
                 const [resJogador, resMembros, resHistorico] = await Promise.all([
                     fetch(`${BACKEND_URL}/jogador/${encodeURIComponent(tag)}`, FETCH_OPTS),
                     fetch(`${BACKEND_URL}/membros`, FETCH_OPTS),
@@ -850,6 +969,8 @@
 
                 document.getElementById('loadingState').style.display = 'none';
                 document.getElementById('conteudoPerfil').style.display = 'block';
+
+                promessaGuerras.then(renderUltimasGuerras);
 
             } catch (e) {
                 console.error(e);
@@ -1370,6 +1491,111 @@
 
             document.getElementById('historicoBody').innerHTML = html;
             document.getElementById('secaoHistorico').style.display = 'block';
+        }
+
+        // ============================================================
+        // ÚLTIMAS GUERRAS
+        // ============================================================
+        const GUERRAS_VISIVEIS = 5;
+        const nomesMesCurto = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+        function dataCoC(str) {
+            if (!str || str.length < 15) return null;
+            const d = new Date(`${str.slice(0,4)}-${str.slice(4,6)}-${str.slice(6,8)}T${str.slice(9,11)}:${str.slice(11,13)}:${str.slice(13,15)}Z`);
+            return isNaN(d) ? null : d;
+        }
+
+        function escapar(t) {
+            return String(t ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+        }
+
+        function estrelasHtml(n) {
+            let h = '';
+            for (let i = 0; i < 3; i++) h += i < n ? '★' : '<span class="vazia">★</span>';
+            return h;
+        }
+
+        function textoDefesa(g) {
+            if (g.emAndamento) return { classe: 'sem-dado', texto: '🛡️ Defesa sai quando a guerra acabar' };
+            const d = g.defesa;
+            if (!g.completa || !d) return { classe: 'sem-dado', texto: '🛡️ Defesa não registrada nessa guerra' };
+            if (!d.atacada) return { classe: 'sem-dado', texto: '🛡️ Não foi atacado' };
+            if (d.parcial) return { classe: '', texto: `🛡️ Atacado ${d.ataquesSofridos}x · pior resultado: ${d.melhorEstrelas}★ ${Math.round(d.melhorDestruicao)}%` };
+            if (d.fresh) return { classe: 'fresh', texto: '💥 Tomou PT fresh (sem defesa)' };
+            if (d.caiuNo === null) {
+                return { classe: 'boa', texto: `🛡️ Segurou ${d.seguradas === 1 ? 'o único ataque' : `os ${d.seguradas} ataques`} · não tomou PT` };
+            }
+            return { classe: '', texto: `🛡️ Segurou ${d.seguradas} · tomou PT no ${d.caiuNo}º ataque` };
+        }
+
+        function cardGuerra(g, oculta) {
+            const data = dataCoC(g.fim) || dataCoC(g.inicio);
+            const dataTxt = data ? `${data.getDate()} ${nomesMesCurto[data.getMonth()]}` : '';
+            const adv = g.adversario?.nome ? `vs ${escapar(g.adversario.nome)}` : 'Guerra do clã';
+
+            let classe = g.resultado || '';
+            let resTxt = { vitoria: 'Vitória', derrota: 'Derrota', empate: 'Empate' }[g.resultado] || '';
+            if (g.emAndamento) { classe = 'andamento'; resTxt = 'Em andamento'; }
+
+            const linhas = g.ataques.map(a => {
+                const alvo = a.cvAlvo ? `<small>CV${a.cvAlvo}${a.posicaoAlvo ? ` · #${a.posicaoAlvo}` : ''}</small>` : '';
+                return `<div class="guerra-atq"><span class="estrelas">${estrelasHtml(a.estrelas)}</span><span class="pct">${Math.round(a.destruicao)}%</span>${alvo}</div>`;
+            });
+            if (g.completa && !g.emAndamento) {
+                const faltam = Math.max(0, (g.ataquesPermitidos || 2) - g.ataques.length);
+                for (let i = 0; i < faltam; i++) linhas.push('<div class="guerra-atq perdido">✖ Ataque não feito</div>');
+            }
+            if (!linhas.length) linhas.push('<div class="guerra-atq"><small>Nenhum ataque registrado</small></div>');
+
+            const def = textoDefesa(g);
+            return `
+                <div class="guerra-card ${classe}${oculta ? ' guerra-oculta' : ''}">
+                    <div class="guerra-topo">
+                        <span class="guerra-data">${dataTxt}</span>
+                        <span class="guerra-adv">${adv}</span>
+                        ${resTxt ? `<span class="guerra-res ${classe}">${resTxt}</span>` : ''}
+                    </div>
+                    <div class="guerra-ataques">${linhas.join('')}</div>
+                    <div class="guerra-defesa ${def.classe}">${def.texto}</div>
+                </div>`;
+        }
+
+        function renderUltimasGuerras(dados) {
+            const guerras = dados?.guerras || [];
+            if (!guerras.length) return;   // jogador sem guerras registradas: seção fica escondida
+
+            const r = dados.resumo || {};
+            const chips = [];
+            if (r.ataques) {
+                chips.push(`<span class="guerras-chip">Média <b>${String(r.mediaEstrelas.toFixed(1)).replace('.', ',')}★</b> · <b>${Math.round(r.mediaDestruicao)}%</b></span>`);
+                chips.push(`<span class="guerras-chip"><b>${r.triplas}</b> de ${r.ataques} ataques com 3★</span>`);
+            }
+            if (r.ataquesPerdidos) chips.push(`<span class="guerras-chip ruim"><b>${r.ataquesPerdidos}</b> ${r.ataquesPerdidos === 1 ? 'ataque perdido' : 'ataques perdidos'}</span>`);
+            if (r.guerrasComDetalhe) {
+                chips.push(`<span class="guerras-chip"><b>${r.defesasSeguradas}</b> ${r.defesasSeguradas === 1 ? 'defesa segurada' : 'defesas seguradas'}</span>`);
+                if (r.freshTomados) chips.push(`<span class="guerras-chip ruim"><b>${r.freshTomados}</b> PT fresh</span>`);
+            }
+            document.getElementById('guerrasResumo').innerHTML = chips.join('');
+
+            document.getElementById('guerrasLista').innerHTML =
+                guerras.map((g, i) => cardGuerra(g, i >= GUERRAS_VISIVEIS)).join('');
+
+            const botao = document.getElementById('guerrasMais');
+            if (guerras.length > GUERRAS_VISIVEIS) {
+                botao.style.display = 'block';
+                botao.onclick = () => {
+                    document.querySelectorAll('#guerrasLista .guerra-oculta').forEach(el => el.classList.remove('guerra-oculta'));
+                    botao.style.display = 'none';
+                };
+            }
+
+            if (guerras.some(g => !g.completa && !g.emAndamento)) {
+                const nota = document.getElementById('guerrasNota');
+                nota.textContent = 'Guerras mais antigas mostram só os ataques — a defesa passou a ser registrada agora.';
+                nota.style.display = 'block';
+            }
+
+            document.getElementById('secaoGuerras').style.display = 'block';
         }
 
         function mostrarErro() {
