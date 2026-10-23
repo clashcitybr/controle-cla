@@ -387,6 +387,7 @@
             white-space: nowrap;
         }
         .guerras-chip b { font-weight: 800; }
+        .guerras-chip.bom { color: #9a3412; border-color: rgba(249, 115, 22, 0.4); background: #fff7ed; }
         .guerras-chip.ruim { color: #b91c1c; border-color: rgba(239, 68, 68, 0.35); background: #fef2f2; }
         .guerras-lista {
             display: grid;
@@ -1560,6 +1561,35 @@
                 </div>`;
         }
 
+        // Sequências: 3★ seguidos (do ataque mais recente pra trás) e ataques perdidos recentes
+        function chipsSequencia(guerras) {
+            const chips = [];
+
+            // guerras vêm da mais nova pra mais antiga; dentro da guerra, os ataques em ordem
+            const ataques = guerras.flatMap(g => [...g.ataques].reverse());
+            let atual = 0;
+            while (atual < ataques.length && ataques[atual].estrelas === 3) atual++;
+            let melhor = 0, corrida = 0;
+            for (const a of ataques) {
+                corrida = a.estrelas === 3 ? corrida + 1 : 0;
+                melhor = Math.max(melhor, corrida);
+            }
+            const mais = n => n === ataques.length ? '+' : '';   // a sequência pode vir de antes das guerras mostradas
+            if (atual >= 3) {
+                chips.push(`<span class="guerras-chip bom">🔥 <b>${atual}${mais(atual)}</b> ataques seguidos com 3★</span>`);
+            } else if (melhor >= 3) {
+                chips.push(`<span class="guerras-chip">🏅 Melhor sequência: <b>${melhor}</b> ataques com 3★</span>`);
+            }
+
+            // Ataques perdidos: só dá pra saber nas guerras registradas em detalhe
+            const ultimas = guerras.filter(g => g.completa && !g.emAndamento).slice(0, 3);
+            const comFalta = ultimas.filter(g => g.ataques.length < (g.ataquesPermitidos || 2)).length;
+            if (ultimas.length >= 2 && comFalta >= 2) {
+                chips.push(`<span class="guerras-chip ruim">⚠️ Perdeu ataque em <b>${comFalta}</b> das últimas ${ultimas.length} guerras</span>`);
+            }
+            return chips;
+        }
+
         function renderUltimasGuerras(dados) {
             const guerras = dados?.guerras || [];
             if (!guerras.length) return;   // jogador sem guerras registradas: seção fica escondida
@@ -1570,7 +1600,10 @@
                 chips.push(`<span class="guerras-chip">Média <b>${String(r.mediaEstrelas.toFixed(1)).replace('.', ',')}★</b> · <b>${Math.round(r.mediaDestruicao)}%</b></span>`);
                 chips.push(`<span class="guerras-chip"><b>${r.triplas}</b> de ${r.ataques} ataques com 3★</span>`);
             }
-            if (r.ataquesPerdidos) chips.push(`<span class="guerras-chip ruim"><b>${r.ataquesPerdidos}</b> ${r.ataquesPerdidos === 1 ? 'ataque perdido' : 'ataques perdidos'}</span>`);
+            const sequencia = chipsSequencia(guerras);
+            chips.push(...sequencia);
+            const temAvisoPerdidos = sequencia.some(c => c.includes('Perdeu ataque'));   // evita repetir a mesma info
+            if (r.ataquesPerdidos && !temAvisoPerdidos) chips.push(`<span class="guerras-chip ruim"><b>${r.ataquesPerdidos}</b> ${r.ataquesPerdidos === 1 ? 'ataque perdido' : 'ataques perdidos'}</span>`);
             if (r.guerrasComDetalhe) {
                 chips.push(`<span class="guerras-chip"><b>${r.defesasSeguradas}</b> ${r.defesasSeguradas === 1 ? 'defesa segurada' : 'defesas seguradas'}</span>`);
                 if (r.freshTomados) chips.push(`<span class="guerras-chip ruim"><b>${r.freshTomados}</b> PT fresh</span>`);
