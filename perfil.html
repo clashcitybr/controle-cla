@@ -1106,6 +1106,7 @@
                 renderTropas(jogador.troops);
                 renderFeiticos(jogador.spells);
                 renderFaltaUpar(jogador);
+                if (location.hash === '#secaoFalta') setTimeout(() => document.getElementById('secaoFalta')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
                 renderHistorico(participacoes);
 
                 document.getElementById('loadingState').style.display = 'none';

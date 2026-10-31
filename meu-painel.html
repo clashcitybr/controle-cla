@@ -617,7 +617,8 @@
                         <div style="min-width:0;">
                             <h2>${escapar(nome)}</h2>
                             <span class="suave">${escapar(conta.cla || '')}</span><br>
-                            <a href="${linkPerfil}">Ver perfil completo →</a>
+                            <a href="${linkPerfil}">Ver perfil completo →</a><br>
+                            <a href="${linkPerfil}#secaoFalta">${ic('ferramenta')} O que falta upar →</a>
                         </div>
                     </div>
                 </div>`;
@@ -841,6 +842,7 @@
             document.getElementById('avisosExplica').textContent = ligado
                 ? 'Escolha só o que vale a pena receber:'
                 : 'Depois de ativar, você escolhe quais avisos quer receber:';
+            try { ligado ? localStorage.setItem('ccbr_avisos_ligados', '1') : localStorage.removeItem('ccbr_avisos_ligados'); } catch (_) {}
             const mudouLigado = avisosLigados !== ligado;
             avisosLigados = ligado;
             if (mudouLigado && dadosContas.size) montarAtencao(lerContas());   // mostra/tira o lembrete de ativar
