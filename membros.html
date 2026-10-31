@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="icones.js"></script>
     <script src="config.js"></script>
     <style>
         /* Estilos só desta página — o resto vem do style.css compartilhado */
@@ -341,7 +342,7 @@
 
         <div class="controles-container" style="position:relative; z-index:10;">
             <div class="filtros-extras filtros-membros" style="justify-content:flex-start;">
-                <input type="text" id="inputBusca" placeholder="🔍 Buscar jogador em todos os clãs..." oninput="renderizarMembros()"
+                <input type="text" id="inputBusca" placeholder="Buscar jogador em todos os clãs..." oninput="renderizarMembros()"
                     style="max-width:none; flex:1;">
                 <select id="filtroCV" onchange="renderizarMembros()">
                     <option value="todos">Todos os CVs</option>
@@ -513,7 +514,7 @@
             return `
                 <button type="button" class="cla-card" onclick="selecionarCla('${esc(c.chave)}')"
                     style="--cor-cla:${CORES_CLA[c.chave] || '#94a3b8'}">
-                    <span class="cla-card-escudo">${c.escudo ? `<img src="${esc(c.escudo)}" alt="" loading="lazy">` : '🛡️'}</span>
+                    <span class="cla-card-escudo">${c.escudo ? `<img src="${esc(c.escudo)}" alt="" loading="lazy">` : ic('escudo')}</span>
                     <span class="cla-card-info">
                         <span class="cla-card-nome" style="display:block;">${esc(c.nome)}${c.chave === 'parceiro' ? ' <span class="selo-parceiro">Parceiro</span>' : ''}</span>
                         <span class="cla-card-qtd" style="display:block;">${qtd}</span>
@@ -527,8 +528,8 @@
             const cargo = CARGOS[m.cargo];
             const detalhes = [
                 mostrarCargo && cargo ? `<span class="cargo-txt">${cargo.nome}</span>` : '',
-                m.doacoes ? `<span title="Tropas doadas na temporada">🎁 ${m.doacoes.toLocaleString('pt-BR')} doadas</span>` : '',
-                m.guerras > 0 ? `<span>⚔️ ${m.guerras} ${m.guerras === 1 ? 'guerra' : 'guerras'} · ⭐ ${m.mediaE.toFixed(1)}</span>` : ''
+                m.doacoes ? `<span title="Tropas doadas na temporada">${ic('doacao')} ${m.doacoes.toLocaleString('pt-BR')} doadas</span>` : '',
+                m.guerras > 0 ? `<span>${ic('guerra')} ${m.guerras} ${m.guerras === 1 ? 'guerra' : 'guerras'} · ${ic('estrela')} ${m.mediaE.toFixed(1)}</span>` : ''
             ].join('');
 
             return `
@@ -580,8 +581,8 @@
             document.getElementById('filtroCV').style.display = naInicial ? 'none' : '';
             document.getElementById('ordenarMembros').style.display = naInicial ? 'none' : '';
             document.getElementById('inputBusca').placeholder = naInicial
-                ? '🔍 Buscar jogador em todos os clãs...'
-                : '🔍 Buscar jogador neste clã...';
+                ? 'Buscar jogador em todos os clãs...'
+                : 'Buscar jogador neste clã...';
             document.getElementById('subtitulo').textContent = naInicial
                 ? 'Escolha um clã para ver os membros'
                 : 'Toque em um jogador para abrir o perfil';

@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="icones.js"></script>
     <script src="config.js"></script>
     <style>
         /* ---- Abas Temporadas / Guerras ---- */
@@ -177,7 +178,7 @@
     <script src="menu.js"></script>
 
     <header>
-        <h1 class="scroll-anim">📅 Histórico</h1>
+        <h1 class="scroll-anim">Histórico</h1>
         <p class="scroll-anim" style="color: var(--primary); font-weight: 600;" id="subtituloHistorico">Ranking mensal arquivado</p>
     </header>
 
@@ -185,8 +186,8 @@
 
         <!-- ABAS -->
         <div class="menu-abas abas-historico">
-            <button type="button" class="aba-btn active" id="abaTemporadas" onclick="mostrarAba('temporadas')">📅 Temporadas</button>
-            <button type="button" class="aba-btn" id="abaGuerras" onclick="mostrarAba('guerras')">⚔️ Guerras do clã</button>
+            <button type="button" class="aba-btn active" id="abaTemporadas" onclick="mostrarAba('temporadas')"><i data-ic="calendario"></i> Temporadas</button>
+            <button type="button" class="aba-btn" id="abaGuerras" onclick="mostrarAba('guerras')"><i data-ic="guerra"></i> Guerras do clã</button>
         </div>
 
         <div id="painelTemporadas">
@@ -202,7 +203,7 @@
         <!-- MVP DA TEMPORADA -->
         <div id="mvpContainer" class="mvp-container scroll-anim" style="display:none;">
             <div class="mvp-card">
-                <span class="mvp-badge">🏆 MVP DA TEMPORADA</span>
+                <span class="mvp-badge"><i data-ic="trofeu"></i> MVP DA TEMPORADA</span>
                 <h2 id="mvpNome">--</h2>
                 <p id="mvpStats" style="color:var(--primary); font-weight:600;">--</p>
             </div>
@@ -210,7 +211,7 @@
 
         <!-- TABELA DE RANKING -->
         <div id="rankingContainer" class="ranking-card scroll-anim" style="display:none;">
-            <h2 class="title" id="tituloTemporada">📊 RANKING</h2>
+            <h2 class="title"><i data-ic="ranking"></i> <span id="tituloTemporada">RANKING</span></h2>
 
             <div class="table-container">
                 <table>
@@ -218,7 +219,7 @@
                         <tr>
                             <th>Rank</th>
                             <th>Jogador</th>
-                            <th>Média ⭐</th>
+                            <th>Média <i data-ic="estrela"></i></th>
                             <th>Média %</th>
                             <th>CV</th>
                             <th>Guerras</th>
@@ -233,7 +234,7 @@
 
         <!-- ESTADO VAZIO -->
         <div id="estadoVazio" class="ranking-card scroll-anim" style="text-align:center; padding:60px 20px;">
-            <p style="font-size:3rem;">📭</p>
+            <p style="font-size:3rem;"><i data-ic="vazio"></i></p>
             <p style="opacity:0.6;">Nenhuma temporada arquivada ainda.<br>O histórico aparece automaticamente no início de cada mês.</p>
         </div>
 
@@ -305,7 +306,7 @@
                 const [ano, mesNum] = mes.split('-');
                 const nomeTemporada = `${mesesNomes[mesNum]} ${ano}`;
 
-                document.getElementById('tituloTemporada').innerText = `📊 RANKING — ${nomeTemporada}`;
+                document.getElementById('tituloTemporada').innerText = `RANKING — ${nomeTemporada}`;
 
                 // Só quem participou de guerra naquele mês (temporadas antigas foram
                 // arquivadas com todos os membros, inclusive quem não jogou).
@@ -315,13 +316,13 @@
                 if (snapshot.length > 0) {
                     const mvp = snapshot[0];
                     document.getElementById('mvpNome').innerText = mvp.nome;
-                    document.getElementById('mvpStats').innerText =
-                        `⭐ ${mvp.mediaEstrelas.toFixed(1)} ★ • 🎯 ${mvp.mediaPorcentagem.toFixed(1)}% • ⚔️ ${mvp.guerras} guerras`;
+                    document.getElementById('mvpStats').innerHTML =
+                        `${ic('estrela')} ${mvp.mediaEstrelas.toFixed(1)} · ${ic('alvo')} ${mvp.mediaPorcentagem.toFixed(1)}% · ${ic('guerra')} ${mvp.guerras} guerras`;
                     document.getElementById('mvpContainer').style.display = 'block';
                 }
 
                 // Tabela
-                const medalhas = ["🥇", "🥈", "🥉"];
+                const medalhas = [1, 2, 3].map(n => `<span class="medalha medalha-${n}">${n}</span>`);
                 let html = "";
 
                 snapshot.forEach((p, i) => {
@@ -342,7 +343,7 @@
                         <td class="${i < 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
                         <td><strong>${p.nome}</strong></td>
                         <td>
-                            <div style="font-weight:bold;margin-bottom:2px;">⭐ ${p.mediaEstrelas.toFixed(1)}</div>
+                            <div style="font-weight:bold;margin-bottom:2px;">${ic('estrela')} ${p.mediaEstrelas.toFixed(1)}</div>
                             <div class="progresso-container">
                                 <div class="progresso-barra" style="width:${(p.mediaEstrelas / 6) * 100}%;background:${corStatus};"></div>
                             </div>
@@ -452,13 +453,13 @@
 
             let html = `
                 <div class="stats-summary resumo-guerras">
-                    <div class="stat-card"><h3>🏆 Vitórias</h3><p>${d.vitorias != null ? num(d.vitorias) : '--'}</p>
+                    <div class="stat-card"><h3>${ic('trofeu')} Vitórias</h3><p>${d.vitorias != null ? num(d.vitorias) : '--'}</p>
                         ${aproveitamento != null ? `<small>${aproveitamento}% de aproveitamento</small>` : ''}</div>
-                    <div class="stat-card"><h3>💀 Derrotas</h3><p>${d.derrotas != null ? num(d.derrotas) : '--'}</p>
+                    <div class="stat-card"><h3>${ic('caveira')} Derrotas</h3><p>${d.derrotas != null ? num(d.derrotas) : '--'}</p>
                         ${d.empates ? `<small>${num(d.empates)} ${d.empates === 1 ? 'empate' : 'empates'}</small>` : ''}</div>
-                    <div class="stat-card"><h3>🔥 Sequência atual</h3><p>${d.sequencia != null ? num(d.sequencia) : '--'}</p>
+                    <div class="stat-card"><h3>${ic('fogo')} Sequência atual</h3><p>${d.sequencia != null ? num(d.sequencia) : '--'}</p>
                         <small>${d.sequencia === 1 ? 'vitória seguida' : 'vitórias seguidas'}</small></div>
-                    <div class="stat-card"><h3>📈 Últimas ${recentes || ''}</h3><p>${recentes ? `${vitRecentes}/${recentes}` : '--'}</p>
+                    <div class="stat-card"><h3>${ic('evolucao')} Últimas ${recentes || ''}</h3><p>${recentes ? `${vitRecentes}/${recentes}` : '--'}</p>
                         <small>${recentes ? 'vitórias nas guerras recentes' : 'sem guerras no registro'}</small></div>
                 </div>`;
 

@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="icones.js"></script>
     <script src="config.js"></script>
     <style>
         /* Estilos só desta página — o resto vem do style.css compartilhado */
@@ -396,10 +397,10 @@
             const partes = [];
             if (d.escudo) partes.push(`<img src="${esc(d.escudo)}" alt="" loading="lazy">`);
             partes.push(`<strong>${esc(d.nome || CLAS.find(c => c.chave === claAtivo)?.nome)}</strong>`);
-            if (d.salaoCapital) partes.push(`<span class="pilula">🏛️ Salão da Capital nv ${esc(d.salaoCapital)}</span>`);
+            if (d.salaoCapital) partes.push(`<span class="pilula">${ic('capital')} Salão da Capital nv ${esc(d.salaoCapital)}</span>`);
             const liga = traduzirLiga(d.ligaCapital);
-            if (liga) partes.push(`<span class="pilula">🏆 ${esc(liga)}</span>`);
-            if (d.pontosCapital) partes.push(`<span class="pilula">⭐ ${num(d.pontosCapital)} pontos</span>`);
+            if (liga) partes.push(`<span class="pilula">${ic('trofeu')} ${esc(liga)}</span>`);
+            if (d.pontosCapital) partes.push(`<span class="pilula">${ic('estrela')} ${num(d.pontosCapital)} pontos</span>`);
             box.innerHTML = partes.join('');
         }
 
@@ -446,12 +447,12 @@
 
             let html = `
                 <div class="stats-summary">
-                    <div class="stat-card"><h3>💰 Ouro saqueado</h3><p>${num(total.saque)}</p></div>
-                    <div class="stat-card"><h3>⚔️ Ataques</h3><p>${num(total.ataques)}</p>
+                    <div class="stat-card"><h3>${ic('moedas')} Ouro saqueado</h3><p>${num(total.saque)}</p></div>
+                    <div class="stat-card"><h3>${ic('guerra')} Ataques</h3><p>${num(total.ataques)}</p>
                         ${sobrando ? `<small>${num(sobrando)} ${atual ? 'ainda disponíveis' : 'não usados'} por quem participou</small>` : ''}</div>
-                    <div class="stat-card"><h3>👥 Participantes</h3><p>${ranking.length}</p>
+                    <div class="stat-card"><h3>${ic('grupo')} Participantes</h3><p>${ranking.length}</p>
                         ${ehMes ? `<small>${escolhidas.length} ${escolhidas.length === 1 ? 'fim de semana' : 'fins de semana'}</small>` : ''}</div>
-                    <div class="stat-card"><h3>🏚️ Distritos destruídos</h3><p>${num(total.distritos)}</p>
+                    <div class="stat-card"><h3>${ic('casa')} Distritos destruídos</h3><p>${num(total.distritos)}</p>
                         <small>${num(total.raides)} ${total.raides === 1 ? 'capital derrubada' : 'capitais derrubadas'}</small></div>
                 </div>`;
 
@@ -471,8 +472,8 @@
                             <span class="linha-info">
                                 <span class="linha-nome" style="display:block;">${esc(j.nome)}</span>
                                 <span class="linha-sub">
-                                    <span>⚔️ ${j.ataques}/${j.limite}</span>
-                                    ${ehMes ? `<span title="Fins de semana em que atacou">📅 ${j.fins} fds</span>` : ''}
+                                    <span>${ic('guerra')} ${j.ataques}/${j.limite}</span>
+                                    ${ehMes ? `<span title="Fins de semana em que atacou">${ic('calendario')} ${j.fins} fds</span>` : ''}
                                     ${aviso}
                                 </span>
                             </span>

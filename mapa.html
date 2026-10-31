@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="icones.js"></script>
     <script src="config.js"></script>
     <style>
         /* Estilos só desta página — o resto vem do style.css compartilhado */
@@ -221,7 +222,7 @@
             const alvo = document.getElementById('conteudo');
 
             if (!g || g.state === 'notInWar' || !g.state) {
-                alvo.innerHTML = '<div class="cartao"><p class="carregando">😴 O clã não está em guerra agora.<br>O mapa aparece quando começar a próxima.</p></div>';
+                alvo.innerHTML = `<div class="cartao"><p class="carregando">${ic('dormindo')} O clã não está em guerra agora.<br>O mapa aparece quando começar a próxima.</p></div>`;
                 return;
             }
 
@@ -233,9 +234,9 @@
             const naLiga = !!g.liga;
 
             // ---------- placar ----------
-            let selo = '⚔️ GUERRA EM ANDAMENTO', info = '';
+            let selo = `${ic('guerra')} GUERRA EM ANDAMENTO`, info = '';
             if (g.state === 'preparation') {
-                selo = '⏳ PREPARAÇÃO';
+                selo = `${ic('ampulheta')} PREPARAÇÃO`;
                 const t = tempoAte(dataCoC(g.startTime));
                 info = t ? `A batalha começa em ${t}` : 'A batalha já vai começar';
             } else if (g.state === 'inWar') {
@@ -243,10 +244,10 @@
                 const usados = nossos.reduce((n, m) => n + (m.attacks?.length || 0), 0);
                 info = `${t ? `Faltam ${t}` : 'Terminando'} · ${usados} de ${nossos.length * permitidos} ataques usados`;
             } else if (g.state === 'warEnded') {
-                selo = '🏁 GUERRA ENCERRADA';
+                selo = `${ic('bandeira')} GUERRA ENCERRADA`;
                 info = 'Resultado final';
             }
-            if (naLiga) selo = `🏅 LIGA · ${selo}`;
+            if (naLiga) selo = `${ic('premio')} LIGA · ${selo.replace(/^<svg[\s\S]*?<\/svg> /, '')}`;
 
             const placar = `
                 <div class="cartao placar">
@@ -282,10 +283,10 @@
                         : '';
                     return `<div class="minha${faltam ? '' : ' feito'}">
                         <span><b>${escapar(m.name)}</b> · #${m.mapPosition}<br><small class="suave">${txtEspelho}</small></span>
-                        <span>${faltam ? `⏳ ${faltam} ${faltam === 1 ? 'ataque' : 'ataques'}` : '✓ atacou'}</span>
+                        <span>${faltam ? `${ic('ampulheta')} ${faltam} ${faltam === 1 ? 'ataque' : 'ataques'}` : `${ic('ok')} atacou`}</span>
                     </div>`;
                 });
-                blocoMinhas = `<div class="cartao"><h2>👤 Suas contas</h2><div class="minhas">${linhas.join('')}</div></div>`;
+                blocoMinhas = `<div class="cartao"><h2>${ic('usuario')} Suas contas</h2><div class="minhas">${linhas.join('')}</div></div>`;
             }
 
             // ---------- vilas inimigas ----------
@@ -322,7 +323,7 @@
 
             const blocoVilas = `
                 <div class="cartao">
-                    <h2>🗺️ Vilas do adversário</h2>
+                    <h2>${ic('mapa')} Vilas do adversário</h2>
                     ${filtros}
                     <div class="vilas">${vilas.join('') || '<p class="suave">Nenhuma vila nesse filtro.</p>'}</div>
                     ${emBatalha ? '<p class="legenda">Estrelas e % mostram o melhor ataque nosso em cada vila. Contorno escuro = espelho da sua conta.</p>' : ''}
@@ -334,10 +335,10 @@
                 const pend = nossos
                     .filter(m => (m.attacks?.length || 0) < permitidos)
                     .sort((a, b) => a.mapPosition - b.mapPosition);
-                blocoPendentes = `<div class="cartao"><h2>⏳ Ainda têm ataque (${pend.length})</h2>
+                blocoPendentes = `<div class="cartao"><h2>${ic('ampulheta')} Ainda têm ataque (${pend.length})</h2>
                     <div class="pendentes">${pend.length
                         ? pend.map(m => `<span class="pendente${minhas.has(m.tag) ? ' eu' : ''}">#${m.mapPosition} ${escapar(m.name)} · CV${m.townhallLevel} (${m.attacks?.length || 0}/${permitidos})</span>`).join('')
-                        : '<span class="suave">Todo mundo já atacou! 🎉</span>'}</div></div>`;
+                        : `<span class="suave">${ic('festa')} Todo mundo já atacou!</span>`}</div></div>`;
             }
 
             alvo.innerHTML = placar + blocoMinhas + blocoVilas + blocoPendentes;

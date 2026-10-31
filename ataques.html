@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="icones.js"></script>
     <script src="config.js"></script>
     <style>
         /* Estilos só desta página — o resto vem do style.css compartilhado */
@@ -363,15 +364,15 @@
     <script src="menu.js"></script>
 
     <header>
-        <h1 class="scroll-anim show">⚔️ Ataques</h1>
+        <h1 class="scroll-anim show">Ataques</h1>
         <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;" id="subtitulo">Exércitos e equipamentos recomendados pela liderança</p>
     </header>
 
     <section class="ranking-section">
 
         <div class="menu-abas abas-ataques">
-            <button type="button" class="aba-btn active" id="abaMembro" onclick="mostrarAba('membro')">⚔️ Exércitos</button>
-            <button type="button" class="aba-btn" id="abaPainel" onclick="mostrarAba('painel')">🔧 Painel da liderança</button>
+            <button type="button" class="aba-btn active" id="abaMembro" onclick="mostrarAba('membro')"><i data-ic="guerra"></i> Exércitos</button>
+            <button type="button" class="aba-btn" id="abaPainel" onclick="mostrarAba('painel')"><i data-ic="ferramenta"></i> Painel da liderança</button>
         </div>
 
         <!-- ================= VISÃO DOS MEMBROS ================= -->
@@ -386,7 +387,7 @@
         <div id="visaoPainel" class="painel oculto">
 
             <div class="painel-caixa" id="caixaLogin">
-                <h3>🔒 Senha da liderança</h3>
+                <h3><i data-ic="cadeado"></i> Senha da liderança</h3>
                 <form class="login-linha" onsubmit="entrar(event)">
                     <input type="password" id="senhaAdmin" placeholder="Mesma senha do painel da Liga" autocomplete="current-password">
                     <button class="btn btn-principal" id="btnEntrar">Entrar</button>
@@ -406,7 +407,7 @@
                 </div>
 
                 <div class="painel-caixa">
-                    <h3 id="tituloForm">➕ Adicionar exército</h3>
+                    <h3><i data-ic="mais"></i> <span id="tituloForm">Adicionar exército</span></h3>
                     <form class="form-grid" id="formExercito" onsubmit="salvarExercito(event)">
                         <div class="campo">
                             <label for="fCv">Centro de Vila</label>
@@ -451,12 +452,12 @@
                 </div>
 
                 <div class="painel-caixa">
-                    <h3>📋 Exércitos cadastrados</h3>
+                    <h3><i data-ic="lista"></i> Exércitos cadastrados</h3>
                     <div class="lista-admin" id="listaAdmin"></div>
                 </div>
 
                 <div class="painel-caixa">
-                    <h3>🛡️ Equipamentos meta</h3>
+                    <h3><i data-ic="escudo"></i> Equipamentos meta</h3>
                     <p style="font-size:0.82rem; color:var(--texto-suave); margin:-6px 0 14px;">
                         Marque os que estão no meta e salve. Os perfis dos jogadores passam a mostrar o que cada um precisa upar.
                         A lista vem dos equipamentos que os membros do clã usam no jogo.
@@ -555,7 +556,7 @@
             if (dados.atualizadoEm) {
                 const d = new Date(dados.atualizadoEm);
                 document.getElementById('atualizadoTxt').textContent =
-                    `🗓️ Atualizado em ${d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} pela liderança`;
+                    `Atualizado em ${d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} pela liderança`;
                 at.style.display = '';
             } else {
                 at.style.display = 'none';
@@ -617,9 +618,9 @@
                         <span class="nivel ${esc(e.dificuldade)}">${esc(DIF[e.dificuldade] || 'Médio')}</span>
                     </div>
                     ${comp.length ? `<div class="composicao">${comp.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
-                    ${e.dica ? `<div class="dica">💡 ${esc(e.dica)}</div>` : ''}
+                    ${e.dica ? `<div class="dica">${ic('dica')} ${esc(e.dica)}</div>` : ''}
                     ${blocoVideo(e)}
-                    <a class="btn-copiar" href="${esc(linkSeguro(e.link))}" target="_blank" rel="noopener">📋 Copiar exército no jogo</a>
+                    <a class="btn-copiar" href="${esc(linkSeguro(e.link))}" target="_blank" rel="noopener">${ic('lista')} Copiar exército no jogo</a>
                 </div>`;
         }
 
@@ -695,8 +696,8 @@
                 <div class="item-admin">
                     <span class="cv-mini">CV ${e.cv}</span>
                     <span class="nome">${esc(e.nome)}</span>
-                    <button type="button" onclick="editar('${esc(e.id)}')">✏️ Editar</button>
-                    <button type="button" onclick="remover('${esc(e.id)}')" aria-label="Remover">🗑️</button>
+                    <button type="button" onclick="editar('${esc(e.id)}')">${ic('lapis')} Editar</button>
+                    <button type="button" onclick="remover('${esc(e.id)}')" aria-label="Remover">${ic('lixeira')}</button>
                 </div>`).join('') : '<p style="color:var(--texto-suave); font-size:0.85rem;">Nenhum exército cadastrado ainda.</p>';
         }
 
@@ -704,7 +705,7 @@
             editandoId = null;
             document.getElementById('formExercito').reset();
             document.getElementById('fDificuldade').value = 'medio';
-            document.getElementById('tituloForm').textContent = '➕ Adicionar exército';
+            document.getElementById('tituloForm').textContent = 'Adicionar exército';
             document.getElementById('btnSalvar').textContent = 'Salvar exército';
             document.getElementById('btnCancelar').classList.add('oculto');
         }
@@ -720,7 +721,7 @@
             document.getElementById('fComposicao').value = e.composicao || '';
             document.getElementById('fDica').value = e.dica || '';
             document.getElementById('fVideo').value = e.video || '';
-            document.getElementById('tituloForm').textContent = '✏️ Editando exército';
+            document.getElementById('tituloForm').textContent = 'Editando exército';
             document.getElementById('btnSalvar').textContent = 'Salvar alterações';
             document.getElementById('btnCancelar').classList.remove('oculto');
             msg('msgForm', '');

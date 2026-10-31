@@ -307,3 +307,13 @@ h2 > .ic, h3 > .ic, .title > .ic, .criterios-titulo > .ic { color: var(--seconda
 .pref .txt .ic { color: var(--secondary, #077187); margin-right: 2px; }
 .stat .rotulo .ic { color: var(--secondary, #077187); }
 .stat.destaque .rotulo .ic { color: #ea580c; }
+.ic.girando { animation: ic-girar 1s linear infinite; }
+@keyframes ic-girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ic.girando { animation: none; } }
+.stat-box-icone .ic { color: var(--secondary, #077187); }
+.stat-box-icone .ic-estrela { color: #f5b301; }
+/* Selos e etiquetas: ícone acompanha a cor do texto */
+.badge .ic, .mvp-badge .ic, .guerra-badge .ic, .liga-selo .ic, .placar-selo .ic, .perfil-badge .ic { width: 1em; height: 1em; }
+
+.atalho-painel-icone .ic { color: var(--primary); width: 1.4em; height: 1.4em; }
+button, input, select, textarea { font-family: inherit; }

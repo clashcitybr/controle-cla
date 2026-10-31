@@ -144,7 +144,9 @@
     const atalho = document.createElement('a');
     atalho.href = URL_PAINEL;
     atalho.className = 'menu-atalho-painel';
-    atalho.textContent = '👤 Meu Painel';
+    // Ícone desenhado quando a página carrega o icones.js (a Liga, por exemplo, não carrega)
+    if (window.ic) atalho.innerHTML = `${window.ic('usuario')} Meu Painel`;
+    else atalho.textContent = '👤 Meu Painel';
     if (/meu-painel\.html$/.test(location.pathname)) {
         atalho.classList.add('ativo');
         atalho.setAttribute('aria-current', 'page');

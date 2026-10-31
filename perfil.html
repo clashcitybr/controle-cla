@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="icones.js"></script>
     <script src="config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
     <style>
@@ -656,7 +657,7 @@
     <script src="menu.js"></script>
 
     <div id="loadingState" class="loading-state">
-        <p style="font-size:2rem;">⏳</p>
+        <p style="font-size:2rem;"><i data-ic="carregando" class="girando"></i></p>
         <p>Carregando perfil...</p>
     </div>
 
@@ -679,8 +680,8 @@
                 <div class="perfil-badges" id="perfilBadgesCla"></div>
             </div>
             <div class="perfil-acoes">
-                <a class="btn-ver-jogo" id="btnVerJogo" href="#" target="_blank" rel="noopener">🎮 Ver no Jogo</a>
-                <button class="btn-compartilhar" onclick="compartilhar()">📤 Compartilhar</button>
+                <a class="btn-ver-jogo" id="btnVerJogo" href="#" target="_blank" rel="noopener"><i data-ic="jogo"></i> Ver no Jogo</a>
+                <button class="btn-compartilhar" onclick="compartilhar()"><i data-ic="compartilhar"></i> Compartilhar</button>
             </div>
         </div>
 
@@ -689,59 +690,59 @@
 
             <!-- STATS DA TEMPORADA ATUAL -->
             <div class="perfil-section">
-                <h2 id="tituloStats">📊 Temporada Atual</h2>
+                <h2 id="tituloStats"><i data-ic="ranking"></i> <span>Temporada Atual</span></h2>
                 <p id="notaForaCla" style="display:none; margin:-4px 0 14px; font-size:0.85rem; color:#5b6475;"></p>
                 <div class="stats-row">
                     <div class="stat-card stat-guerra">
                         <div class="valor" id="statMediaEstrelas">--</div>
-                        <div class="label">⭐ Média de Estrelas</div>
+                        <div class="label"><i data-ic="estrela"></i> Média de Estrelas</div>
                         <div class="comparativo" id="compMediaEstrelas"></div>
                     </div>
                     <div class="stat-card stat-guerra">
                         <div class="valor" id="statMediaPct">--</div>
-                        <div class="label">🎯 Média Destruição</div>
+                        <div class="label"><i data-ic="alvo"></i> Média Destruição</div>
                         <div class="comparativo" id="compMediaPct"></div>
                     </div>
                     <div class="stat-card stat-guerra">
                         <div class="valor" id="statGuerras">--</div>
-                        <div class="label">⚔️ Guerras</div>
+                        <div class="label"><i data-ic="guerra"></i> Guerras</div>
                     </div>
                     <div class="stat-card">
                         <div class="valor" id="statTrofeus">--</div>
-                        <div class="label">🏆 Troféus</div>
+                        <div class="label"><i data-ic="trofeu"></i> Troféus</div>
                     </div>
                     <div class="stat-card">
                         <div class="valor" id="statRecorde">--</div>
-                        <div class="label">🎖️ Recorde</div>
+                        <div class="label"><i data-ic="recorde"></i> Recorde</div>
                     </div>
                     <div class="stat-card">
                         <div class="valor" id="statDoacoes">--</div>
-                        <div class="label">📦 Doações</div>
+                        <div class="label"><i data-ic="doacao"></i> Doações</div>
                     </div>
                     <div class="stat-card">
                         <div class="valor" id="statRecebidas">--</div>
-                        <div class="label">📥 Doações Recebidas</div>
+                        <div class="label"><i data-ic="recebidas"></i> Doações Recebidas</div>
                     </div>
                     <div class="stat-card">
                         <div class="valor" id="statAtaquesVencidos">--</div>
-                        <div class="label">🗡️ Ataques Vencidos</div>
+                        <div class="label"><i data-ic="espada"></i> Ataques Vencidos</div>
                     </div>
                     <div class="stat-card">
                         <div class="valor" id="statWarStars">--</div>
-                        <div class="label">🌟 Estrelas Históricas</div>
+                        <div class="label"><i data-ic="brilho"></i> Estrelas Históricas</div>
                     </div>
                 </div>
             </div>
 
             <!-- CONQUISTAS -->
             <div class="perfil-section" id="secaoConquistas" style="display:none;">
-                <h2 id="tituloConquistas">🏅 Conquistas</h2>
+                <h2 id="tituloConquistas"><i data-ic="premio"></i> <span>Conquistas</span></h2>
                 <div class="conquistas-grid" id="conquistasGrid"></div>
             </div>
 
             <!-- ÚLTIMAS GUERRAS (ataques e defesa guerra a guerra) -->
             <div class="perfil-section" id="secaoGuerras" style="display:none;">
-                <h2>⚔️ Últimas Guerras</h2>
+                <h2><i data-ic="guerra"></i> Últimas Guerras</h2>
                 <div class="guerras-resumo" id="guerrasResumo"></div>
                 <div class="guerras-lista" id="guerrasLista"></div>
                 <button type="button" class="guerras-mais" id="guerrasMais" style="display:none;">Ver mais guerras</button>
@@ -750,26 +751,26 @@
 
             <!-- LIGA DE CLÃS: desempenho em cada temporada guardada -->
             <div class="perfil-section" id="secaoLiga" style="display:none;">
-                <h2>🏆 Liga de Clãs</h2>
+                <h2><i data-ic="trofeu"></i> Liga de Clãs</h2>
                 <div class="liga-temporadas" id="ligaTemporadas"></div>
             </div>
 
             <!-- EQUIPAMENTOS META (lista marcada pela liderança na página Ataques) -->
             <div class="perfil-section" id="secaoMeta" style="display:none;">
-                <h2>🎯 Equipamentos Meta</h2>
+                <h2><i data-ic="alvo"></i> Equipamentos Meta</h2>
                 <div class="meta-lista" id="metaLista"></div>
-                <a class="meta-link" id="metaLink" href="ataques.html">⚔️ Ver exércitos recomendados →</a>
+                <a class="meta-link" id="metaLink" href="ataques.html"><i data-ic="guerra"></i> Ver exércitos recomendados →</a>
             </div>
 
             <!-- HERÓIS -->
             <div class="perfil-section">
-                <h2>👑 Heróis</h2>
+                <h2><i data-ic="coroa"></i> Heróis</h2>
                 <div id="heroisList"></div>
             </div>
 
             <!-- EVOLUÇÃO DA CONTA (foto diária do backend) -->
             <div class="perfil-section" id="secaoEvolucao" style="display:none;">
-                <h2>📈 Evolução da conta</h2>
+                <h2><i data-ic="evolucao"></i> Evolução da conta</h2>
                 <div class="guerras-resumo" id="evoResumo"></div>
                 <div class="evo-grafico-wrap" id="evoGraficoWrap" style="display:none;"><canvas id="evoGrafico"></canvas></div>
                 <div class="evo-lista" id="evoLista"></div>
@@ -781,7 +782,7 @@
             <div class="perfil-section">
                 <details class="perfil-details" id="detalhesEquip">
                     <summary class="perfil-details-summary">
-                        <span>🛡️ Equipamentos Ativos <span class="contagem" id="equipCount"></span></span>
+                        <span><i data-ic="escudo"></i> Equipamentos Ativos <span class="contagem" id="equipCount"></span></span>
                         <span class="chevron">▼</span>
                     </summary>
                     <div class="equip-grid perfil-details-conteudo" id="equipList"></div>
@@ -792,7 +793,7 @@
             <div class="perfil-section">
                 <details class="perfil-details" id="detalhesTropas">
                     <summary class="perfil-details-summary">
-                        <span>🐺 Tropas <span class="contagem" id="tropasCount"></span></span>
+                        <span><i data-ic="tropas"></i> Tropas <span class="contagem" id="tropasCount"></span></span>
                         <span class="chevron">▼</span>
                     </summary>
                     <div class="equip-grid perfil-details-conteudo" id="tropasList"></div>
@@ -803,7 +804,7 @@
             <div class="perfil-section">
                 <details class="perfil-details" id="detalhesFeiticos">
                     <summary class="perfil-details-summary">
-                        <span>🧪 Feitiços <span class="contagem" id="feiticosCount"></span></span>
+                        <span><i data-ic="feitico"></i> Feitiços <span class="contagem" id="feiticosCount"></span></span>
                         <span class="chevron">▼</span>
                     </summary>
                     <div class="equip-grid perfil-details-conteudo" id="feiticosList"></div>
@@ -812,7 +813,7 @@
 
             <!-- GRÁFICO DE EVOLUÇÃO -->
             <div class="perfil-section" id="secaoGrafico" style="display:none;">
-                <h2>📈 Evolução por Temporada</h2>
+                <h2><i data-ic="evolucao"></i> Evolução por Temporada</h2>
                 <div class="chart-container">
                     <div class="chart-wrap"><canvas id="graficoEvolucao"></canvas></div>
                     <p id="graficoAviso" style="display:none; text-align:center; font-size:0.8rem; color:#666; margin-top:8px;">
@@ -823,14 +824,14 @@
 
             <!-- HISTÓRICO DE TEMPORADAS -->
             <div class="perfil-section" id="secaoHistorico" style="display:none; padding-bottom:40px;">
-                <h2>📅 Histórico de Temporadas</h2>
+                <h2><i data-ic="calendario"></i> Histórico de Temporadas</h2>
                 <div class="tabela-wrapper">
                     <table class="historico-table">
                         <thead>
                             <tr>
                                 <th>Temporada</th>
                                 <th>Posição</th>
-                                <th>Média ⭐</th>
+                                <th>Média <i data-ic="estrela"></i></th>
                                 <th>Média %</th>
                                 <th>Guerras</th>
                                 <th>Tend.</th>
@@ -846,7 +847,7 @@
     </div>
 
     <div id="erroState" style="display:none;" class="loading-state">
-        <p style="font-size:2rem;">😕</p>
+        <p style="font-size:2rem;"><i data-ic="triste"></i></p>
         <p>Jogador não encontrado.</p>
         <a href="https://clashcitybr.github.io/controle-cla/" style="color:var(--primary);">← Voltar ao ranking</a>
     </div>
@@ -1012,7 +1013,8 @@
         }
 
         const CLA_PRINCIPAL = '#GUPJU0L2';
-        const CARGOS_CLA = { leader: '👑 Líder', coLeader: '⭐ Colíder', admin: '🛡️ Ancião', member: 'Membro' };
+        const CARGOS_CLA = { leader: 'Líder', coLeader: 'Colíder', admin: 'Ancião', member: 'Membro' };
+        const ICONE_CARGO = { leader: 'coroa', coLeader: 'estrela', admin: 'escudo' };
 
         function traduzirHeroi(nome) {
             return traducoesHerois[nome] || nome;
@@ -1169,10 +1171,11 @@
         function renderBadgesCla(j) {
             const box = document.getElementById('perfilBadgesCla');
             box.innerHTML = '';
-            const add = (texto, classe) => {
+            const add = (texto, classe, icone) => {
                 const s = document.createElement('span');
                 s.className = 'perfil-badge' + (classe ? ' ' + classe : '');
                 s.textContent = texto;
+                if (icone) s.insertAdjacentHTML('afterbegin', ic(icone) + ' ');
                 box.appendChild(s);
             };
 
@@ -1182,15 +1185,15 @@
             if (!j.clan) {
                 add('Sem clã no momento', 'perfil-badge-off');
             } else if (noPrincipal) {
-                if (cargo) add(cargo, 'perfil-badge-cargo');
+                if (cargo) add(cargo, 'perfil-badge-cargo', ICONE_CARGO[j.role]);
             } else {
                 // Está em outro clã (da família, parceiro ou de fora): o nome do clã vem primeiro
-                const cargoSimples = cargo ? cargo.replace(/^[^\p{L}]+/u, '') : '';
-                add(`🏰 ${j.clan.name}${cargoSimples ? ' · ' + cargoSimples : ''}`, 'perfil-badge-cargo');
+                const cargoSimples = cargo || '';
+                add(`${j.clan.name}${cargoSimples ? ' · ' + cargoSimples : ''}`, 'perfil-badge-cargo', 'cv');
             }
 
-            if (j.warPreference === 'in')  add('⚔️ Disponível para guerra', 'perfil-badge-ok');
-            if (j.warPreference === 'out') add('🚫 Fora da guerra', 'perfil-badge-off');
+            if (j.warPreference === 'in')  add('Disponível para guerra', 'perfil-badge-ok', 'guerra');
+            if (j.warPreference === 'out') add('Fora da guerra', 'perfil-badge-off', 'proibido');
         }
 
         // Média do clã, considerando só membros com pelo menos 1 guerra
@@ -1230,7 +1233,7 @@
             // números de temporada: em vez de três cards com "--", esconde e explica.
             const semTemporada = j.clan?.tag !== CLA_PRINCIPAL && !temGuerras;
             document.querySelectorAll('.stat-guerra').forEach(el => { el.style.display = semTemporada ? 'none' : ''; });
-            document.getElementById('tituloStats').textContent = semTemporada ? '📊 Estatísticas' : '📊 Temporada Atual';
+            document.querySelector('#tituloStats span').textContent = semTemporada ? 'Estatísticas' : 'Temporada Atual';
             const nota = document.getElementById('notaForaCla');
             nota.style.display = semTemporada ? '' : 'none';
             nota.textContent = semTemporada
@@ -1265,11 +1268,11 @@
             const diff = mediaAtual - mediaAnterior;
 
             let texto, bg;
-            if (diff > 0.05)       { texto = `📈 +${diff.toFixed(2)} vs mês passado`; bg = 'rgba(34,197,94,0.28)'; }
-            else if (diff < -0.05) { texto = `📉 ${diff.toFixed(2)} vs mês passado`;  bg = 'rgba(239,68,68,0.28)'; }
-            else                   { texto = `➖ Estável vs mês passado`;             bg = 'rgba(255,255,255,0.15)'; }
+            if (diff > 0.05)       { texto = `${ic('evolucao')} +${diff.toFixed(2)} vs mês passado`; bg = 'rgba(34,197,94,0.28)'; }
+            else if (diff < -0.05) { texto = `${ic('queda')} ${diff.toFixed(2)} vs mês passado`;  bg = 'rgba(239,68,68,0.28)'; }
+            else                   { texto = `${ic('estavel')} Estável vs mês passado`;             bg = 'rgba(255,255,255,0.15)'; }
 
-            badge.innerText = texto;
+            badge.innerHTML = texto;
             badge.style.background = bg;
             badge.style.display = 'inline-block';
         }
@@ -1331,9 +1334,9 @@
                 lista.forEach(nome => {
                     const e = equipDoJogador.get(nome);
                     let status, cor, ordem;
-                    if (!e) { status = '🔒 não desbloqueado'; cor = '#94a3b8'; ordem = 2; }
-                    else if (e.level >= e.maxLevel) { status = '✅ nível máximo'; cor = '#16a34a'; ordem = 3; }
-                    else { status = `⬆️ nv ${e.level}/${e.maxLevel}`; cor = '#d97706'; ordem = 1; }
+                    if (!e) { status = `${ic('cadeado')} não desbloqueado`; cor = '#94a3b8'; ordem = 2; }
+                    else if (e.level >= e.maxLevel) { status = `${ic('tudo-ok')} nível máximo`; cor = '#16a34a'; ordem = 3; }
+                    else { status = `${ic('subir')} nv ${e.level}/${e.maxLevel}`; cor = '#d97706'; ordem = 1; }
                     itens.push({ heroi, nome, status, cor, ordem, emUso: emUso.has(nome), pct: e ? e.level / e.maxLevel : 0 });
                 });
             });
@@ -1575,7 +1578,7 @@
             }
 
             // Tabela de histórico
-            const medalhas = ["🥇","🥈","🥉"];
+            const medalhas = [1, 2, 3].map(n => `<span class="medalha medalha-${n}">${n}</span>`);
             let html = "";
             participacoes.forEach((p, idx) => {
                 const [ano, mes] = p.mes.split('-');
@@ -1600,7 +1603,7 @@
                 <tr>
                     <td>${nomeTemporada}</td>
                     <td>${rankLabel}</td>
-                    <td>⭐ ${p.mediaEstrelas.toFixed(2)}</td>
+                    <td>${ic('estrela')} ${p.mediaEstrelas.toFixed(2)}</td>
                     <td>${p.mediaPorcentagem.toFixed(1)}%</td>
                     <td>${p.guerras}</td>
                     <td>${tendencia}</td>
@@ -1637,13 +1640,13 @@
 
             const r = dados.ultimos30Dias || {};
             const chips = [`<span class="guerras-chip">Acompanhando desde <b>${dataCurta(dados.acompanhandoDesde)}</b></span>`];
-            if (r.herois) chips.push(`<span class="guerras-chip bom">👑 <b>+${r.herois}</b> ${r.herois === 1 ? 'nível' : 'níveis'} de heróis em 30 dias</span>`);
-            if (r.equipamentos) chips.push(`<span class="guerras-chip">🛡️ <b>+${r.equipamentos}</b> em equipamentos</span>`);
-            if (r.cv) chips.push(`<span class="guerras-chip bom">🏰 Subiu de CV no último mês</span>`);
-            if (dados.construtorDoMes?.length) chips.push(`<span class="guerras-chip bom">🔨 Construtor do Mês ${dados.construtorDoMes.length > 1 ? `(${dados.construtorDoMes.length}x)` : ''}</span>`);
+            if (r.herois) chips.push(`<span class="guerras-chip bom">${ic('coroa')} <b>+${r.herois}</b> ${r.herois === 1 ? 'nível' : 'níveis'} de heróis em 30 dias</span>`);
+            if (r.equipamentos) chips.push(`<span class="guerras-chip">${ic('escudo')} <b>+${r.equipamentos}</b> em equipamentos</span>`);
+            if (r.cv) chips.push(`<span class="guerras-chip bom">${ic('cv')} Subiu de CV no último mês</span>`);
+            if (dados.construtorDoMes?.length) chips.push(`<span class="guerras-chip bom">${ic('martelo')} Construtor do Mês ${dados.construtorDoMes.length > 1 ? `(${dados.construtorDoMes.length}x)` : ''}</span>`);
             document.getElementById('evoResumo').innerHTML = chips.join('');
 
-            const ICONES = { cv: '🏰', arma: '🔥', heroi: '👑', equip: '🛡️' };
+            const ICONES = { cv: ic('cv'), arma: ic('fogo'), heroi: ic('coroa'), equip: ic('escudo') };
             const lista = dados.melhorias || [];
             document.getElementById('evoLista').innerHTML = lista.map((m, i) => {
                 let nome = m.nome;
@@ -1651,7 +1654,7 @@
                 if (m.tipo === 'equip') nome = traduzirEquipamento(m.nome);
                 const niveis = m.de === 0 ? 'novo!' : `${m.de} → ${m.para}`;
                 return `<div class="evo-item ${m.tipo === 'cv' ? 'cv' : ''}${i >= EVO_VISIVEIS ? ' evo-oculto' : ''}">
-                    <span class="icone">${ICONES[m.tipo] || '⬆️'}</span>
+                    <span class="icone">${ICONES[m.tipo] || ic('subir')}</span>
                     <span class="texto">${nome}<small>${dataCurta(m.data)}</small></span>
                     <span class="niveis">${niveis}</span>
                 </div>`;
@@ -1772,8 +1775,8 @@
                 </div>`;
             }).join('');
 
-            document.getElementById('tituloConquistas').textContent =
-                `🏅 Conquistas (${dados.conquistadas}/${dados.total})`;
+            document.querySelector('#tituloConquistas span').textContent =
+                `Conquistas (${dados.conquistadas}/${dados.total})`;
             document.getElementById('secaoConquistas').style.display = 'block';
         }
 
@@ -1800,16 +1803,16 @@
         }
 
         function textoDefesa(g) {
-            if (g.emAndamento) return { classe: 'sem-dado', texto: '🛡️ Defesa sai quando a guerra acabar' };
+            if (g.emAndamento) return { classe: 'sem-dado', texto: ic('escudo') + ' Defesa sai quando a guerra acabar' };
             const d = g.defesa;
-            if (!g.completa || !d) return { classe: 'sem-dado', texto: '🛡️ Defesa não registrada nessa guerra' };
-            if (!d.atacada) return { classe: 'sem-dado', texto: '🛡️ Não foi atacado' };
-            if (d.parcial) return { classe: '', texto: `🛡️ Atacado ${d.ataquesSofridos}x · pior resultado: ${d.melhorEstrelas}★ ${Math.round(d.melhorDestruicao)}%` };
-            if (d.fresh) return { classe: 'fresh', texto: '💥 Tomou PT fresh (sem defesa)' };
+            if (!g.completa || !d) return { classe: 'sem-dado', texto: ic('escudo') + ' Defesa não registrada nessa guerra' };
+            if (!d.atacada) return { classe: 'sem-dado', texto: ic('escudo') + ' Não foi atacado' };
+            if (d.parcial) return { classe: '', texto: `${ic('escudo')} Atacado ${d.ataquesSofridos}x · pior resultado: ${d.melhorEstrelas}★ ${Math.round(d.melhorDestruicao)}%` };
+            if (d.fresh) return { classe: 'fresh', texto: ic('fresh') + ' Tomou PT fresh (sem defesa)' };
             if (d.caiuNo === null) {
-                return { classe: 'boa', texto: `🛡️ Segurou ${d.seguradas === 1 ? 'o único ataque' : `os ${d.seguradas} ataques`} · não tomou PT` };
+                return { classe: 'boa', texto: `${ic('escudo')} Segurou ${d.seguradas === 1 ? 'o único ataque' : `os ${d.seguradas} ataques`} · não tomou PT` };
             }
-            return { classe: '', texto: `🛡️ Segurou ${d.seguradas} · tomou PT no ${d.caiuNo}º ataque` };
+            return { classe: '', texto: `${ic('escudo')} Segurou ${d.seguradas} · tomou PT no ${d.caiuNo}º ataque` };
         }
 
         function cardGuerra(g, oculta) {
@@ -1827,7 +1830,7 @@
             });
             if (g.completa && !g.emAndamento) {
                 const faltam = Math.max(0, (g.ataquesPermitidos || 2) - g.ataques.length);
-                for (let i = 0; i < faltam; i++) linhas.push('<div class="guerra-atq perdido">✖ Ataque não feito</div>');
+                for (let i = 0; i < faltam; i++) linhas.push(`<div class="guerra-atq perdido">${ic('erro')} Ataque não feito</div>`);
             }
             if (!linhas.length) linhas.push('<div class="guerra-atq"><small>Nenhum ataque registrado</small></div>');
 
@@ -1859,16 +1862,16 @@
             }
             const mais = n => n === ataques.length ? '+' : '';   // a sequência pode vir de antes das guerras mostradas
             if (atual >= 3) {
-                chips.push(`<span class="guerras-chip bom">🔥 <b>${atual}${mais(atual)}</b> ataques seguidos com 3★</span>`);
+                chips.push(`<span class="guerras-chip bom">${ic('fogo')} <b>${atual}${mais(atual)}</b> ataques seguidos com 3★</span>`);
             } else if (melhor >= 3) {
-                chips.push(`<span class="guerras-chip">🏅 Melhor sequência: <b>${melhor}</b> ataques com 3★</span>`);
+                chips.push(`<span class="guerras-chip">${ic('premio')} Melhor sequência: <b>${melhor}</b> ataques com 3★</span>`);
             }
 
             // Ataques perdidos: só dá pra saber nas guerras registradas em detalhe
             const ultimas = guerras.filter(g => g.completa && !g.emAndamento).slice(0, 3);
             const comFalta = ultimas.filter(g => g.ataques.length < (g.ataquesPermitidos || 2)).length;
             if (ultimas.length >= 2 && comFalta >= 2) {
-                chips.push(`<span class="guerras-chip ruim">⚠️ Perdeu ataque em <b>${comFalta}</b> das últimas ${ultimas.length} guerras</span>`);
+                chips.push(`<span class="guerras-chip ruim">${ic('alerta')} Perdeu ataque em <b>${comFalta}</b> das últimas ${ultimas.length} guerras</span>`);
             }
             return chips;
         }
@@ -2077,9 +2080,9 @@
 
         async function compartilhar() {
             const btn = document.querySelector('.btn-compartilhar');
-            const textoOriginal = btn.innerText;
+            const textoOriginal = btn.innerHTML;
             btn.disabled = true;
-            btn.innerText = '⏳ Gerando...';
+            btn.innerHTML = `${ic('carregando', 'girando')} Gerando...`;
 
             try {
                 const canvas = await gerarCartaoDesempenho();
@@ -2120,7 +2123,7 @@
                 alert('Não foi possível gerar a imagem agora. Tenta de novo em alguns segundos.');
             } finally {
                 btn.disabled = false;
-                btn.innerText = textoOriginal;
+                btn.innerHTML = textoOriginal;
             }
         }
 
