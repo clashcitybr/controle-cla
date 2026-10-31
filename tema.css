@@ -332,7 +332,7 @@ button, input, select, textarea { font-family: inherit !important; }
 }
 
 .mvp-card,
-.guerra-card {
+.guerra-section .guerra-card {   /* só o cartão da guerra da Home (o Perfil tem outro .guerra-card, claro) */
     background: var(--especial-fundo) !important;
     border-width: 1.5px !important;
     border-radius: 18px;
@@ -344,7 +344,7 @@ button, input, select, textarea { font-family: inherit !important; }
 
 /* Fio de cor no topo de cada cartão especial */
 .mvp-card::before,
-.guerra-card::before {
+.guerra-section .guerra-card::before {
     content: '';
     position: absolute;
     left: 12%;
