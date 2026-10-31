@@ -249,3 +249,61 @@ footer {
     }
     .tabs .tab-btn { padding: 11px 8px; font-size: 0.78rem; }
 }
+
+/* ============================================================
+   ÍCONES (Fase 2) — desenhados pelo icones.js
+   ============================================================ */
+.ic {
+    display: inline-block;
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.18em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+/* Estrela sempre dourada e cheia, como no jogo */
+.ic-estrela { color: #f5b301; fill: #f5b301; stroke: #e0a100; }
+/* Nos títulos, o ícone ganha a cor de destaque */
+h2 > .ic, h3 > .ic, .title > .ic, .criterios-titulo > .ic { color: var(--secondary, #077187); }
+.criterios-titulo > .ic { color: var(--primary); }
+/* Linhas de números (ranking, pódio): ícone discreto */
+.mobile-stats .ic, .podium-stats-detail .ic, .criterio-texto .ic { color: var(--texto-suave); opacity: 0.9; }
+.mobile-stats .ic-estrela, .podium-stats-detail .ic-estrela { opacity: 1; }
+
+/* Posição do pódio no ranking: círculo ouro, prata, bronze */
+.medalha {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--dark);
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+}
+.medalha-1 { background: #f9d246; }
+.medalha-2 { background: #cfd5de; }
+.medalha-3 { background: #dc9a63; }
+
+/* Busca com lupa desenhada (sem emoji no texto) */
+#inputBusca {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b6480' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 18px;
+    background-position: 14px center;
+    padding-left: 42px !important;
+}
+
+/* Meu Painel: ícones das listas e das preferências */
+.item .ico { display: inline-grid; place-items: center; width: 1.6em; color: var(--secondary, #077187); }
+.item .ico .ic { width: 1.25em; height: 1.25em; }
+.item.urgente .ico { color: #b45309; }
+.item.ok .ico { color: var(--cor-sucesso); }
+.pref .txt .ic { color: var(--secondary, #077187); margin-right: 2px; }
+.stat .rotulo .ic { color: var(--secondary, #077187); }
+.stat.destaque .rotulo .ic { color: #ea580c; }
