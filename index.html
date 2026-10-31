@@ -11,6 +11,8 @@
     <script src="icones.js"></script>
     <!-- Tema visual comum (carregado por último) -->
     <link rel="stylesheet" href="tema.css?v=1">
+    <!-- Contador anônimo de uso -->
+    <script src="uso.js" defer></script>
 </head>
 
 <body>
@@ -388,9 +390,9 @@
 
                 // TABELA DESKTOP
                 htmlFinal += `
-        <tr onclick="abrirPerfil('${p.tag}')" style="cursor: pointer;">
+        <tr onclick="abrirPerfil('${escHTML(p.tag)}')" style="cursor: pointer;">
             <td class="${(i + 1) <= 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
-            <td><strong>${p.nome}</strong></td>
+            <td><strong>${escHTML(p.nome)}</strong></td>
             <td>
                 <div style="font-weight: bold; margin-bottom: 2px;">${ic('estrela')} ${p.mediaE.toFixed(1)}</div>
                 <div class="progresso-container">
@@ -405,10 +407,10 @@
 
                 // CARDS MOBILE
                 htmlMobile += `
-        <div class="mobile-card" onclick="abrirPerfil('${p.tag}')">
+        <div class="mobile-card" onclick="abrirPerfil('${escHTML(p.tag)}')">
             <div class="mobile-rank">${rankLabel}</div>
             <div class="mobile-info">
-                <div class="mobile-nome">${p.nome}</div>
+                <div class="mobile-nome">${escHTML(p.nome)}</div>
                 <div class="mobile-stats">
                     <span>${ic('cv')} ${p.cv}</span>
                     <span>${ic('guerra')} ${p.qtd}</span>

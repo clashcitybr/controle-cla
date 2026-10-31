@@ -162,6 +162,8 @@
     </style>
     <!-- Tema visual comum (carregado por último) -->
     <link rel="stylesheet" href="tema.css?v=1">
+    <!-- Contador anônimo de uso -->
+    <script src="uso.js" defer></script>
 </head>
 
 <body>
@@ -341,7 +343,7 @@
                     html += `
                     <tr>
                         <td class="${i < 3 ? 'top-3' : 'rank-number'}">${rankLabel}</td>
-                        <td><strong>${p.nome}</strong></td>
+                        <td><strong>${esc(p.nome)}</strong></td>
                         <td>
                             <div style="font-weight:bold;margin-bottom:2px;">${ic('estrela')} ${p.mediaEstrelas.toFixed(1)}</div>
                             <div class="progresso-container">

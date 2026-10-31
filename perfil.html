@@ -641,6 +641,8 @@
     </style>
     <!-- Tema visual comum (carregado por último) -->
     <link rel="stylesheet" href="tema.css?v=1">
+    <!-- Contador anônimo de uso -->
+    <script src="uso.js" defer></script>
 </head>
 
 <body>
@@ -1655,7 +1657,7 @@
                 const niveis = m.de === 0 ? 'novo!' : `${m.de} → ${m.para}`;
                 return `<div class="evo-item ${m.tipo === 'cv' ? 'cv' : ''}${i >= EVO_VISIVEIS ? ' evo-oculto' : ''}">
                     <span class="icone">${ICONES[m.tipo] || ic('subir')}</span>
-                    <span class="texto">${nome}<small>${dataCurta(m.data)}</small></span>
+                    <span class="texto">${escapar(nome)}<small>${dataCurta(m.data)}</small></span>
                     <span class="niveis">${niveis}</span>
                 </div>`;
             }).join('');
@@ -1726,8 +1728,8 @@
                 const media = l.ataques ? String((l.estrelas / l.ataques).toFixed(1)).replace('.', ',') : '0';
                 return `<div class="liga-temp">
                     <div class="liga-temp-topo">
-                        <b>${nome}${l.estado !== 'ended' ? ' (em andamento)' : ''}</b>
-                        <small>${l.nomeCla || ''}${l.posicaoDoCla ? ` · ${l.posicaoDoCla}º no grupo` : ''}</small>
+                        <b>${escapar(nome)}${l.estado !== 'ended' ? ' (em andamento)' : ''}</b>
+                        <small>${escapar(l.nomeCla || '')}${l.posicaoDoCla ? ` · ${l.posicaoDoCla}º no grupo` : ''}</small>
                     </div>
                     <div class="liga-temp-numeros">
                         <span><b>${l.estrelas}★</b> em ${l.ataques}/${l.guerras} ataques</span>

@@ -92,6 +92,9 @@
         });
     }
 
+    // Protege textos que vêm da API (nomes de jogadores e clãs) antes de ir pro HTML
+    window.escHTML = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
     window.ic = ic;
     window.trocarIcones = trocarMarcadores;
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => trocarMarcadores());
