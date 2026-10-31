@@ -192,6 +192,47 @@
         .avisos-status.ligado { color: #15803d; }
         .avisos-botoes { display: flex; gap: 10px; flex-wrap: wrap; }
 
+        /* ---------- BLOCOS (atenção / desempenho / novidades) ---------- */
+        .titulo-bloco {
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
+            color: var(--texto-suave); margin: 18px 4px 8px;
+        }
+        .bloco-atencao { border-left: 5px solid #22c55e; }
+        .bloco-atencao.tem-urgente { border-left-color: var(--primary); background: #fffbeb; }
+        .lista-itens { list-style: none; display: grid; gap: 8px; }
+        .item {
+            display: flex; gap: 10px; align-items: flex-start;
+            padding: 10px 12px; border-radius: 12px; background: #f8fafc;
+            font-size: 0.88rem; line-height: 1.35;
+        }
+        .item .ico { font-size: 1.1rem; line-height: 1.2; flex-shrink: 0; }
+        .item .txt { min-width: 0; flex: 1; }
+        .item .txt small { display: block; color: var(--texto-suave); font-size: 0.78rem; margin-top: 2px; }
+        .item a { color: var(--secondary); font-weight: 800; text-decoration: none; white-space: nowrap; }
+        .item.urgente { background: #fef3c7; color: #78350f; font-weight: 700; }
+        .item.ok { background: #f0fdf4; color: #166534; font-weight: 700; }
+        .item.ligar { background: #eef2ff; }
+
+        /* ---------- ESCOLHA DOS AVISOS ---------- */
+        .prefs { display: grid; gap: 8px; margin: 4px 0 14px; }
+        .pref {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border: 2px solid var(--borda); border-radius: 12px; cursor: pointer;
+        }
+        .pref .txt { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 700; }
+        .pref .txt small { display: block; font-weight: 400; color: var(--texto-suave); font-size: 0.76rem; }
+        .chave { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+        .chave input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .chave span { position: absolute; inset: 0; border-radius: 999px; background: #cbd5e1; transition: background 0.15s; }
+        .chave span::after {
+            content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px;
+            border-radius: 50%; background: #fff; transition: transform 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .chave input:checked + span { background: #22c55e; }
+        .chave input:checked + span::after { transform: translateX(18px); }
+        .chave input:focus-visible + span { outline: 2px solid var(--secondary); outline-offset: 2px; }
+        .prefs-salvo { font-size: 0.78rem; color: #15803d; font-weight: 700; min-height: 1.1em; margin-bottom: 8px; }
+
         .carregando { text-align: center; padding: 30px 0; color: var(--texto-suave); }
         .oculto { display: none !important; }
 
@@ -216,7 +257,7 @@
 
     <header>
         <h1 class="scroll-anim show">Meu Painel</h1>
-        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">Suas contas, sua guerra e seus avisos</p>
+        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">O que importa pra você, em 30 segundos</p>
     </header>
 
     <section class="painel-section">
@@ -239,16 +280,29 @@
             <!-- PAINEL -->
             <div id="vistaPainel" class="oculto">
                 <div class="contas-topo" id="contasTopo"></div>
+
+                <!-- 1. PRECISA DA SUA ATENÇÃO (todas as contas) -->
+                <div class="cartao bloco-atencao" id="blocoAtencao">
+                    <h2>🎯 Precisa da sua atenção</h2>
+                    <ul class="lista-itens" id="listaAtencao"><li class="carregando">Conferindo suas contas...</li></ul>
+                </div>
+
+                <!-- 2. SEU DESEMPENHO (conta escolhida) -->
+                <h3 class="titulo-bloco">📊 Seu desempenho</h3>
                 <div id="conteudoConta"><p class="carregando">Carregando...</p></div>
 
+                <!-- 3. NOVIDADES DO CLÃ -->
+                <div class="cartao oculto" id="blocoNovidades">
+                    <h2>📣 Novidades do clã</h2>
+                    <ul class="lista-itens" id="listaNovidades"></ul>
+                </div>
+
                 <div class="cartao" id="cartaoAvisos">
-                    <h2>🔔 Avisos das minhas contas</h2>
+                    <h2>🔔 Avisos no celular</h2>
                     <div class="avisos-status" id="avisosStatus"></div>
-                    <ul class="avisos-lista">
-                        <li>⏰ Quando faltar 3h pra guerra acabar e você ainda tiver ataques</li>
-                        <li>🏁 O resumo da guerra: suas estrelas e como foi sua defesa</li>
-                        <li>🔥 Quando fizer 5, 10, 15... ataques seguidos com 3★</li>
-                    </ul>
+                    <p class="suave" id="avisosExplica" style="margin-bottom:10px;">Escolha só o que vale a pena receber:</p>
+                    <div class="prefs" id="listaPrefs"></div>
+                    <div class="prefs-salvo" id="prefsSalvo"></div>
                     <div class="avisos-botoes">
                         <button type="button" class="btn btn-principal" id="btnAvisos">Ativar avisos</button>
                     </div>
@@ -393,7 +447,10 @@
         // ============================================================
         // PAINEL
         // ============================================================
-        function abrirPainel() {
+        // Dados das contas desta visita: tag → resposta do /painel (null = falhou)
+        let dadosContas = new Map();
+
+        function abrirPainel(recarregar = true) {
             const contas = lerContas();
             if (!contas.length) { abrirEscolha(); return; }
             mostrar('vistaEscolha', false);
@@ -406,7 +463,8 @@
                 contas.map(c => `<button type="button" class="chip-conta${c.tag === ativa ? ' ativa' : ''}" data-tag="${escapar(c.tag)}">${escapar(c.nome)}</button>`).join('') +
                 '<button type="button" class="chip-conta chip-editar" id="btnEditar">✏️ Minhas contas</button>';
 
-            carregarConta(contas.find(c => c.tag === ativa));
+            if (recarregar) carregarTudo(contas, ativa);
+            else mostrarConta(contas.find(c => c.tag === ativa));
             atualizarStatusAvisos();
         }
 
@@ -415,23 +473,135 @@
             if (!btn) return;
             if (btn.id === 'btnEditar') { abrirEscolha(); return; }
             gravarAtiva(btn.dataset.tag);
-            abrirPainel();
+            abrirPainel(false);   // troca de conta sem buscar tudo de novo
         });
 
-        let pedidoAtual = 0;
-        async function carregarConta(conta) {
-            const alvo = document.getElementById('conteudoConta');
-            alvo.innerHTML = '<p class="carregando">Carregando...</p>';
-            const meuPedido = ++pedidoAtual;
-            let dados = null;
+        async function buscarJSON(url) {
             try {
-                const r = await fetch(`${BACKEND_URL}/painel/${encodeURIComponent(conta.tag)}`, FETCH_OPTS);
-                if (r.ok) dados = await r.json();
-            } catch (_) {}
-            if (meuPedido !== pedidoAtual) return;   // trocou de conta no meio do carregamento
-            alvo.innerHTML = montarConta(conta, dados);
+                const r = await fetch(url, FETCH_OPTS);
+                return r.ok ? await r.json() : null;
+            } catch (_) { return null; }
         }
 
+        // Busca todas as contas de uma vez (o servidor guarda a guerra em cache,
+        // então várias contas não geram várias chamadas à API do jogo).
+        let pedidoAtual = 0;
+        async function carregarTudo(contas, ativa) {
+            const meuPedido = ++pedidoAtual;
+            document.getElementById('listaAtencao').innerHTML = '<li class="carregando">Conferindo suas contas...</li>';
+            document.getElementById('conteudoConta').innerHTML = '<p class="carregando">Carregando...</p>';
+            const respostas = await Promise.all(contas.map(c => buscarJSON(`${BACKEND_URL}/painel/${encodeURIComponent(c.tag)}`)));
+            if (meuPedido !== pedidoAtual) return;
+            dadosContas = new Map(contas.map((c, i) => [c.tag, respostas[i]]));
+            montarAtencao(contas);
+            montarNovidades();
+            mostrarConta(contas.find(c => c.tag === lerAtiva()) || contas.find(c => c.tag === ativa));
+        }
+
+        function mostrarConta(conta) {
+            if (!conta) return;
+            const d = dadosContas.get(conta.tag);
+            document.getElementById('conteudoConta').innerHTML = montarConta(conta, d);
+            if (d) carregarEvolucao(conta.tag);
+        }
+
+        // ---------- 1. Precisa da sua atenção ----------
+        let avisosLigados = null;   // preenchido por atualizarStatusAvisos
+
+        function itemHTML(classe, ico, texto, detalhe = '', link = '') {
+            return `<li class="item ${classe}"><span class="ico">${ico}</span><span class="txt">${texto}${detalhe ? `<small>${detalhe}</small>` : ''}</span>${link}</li>`;
+        }
+
+        function montarAtencao(contas) {
+            const urgentes = [], infos = [];
+            const varias = contas.length > 1;
+            const prefixo = c => varias ? `<b>${escapar(c.nome)}</b>: ` : '';
+
+            for (const c of contas) {
+                const d = dadosContas.get(c.tag);
+                if (!d) { infos.push(itemHTML('', '⚠️', `${prefixo(c)}não consegui conferir agora.`)); continue; }
+                const g = d.guerraAtual;
+                if (!g || !g.participa) continue;
+                const tipo = g.liga ? 'liga' : 'guerra';
+
+                if (g.estado === 'inWar') {
+                    const faltam = Math.max(0, g.ataquesPermitidos - g.ataques.length);
+                    if (!faltam) continue;
+                    const termina = tempoAte(dataCoC(g.fim));
+                    urgentes.push(itemHTML('urgente', '⚔️',
+                        `${prefixo(c)}falta${faltam > 1 ? 'm' : ''} ${faltam} ${faltam === 1 ? 'ataque' : 'ataques'} na ${tipo}`,
+                        `${termina ? `Termina em ${termina}` : 'Terminando'} · você é o #${g.posicao} do mapa`,
+                        '<a href="mapa.html">Mapa →</a>'));
+                } else if (g.estado === 'preparation') {
+                    const comeca = tempoAte(dataCoC(g.inicio));
+                    infos.push(itemHTML('', '🛡️',
+                        `${prefixo(c)}escalado na ${tipo}${g.adversario ? ` contra ${escapar(g.adversario)}` : ''} (#${g.posicao})`,
+                        comeca ? `A batalha começa em ${comeca}` : 'A batalha já vai começar'));
+                }
+            }
+
+            if (avisosLigados === false && suportaPush && Notification.permission !== 'denied') {
+                infos.push(itemHTML('ligar', '🔔', 'Ative os avisos e o app te lembra 3h antes da guerra acabar.',
+                    '', '<a href="#cartaoAvisos">Ativar →</a>'));
+            }
+
+            const lista = urgentes.length
+                ? [...urgentes, ...infos]
+                : [itemHTML('ok', '✅', 'Tudo em dia! Nenhum ataque pendente.'), ...infos];
+            document.getElementById('listaAtencao').innerHTML = lista.join('');
+            document.getElementById('blocoAtencao').classList.toggle('tem-urgente', urgentes.length > 0);
+        }
+
+        // ---------- 3. Novidades do clã ----------
+        const NOME_RESULTADO = { vitoria: 'Vitória', derrota: 'Derrota', empate: 'Empate' };
+        const ICONE_RESULTADO = { vitoria: '🏆', derrota: '💔', empate: '🤝' };
+
+        // Raides da Capital: de sexta 07:00 a segunda 07:00 (horário UTC)
+        function infoRaides(agora = new Date()) {
+            const dia = agora.getUTCDay(), hora = agora.getUTCHours();
+            const fmt = d => d.toLocaleString('pt-BR', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
+            const emUTC = (diasAFrente) => {
+                const d = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate() + diasAFrente, 7));
+                return d;
+            };
+            const rolando = (dia === 5 && hora >= 7) || dia === 6 || dia === 0 || (dia === 1 && hora < 7);
+            if (rolando) {
+                const ateSegunda = { 5: 3, 6: 2, 0: 1, 1: 0 }[dia];
+                return { rolando: true, quando: fmt(emUTC(ateSegunda)) };
+            }
+            if (dia === 4 || (dia === 5 && hora < 7)) return { rolando: false, quando: fmt(emUTC(dia === 4 ? 1 : 0)) };
+            return null;
+        }
+
+        function montarNovidades() {
+            const d = [...dadosContas.values()].find(x => x && x.cla);
+            const itens = [];
+            const cla = d?.cla;
+            if (cla?.ultimaGuerra) {
+                const u = cla.ultimaGuerra;
+                itens.push(itemHTML('', ICONE_RESULTADO[u.resultado] || '🏁',
+                    `Última guerra: ${NOME_RESULTADO[u.resultado] || 'encerrada'}${u.adversario ? ` contra ${escapar(u.adversario)}` : ''}`,
+                    `${u.placar.nos}★ × ${u.placar.eles}★`));
+            }
+            const mes = new Date().toLocaleString('pt-BR', { month: 'long' });
+            if (cla?.liderMes) {
+                itens.push(itemHTML('', '👑', `Líder do ranking de ${mes}: <b>${escapar(cla.liderMes.nome)}</b>`,
+                    `${cla.liderMes.guerras} ${cla.liderMes.guerras === 1 ? 'guerra' : 'guerras'}`, '<a href="./">Ranking →</a>'));
+            }
+            if (cla?.muralha?.nome) {
+                itens.push(itemHTML('', '🛡️', `Muralha de ${mes}: <b>${escapar(cla.muralha.nome)}</b>`,
+                    `${cla.muralha.seguradas} ${cla.muralha.seguradas === 1 ? 'defesa segurada' : 'defesas seguradas'}`));
+            }
+            const raides = infoRaides();
+            if (raides) {
+                itens.push(itemHTML('', '🏰', raides.rolando ? 'Raides da Capital rolando' : 'Raides da Capital chegando',
+                    `${raides.rolando ? 'Terminam' : 'Começam'} ${raides.quando}`, '<a href="capital.html">Capital →</a>'));
+            }
+            document.getElementById('listaNovidades').innerHTML = itens.join('');
+            mostrar('blocoNovidades', itens.length > 0);
+        }
+
+        // ---------- 2. Seu desempenho ----------
         function montarConta(conta, d) {
             const linkPerfil = `perfil.html?tag=${encodeURIComponent(conta.tag)}`;
             const nome = d?.nome || conta.nome;
@@ -452,6 +622,27 @@
             }
 
             return cabecalho + montarGuerra(d.guerraAtual) + montarStats(d);
+        }
+
+        // Melhorias dos últimos 30 dias (heróis + equipamentos), vindas das fotos diárias
+        async function carregarEvolucao(tag) {
+            const alvo = document.getElementById('statEvolucao');
+            if (!alvo) return;
+            const ev = await buscarJSON(`${BACKEND_URL}/jogador/${encodeURIComponent(tag)}/evolucao`);
+            if (lerAtiva() !== tag || !document.getElementById('statEvolucao')) return;   // trocou de conta
+            if (!ev) { alvo.querySelector('.detalhe').textContent = 'Indisponível agora'; return; }
+            if (!ev.acompanhandoDesde) {
+                alvo.querySelector('.valor').textContent = '—';
+                alvo.querySelector('.detalhe').textContent = 'Começa a contar a partir de amanhã';
+                return;
+            }
+            const u = ev.ultimos30Dias || {};
+            const total = (u.herois || 0) + (u.equipamentos || 0);
+            alvo.querySelector('.valor').textContent = u.cv ? 'Subiu de CV!' : (total ? `+${total} ${total === 1 ? 'nível' : 'níveis'}` : 'Sem melhorias');
+            alvo.querySelector('.detalhe').textContent = total
+                ? `Heróis +${u.herois || 0} · Equipamentos +${u.equipamentos || 0} (30 dias)`
+                : 'Nos últimos 30 dias';
+            if (total || u.cv) alvo.classList.add('destaque');
         }
 
         function montarGuerra(g) {
@@ -522,6 +713,8 @@
                     : `<div class="stat"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">${def.seguradas} seguradas</div><div class="detalhe">${def.posicao}º na Muralha do Mês</div></div>`)
                 : `<div class="stat"><div class="rotulo">🛡️ Defesas no mês</div><div class="valor">0</div><div class="detalhe">Nenhuma defesa segurada ainda</div></div>`);
 
+            cards.push(`<div class="stat" id="statEvolucao"><div class="rotulo">📈 Evolução da conta</div><div class="valor">…</div><div class="detalhe">Carregando</div></div>`);
+
             return `<div class="stats-grid">${cards.join('')}</div>`;
         }
 
@@ -544,8 +737,72 @@
             return reg ? reg.pushManager.getSubscription() : null;
         }
 
+        // Tipos de aviso que dá pra ligar/desligar (o servidor usa as mesmas chaves)
+        const TIPOS_AVISO = [
+            { chave: 'pendente',  titulo: '⏰ Meus ataques pendentes', detalhe: '3h antes da guerra acabar, se ainda faltar ataque' },
+            { chave: 'resumo',    titulo: '🏁 Resumo da guerra',      detalhe: 'Suas estrelas e sua defesa quando a guerra acaba' },
+            { chave: 'sequencia', titulo: '🔥 Sequência de 3★',       detalhe: 'A cada 5 ataques seguidos com 3 estrelas' },
+            { chave: 'cla',       titulo: '📣 Avisos gerais do clã',  detalhe: 'Guerra começou e cobrança de quem não atacou' }
+        ];
+        const CHAVE_PREFS = 'ccbr_avisos_prefs';
+        function lerPrefs() {
+            let v = {};
+            try { v = JSON.parse(localStorage.getItem(CHAVE_PREFS) || '{}') || {}; } catch (_) {}
+            const prefs = {};
+            for (const t of TIPOS_AVISO) prefs[t.chave] = v[t.chave] !== false;   // padrão: ligado
+            return prefs;
+        }
+        function gravarPrefs(prefs) {
+            try { localStorage.setItem(CHAVE_PREFS, JSON.stringify(prefs)); } catch (_) {}
+        }
+
+        function montarPrefs(ligado) {
+            const prefs = lerPrefs();
+            document.getElementById('listaPrefs').innerHTML = TIPOS_AVISO.map(t => `
+                <label class="pref">
+                    <span class="txt">${t.titulo}<small>${t.detalhe}</small></span>
+                    <span class="chave"><input type="checkbox" data-pref="${t.chave}" ${prefs[t.chave] ? 'checked' : ''} ${ligado ? '' : 'disabled'}><span></span></span>
+                </label>`).join('');
+            document.getElementById('listaPrefs').style.opacity = ligado ? '1' : '0.55';
+        }
+
+        let timerSalvo = null;
+        document.getElementById('listaPrefs').addEventListener('change', async e => {
+            const input = e.target.closest('[data-pref]');
+            if (!input) return;
+            const prefs = lerPrefs();
+            prefs[input.dataset.pref] = input.checked;
+            gravarPrefs(prefs);
+            const aviso = document.getElementById('prefsSalvo');
+            try {
+                const sub = await inscricaoAtual();
+                if (sub) await enviarInscricao(sub);
+                aviso.style.color = '';
+                aviso.textContent = '✓ Preferência salva';
+            } catch (_) {
+                aviso.style.color = '#b91c1c';
+                aviso.textContent = 'Não consegui salvar agora. Tente de novo.';
+            }
+            clearTimeout(timerSalvo);
+            timerSalvo = setTimeout(() => { aviso.textContent = ''; }, 2500);
+        });
+
+        // Busca no servidor o que este celular realmente tem gravado
+        async function puxarPrefsDoServidor(sub) {
+            try {
+                const r = await fetch(`${BACKEND_URL}/subscribe/consultar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ endpoint: sub.endpoint })
+                });
+                if (!r.ok) return;   // servidor antigo sem essa rota: fica com o que está no celular
+                const j = await r.json();
+                if (j.inscrito && j.prefs) gravarPrefs(j.prefs);
+            } catch (_) {}
+        }
+
         async function enviarInscricao(sub) {
-            const corpo = { ...sub.toJSON(), tags: lerContas().map(c => c.tag) };
+            const corpo = { ...sub.toJSON(), tags: lerContas().map(c => c.tag), prefs: lerPrefs() };
             const r = await fetch(`${BACKEND_URL}/subscribe`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -569,10 +826,19 @@
                 status.textContent = 'Este navegador não recebe avisos. Instale o app Clash City BR pela Play Store.';
                 status.className = 'avisos-status';
                 btn.classList.add('oculto');
+                mostrar('listaPrefs', false); mostrar('avisosExplica', false);
                 return;
             }
             const sub = await inscricaoAtual();
             const ligado = !!sub && Notification.permission === 'granted';
+            if (ligado) await puxarPrefsDoServidor(sub);
+            montarPrefs(ligado);
+            document.getElementById('avisosExplica').textContent = ligado
+                ? 'Escolha só o que vale a pena receber:'
+                : 'Depois de ativar, você escolhe quais avisos quer receber:';
+            const mudouLigado = avisosLigados !== ligado;
+            avisosLigados = ligado;
+            if (mudouLigado && dadosContas.size) montarAtencao(lerContas());   // mostra/tira o lembrete de ativar
             const nomes = lerContas().map(c => c.nome);
             status.textContent = ligado
                 ? `✓ Avisos ligados para: ${nomes.join(', ')}`

@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="shortcut icon" href="img/Perfil_COC-removebg-preview.png" type="image/x-icon">
+    <title>Clash City BR - Montador de Layout</title>
+    <meta name="description" content="Monte o layout de uma vila CV18 do Clash of Clans em grade, usando a foto da vila como guia. Salve e exporte.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="layout-cv18.js"></script>
+    <script src="layout-geometria.js"></script>
+    <style>
+        /* Estilos só desta página — o resto vem do style.css compartilhado */
+        header { min-height: 26vh; padding-bottom: 80px; }
+
+        .lay-section { padding: 0 4% 40px; margin-top: -55px; position: relative; z-index: 10; }
+        .lay-wrap { max-width: 1100px; margin: 0 auto; }
+
+        .cartao {
+            background: var(--light);
+            border-radius: var(--raio);
+            box-shadow: var(--sombra-md);
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+        .cartao h2 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .suave { color: var(--texto-suave); font-size: 0.82rem; }
+
+        /* ---------- barra de ações ---------- */
+        .barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 14px; border-radius: 999px; border: 2px solid var(--borda);
+            background: #fff; color: var(--dark); font-family: inherit; font-size: 0.82rem; font-weight: 700;
+            cursor: pointer; white-space: nowrap;
+        }
+        .btn:disabled { opacity: 0.45; cursor: default; }
+        .btn.primario { background: var(--primary); border-color: var(--primary); }
+        .btn.escuro { background: var(--dark); border-color: var(--dark); color: #fff; }
+        .btn.ativo { background: var(--dark); border-color: var(--dark); color: #fff; }
+        .btn input[type=file] { display: none; }
+
+        /* ---------- ferramentas ---------- */
+        .ferramentas { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        /* ---------- editor ---------- */
+        .editor-area { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 0 12px; align-items: start; }
+        .col-tela { grid-column: 1; grid-row: 1 / span 2; }
+        .col-paleta { grid-column: 2; grid-row: 1; }
+        .col-resto { grid-column: 2; grid-row: 2; }
+        .tela-wrap {
+            position: relative;
+            background: #29401f;
+            border-radius: var(--raio);
+            overflow: hidden;
+            height: min(68vh, 640px);
+            touch-action: none;
+            box-shadow: var(--sombra-md);
+        }
+        #tela { width: 100%; height: 100%; display: block; cursor: crosshair; }
+        .aviso-tela {
+            position: absolute; left: 10px; right: 10px; top: 10px;
+            background: rgba(17, 3, 44, 0.88); color: #fff;
+            border: 1px solid rgba(249, 210, 70, 0.6);
+            border-radius: 12px; padding: 10px 12px; font-size: 0.82rem; font-weight: 600;
+            display: none;
+        }
+        .aviso-tela.mostrar { display: block; }
+        .zoom-btns { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .zoom-btns button {
+            width: 40px; height: 40px; border-radius: 10px; border: none;
+            background: rgba(255, 255, 255, 0.92); font-size: 1.1rem; font-weight: 800; cursor: pointer;
+        }
+
+        /* ---------- paleta ---------- */
+        .paleta-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .cat-btn {
+            padding: 6px 10px; border-radius: 999px; border: 2px solid var(--borda); background: #fff;
+            font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+        }
+        .cat-btn.ativa { color: #fff; border-color: transparent; }
+        .paleta-itens { display: grid; grid-template-columns: 1fr; gap: 6px; max-height: 360px; overflow-y: auto; }
+        .item-btn {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            padding: 8px 10px; border-radius: 10px; border: 2px solid var(--borda); background: #fff;
+            font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-align: left;
+        }
+        .item-btn.ativo { border-color: var(--dark); background: #f6f4fb; }
+        .item-btn .cor { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; display: grid; place-items: center; color: #fff; font-size: 0.6rem; font-weight: 800; }
+        .item-btn .nome { flex: 1; min-width: 0; }
+        .item-btn .qtd { font-size: 0.7rem; color: var(--texto-suave); font-weight: 800; white-space: nowrap; }
+        .item-btn .qtd.cheio { color: #15803d; }
+        .item-btn .qtd.excedeu { color: #b91c1c; }
+        .item-btn.excedeu { border-color: #f59e0b; background: #fffbeb; }
+        .item-btn .pend { font-size: 0.62rem; font-weight: 800; color: #92400e; background: #fde68a; border-radius: 6px; padding: 1px 5px; margin-left: 4px; }
+        .nota-cat { font-size: 0.75rem; color: #92400e; background: #fef3c7; border-radius: 10px; padding: 7px 9px; margin-bottom: 8px; }
+
+        /* ---------- regras do CV18 ---------- */
+        .regras { display: grid; gap: 6px; font-size: 0.8rem; }
+        .regra { display: flex; gap: 6px; align-items: flex-start; padding: 7px 9px; border-radius: 10px; border: 1px solid var(--borda); }
+        .regra.erro { border-color: #f59e0b; background: #fffbeb; color: #92400e; font-weight: 600; }
+        .regra.aviso { border-color: #fcd34d; background: #fefce8; color: #854d0e; }
+        .regra.info { color: var(--texto-suave); }
+        .regra.ok { color: #15803d; font-weight: 600; }
+        .regra button { margin-left: auto; border: none; background: none; cursor: pointer; font-size: 0.8rem; flex-shrink: 0; }
+        .excesso-txt { color: #b45309; font-weight: 700; font-size: 0.8rem; margin-top: 4px; }
+
+        .info-sel { font-size: 0.82rem; }
+        .info-sel b { display: block; font-size: 0.92rem; }
+        .conflito-txt { color: #b91c1c; font-weight: 700; font-size: 0.8rem; margin-top: 4px; }
+
+        .lista-salvos { display: grid; gap: 6px; }
+        .salvo { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--borda); border-radius: 10px; font-size: 0.82rem; }
+        .salvo b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .salvo button { border: none; background: none; cursor: pointer; font-size: 0.95rem; }
+
+        .faixa-opacidade { width: 100%; }
+        .status { font-size: 0.8rem; font-weight: 700; color: var(--secondary); min-height: 1.2em; }
+
+        @media (max-width: 860px) {
+            /* No celular a paleta vem antes da tela, pra escolher e já tocar na grade */
+            .editor-area { display: flex; flex-direction: column; gap: 0; }
+            .col-paleta { order: 1; }
+            .col-tela { order: 2; margin-bottom: 12px; }
+            .col-resto { order: 3; }
+            .col-tela, .col-paleta, .col-resto { width: 100%; min-width: 0; }
+            .tela-wrap { height: 60vh; }
+            .paleta-itens { display: flex; overflow-x: auto; max-height: none; padding-bottom: 4px; }
+            .item-btn { flex: 0 0 auto; width: auto; }
+            .nota-cat { flex: 0 0 220px; margin-bottom: 0; }
+        }
+    </style>
+</head>
+
+<body>
+    <nav data-titulo="Montador de Layout">
+        <a href="https://clashcitybr.github.io">Home</a>
+        <a href="https://clashcitybr.github.io/liga">Liga</a>
+        <a href="https://clashcitybr.github.io/controle-cla/"><span class="nav-longo">Desempenho</span><span class="nav-curto">Ranking</span></a>
+        <a href="https://clashcitybr.github.io/controle-cla/membros.html">Membros</a>
+        <a href="https://clashcitybr.github.io/controle-cla/capital.html">Capital</a>
+        <a href="https://clashcitybr.github.io/controle-cla/ataques.html">Ataques</a>
+        <a href="https://clashcitybr.github.io/controle-cla/historico.html">Histórico</a>
+    </nav>
+    <script src="menu.js"></script>
+
+    <header>
+        <h1 class="scroll-anim show">Montador de Layout</h1>
+        <p class="scroll-anim show" style="color: var(--primary); font-weight: 600;">Exclusivo para CV18 · use a foto da vila como guia e monte o layout na grade</p>
+    </header>
+
+    <section class="lay-section">
+        <div class="lay-wrap">
+
+            <!-- FOTO + CALIBRAÇÃO -->
+            <div class="cartao">
+                <div class="barra">
+                    <label class="btn primario">📷 Foto da vila
+                        <input type="file" id="arquivoFoto" accept="image/png,image/jpeg,image/webp">
+                    </label>
+                    <button type="button" class="btn" id="btnCalibrar" disabled>📐 Ajustar grade à foto</button>
+                    <button type="button" class="btn" id="btnTirarFoto" disabled>🗑️ Tirar foto</button>
+                    <label class="suave" style="display:flex;align-items:center;gap:6px;">Foto
+                        <input type="range" class="faixa-opacidade" id="opacidade" min="0" max="100" value="70" style="width:110px;">
+                    </label>
+                </div>
+                <p class="suave" style="margin-top:8px;">A foto fica só no seu aparelho (não é enviada para nenhum servidor). Use um print da vila inteira, de cima, sem zoom.</p>
+            </div>
+
+            <!-- FERRAMENTAS -->
+            <div class="cartao">
+                <div class="ferramentas" id="ferramentas">
+                    <button type="button" class="btn ativo" data-ferramenta="selecionar">👆 Mover</button>
+                    <button type="button" class="btn" data-ferramenta="colocar">➕ Colocar</button>
+                    <button type="button" class="btn" data-ferramenta="muro">🧱 Muros</button>
+                    <button type="button" class="btn" data-ferramenta="apagar">🧽 Apagar</button>
+                    <button type="button" class="btn" id="btnDesfazer" disabled>↩️ Desfazer</button>
+                    <button type="button" class="btn" id="btnRefazer" disabled>↪️ Refazer</button>
+                    <button type="button" class="btn" id="btnReiniciar">🔄 Reiniciar</button>
+                </div>
+            </div>
+
+            <div class="editor-area">
+                <div class="col-tela">
+                    <div class="tela-wrap" id="telaWrap">
+                        <canvas id="tela"></canvas>
+                        <div class="aviso-tela" id="avisoTela"></div>
+                        <div class="zoom-btns">
+                            <button type="button" id="zoomMais" aria-label="Aproximar">+</button>
+                            <button type="button" id="zoomMenos" aria-label="Afastar">−</button>
+                            <button type="button" id="zoomAjustar" aria-label="Ajustar à tela">⤢</button>
+                        </div>
+                    </div>
+                    <p class="status" id="status"></p>
+                </div>
+
+                <div class="cartao col-paleta">
+                    <h2>🏗️ Construções</h2>
+                    <div class="paleta-cats" id="paletaCats"></div>
+                    <div class="paleta-itens" id="paletaItens"></div>
+                </div>
+
+                <div class="col-resto">
+
+                    <div class="cartao">
+                        <h2>📋 Regras do CV18</h2>
+                        <div class="regras" id="regrasCV18"></div>
+                        <p class="suave" style="margin-top:8px;">Nada é apagado sozinho: o que passa do limite fica com contorno amarelo tracejado para você corrigir.</p>
+                    </div>
+
+                    <div class="cartao">
+                        <h2>📌 Selecionada</h2>
+                        <div class="info-sel" id="infoSel"><span class="suave">Toque numa construção (ferramenta Mover) para ver aqui.</span></div>
+                    </div>
+
+                    <div class="cartao">
+                        <h2>💾 Salvar e exportar</h2>
+                        <input type="text" id="nomeLayout" maxlength="60" placeholder="Nome do layout (ex.: Guerra CV18)" style="width:100%;padding:9px 10px;border-radius:10px;border:2px solid var(--borda);font-family:inherit;margin-bottom:8px;">
+                        <div class="barra">
+                            <button type="button" class="btn escuro" id="btnSalvar">💾 Salvar</button>
+                            <button type="button" class="btn" id="btnExportar">⬇️ JSON</button>
+                            <label class="btn">⬆️ Importar
+                                <input type="file" id="arquivoJson" accept="application/json,.json">
+                            </label>
+                            <button type="button" class="btn" id="btnImagem">🖼️ Imagem</button>
+                        </div>
+                        <p class="suave" style="margin:10px 0 6px;">Layouts salvos neste aparelho:</p>
+                        <div class="lista-salvos" id="listaSalvos"></div>
+                    </div>
+
+                    <div class="cartao">
+                        <h2>ℹ️ Sobre o link do jogo</h2>
+                        <p class="suave">O Clash of Clans não deixa criar links de layout fora do jogo: o link guarda só um código do servidor da Supercell, não as posições. Use este montador como guia e copie o layout manualmente no editor de vila do jogo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© <span id="ano-atual">2026</span> Clash City BR - Sistema de Gestão de Guerra</p>
+    </footer>
+
+    <script>
+    (function () {
+        const G = window.LayoutGeo;
+        const N = G.TAMANHO_GRADE;
+        const CHAVE_SALVOS = 'ccbr_layouts';
+        const MAX_FOTO_BYTES = 15 * 1024 * 1024;
+        const TIPOS_FOTO = ['image/png', 'image/jpeg', 'image/webp'];
+
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+
+        // ---------- estado ----------
+        let construcoes = [];
+        let proxId = 1;
+        let selecionadaId = null;
+        let ferramenta = 'selecionar';
+        let tipoAtual = 'canhao';
+        let categoriaAtual = 'defesa';
+        let ruins = new Set();
+        const CV = G.CV18;
+        let validacao = CV.validarCV18([]);
+
+        let foto = null;                 // Image da foto (só local)
+        let opacidadeFoto = 0.7;
+        let mundo = { w: 1000, h: 560 }; // tamanho do "mundo" (pixels da foto ou vista padrão)
+        let T = G.afimIsometricaPadrao(1000);
+        let calibracao = null;           // { pontos: [] } enquanto o usuário toca nos cantos
+
+        const vista = { escala: 1, ox: 0, oy: 0 };
+        const historico = [], refazer = [];
+
+        const tela = document.getElementById('tela');
+        const ctx = tela.getContext('2d');
+        const wrap = document.getElementById('telaWrap');
+
+        // ---------- utilidades ----------
+        const status = txt => { document.getElementById('status').textContent = txt || ''; };
+        function aviso(txt) {
+            const el = document.getElementById('avisoTela');
+            el.textContent = txt || '';
+            el.classList.toggle('mostrar', !!txt);
+        }
+        const info = tipo => G.CATALOGO[tipo];
+        const corDe = tipo => G.CATEGORIAS[info(tipo).cat].cor;
+
+        // ---------- histórico (desfazer/refazer) ----------
+        function guardarEstado() {
+            historico.push(JSON.stringify(construcoes));
+            if (historico.length > 200) historico.shift();
+            refazer.length = 0;
+            atualizarBotoesHistorico();
+        }
+        function atualizarBotoesHistorico() {
+            document.getElementById('btnDesfazer').disabled = !historico.length;
+            document.getElementById('btnRefazer').disabled = !refazer.length;
+        }
+        function restaurar(json) {
+            construcoes = JSON.parse(json);
+            proxId = construcoes.reduce((m, c) => Math.max(m, c.id), 0) + 1;
+            if (!construcoes.some(c => c.id === selecionadaId)) selecionadaId = null;
+            mudou();
+        }
+        document.getElementById('btnDesfazer').onclick = () => {
+            if (!historico.length) return;
+            refazer.push(JSON.stringify(construcoes));
+            restaurar(historico.pop());
+            atualizarBotoesHistorico();
+        };
+        document.getElementById('btnRefazer').onclick = () => {
+            if (!refazer.length) return;
+            historico.push(JSON.stringify(construcoes));
+            restaurar(refazer.pop());
+            atualizarBotoesHistorico();
+        };
+        document.getElementById('btnReiniciar').onclick = () => {
+            if (!construcoes.length || !confirm('Apagar todas as construções do layout?')) return;
+            guardarEstado();
+            construcoes = []; selecionadaId = null;
+            mudou();
+        };
+
+        // ---------- operações no layout ----------
+        function colocar(tipo, gx, gy) {
+            const pos = G.encaixar(gx, gy, info(tipo).tam);
+            const c = { id: proxId++, tipo, x: pos.x, y: pos.y };
+            construcoes.push(c);
+            return c;
+        }
+        function apagarNaCasa(gx, gy) {
+            const c = G.construcaoNaCasa(construcoes, Math.floor(gx), Math.floor(gy));
+            if (!c) return false;
+            construcoes = construcoes.filter(x => x.id !== c.id);
+            if (selecionadaId === c.id) selecionadaId = null;
+            return true;
+        }
+        function mudou() {
+            ruins = G.conflitos(construcoes);
+            validacao = CV.validarCV18(construcoes);
+            desenharPaleta();
+            desenharRegras();
+            mostrarSelecionada();
+            const n = construcoes.length;
+            const alertas = validacao.erros + validacao.avisos;
+            status(n ? `${n} construç${n === 1 ? 'ão' : 'ões'}${ruins.size ? ` · ⚠️ ${ruins.size} em conflito` : ''}${alertas ? ` · 📋 ${alertas} alerta${alertas === 1 ? '' : 's'} do CV18` : ''}` : '');
+            desenhar();
+        }
+
+        // ---------- regras do CV18 ----------
+        const ICONE_NIVEL = { erro: '⛔', aviso: '⚠️', info: 'ℹ️' };
+        function desenharRegras() {
+            const alvo = document.getElementById('regrasCV18');
+            const lista = validacao.problemas;
+            if (!lista.length) {
+                alvo.innerHTML = `<div class="regra ok">✅ ${construcoes.length ? 'Tudo dentro dos limites do CV18.' : 'Coloque construções para conferir os limites.'}</div>`;
+                return;
+            }
+            alvo.innerHTML = lista.map((p, i) => `<div class="regra ${p.nivel}">
+                <span>${ICONE_NIVEL[p.nivel] || '•'}</span><span>${escapar(p.msg)}</span>
+                ${p.ids.length ? `<button type="button" data-ver="${i}" title="Selecionar no layout">🔎</button>` : ''}
+            </div>`).join('');
+        }
+        document.getElementById('regrasCV18').addEventListener('click', e => {
+            const b = e.target.closest('[data-ver]'); if (!b) return;
+            const p = validacao.problemas[+b.dataset.ver];
+            if (!p || !p.ids.length) return;
+            // Cada toque seleciona a próxima construção envolvida
+            const atual = p.ids.indexOf(selecionadaId);
+            const proxima = p.ids[(atual + 1) % p.ids.length];
+            escolherFerramenta('selecionar');
+            selecionadaId = proxima;
+            mostrarSelecionada(); desenhar();
+        });
+
+        // ---------- vista (zoom / arrastar) ----------
+        function ajustarVista() {
+            const r = wrap.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            tela.width = Math.round(r.width * dpr);
+            tela.height = Math.round(r.height * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            const escala = Math.min(r.width / mundo.w, r.height / mundo.h) * 0.96;
+            vista.escala = escala;
+            vista.ox = (r.width - mundo.w * escala) / 2;
+            vista.oy = (r.height - mundo.h * escala) / 2;
+            desenhar();
+        }
+        const mundoParaTela = p => ({ x: p.x * vista.escala + vista.ox, y: p.y * vista.escala + vista.oy });
+        const telaParaMundo = (x, y) => ({ x: (x - vista.ox) / vista.escala, y: (y - vista.oy) / vista.escala });
+        const casaParaTela = (gx, gy) => mundoParaTela(G.gradeParaMundo(T, gx, gy));
+        function telaParaCasa(x, y) {
+            const m = telaParaMundo(x, y);
+            return G.mundoParaGrade(T, m.x, m.y);
+        }
+        function zoom(fator, cx, cy) {
+            const r = wrap.getBoundingClientRect();
+            cx = cx ?? r.width / 2; cy = cy ?? r.height / 2;
+            const antes = telaParaMundo(cx, cy);
+            vista.escala = Math.max(0.05, Math.min(40, vista.escala * fator));
+            vista.ox = cx - antes.x * vista.escala;
+            vista.oy = cy - antes.y * vista.escala;
+            desenhar();
+        }
+        document.getElementById('zoomMais').onclick = () => zoom(1.3);
+        document.getElementById('zoomMenos').onclick = () => zoom(1 / 1.3);
+        document.getElementById('zoomAjustar').onclick = ajustarVista;
+        window.addEventListener('resize', ajustarVista);
+
+        // ---------- desenho ----------
+        let pedidoDesenho = null;
+        let fantasma = null;   // prévia ao colocar
+        function desenhar() {
+            if (pedidoDesenho) return;
+            pedidoDesenho = requestAnimationFrame(() => { pedidoDesenho = null; desenharAgora(); });
+        }
+        function poligono(pts) {
+            ctx.beginPath();
+            pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+            ctx.closePath();
+        }
+        function cantos(x, y, tam) {
+            return [casaParaTela(x, y), casaParaTela(x + tam, y), casaParaTela(x + tam, y + tam), casaParaTela(x, y + tam)];
+        }
+        function desenharAgora() {
+            const r = wrap.getBoundingClientRect();
+            ctx.clearRect(0, 0, r.width, r.height);
+
+            if (foto) {
+                ctx.globalAlpha = opacidadeFoto;
+                const p = mundoParaTela({ x: 0, y: 0 });
+                ctx.drawImage(foto, p.x, p.y, mundo.w * vista.escala, mundo.h * vista.escala);
+                ctx.globalAlpha = 1;
+            }
+
+            // Área de construção e grade
+            poligono(cantos(0, 0, N));
+            ctx.fillStyle = foto ? 'rgba(0,0,0,0)' : '#3f6b2c';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const passoTela = Math.hypot(T.a, T.d) * vista.escala;   // tamanho de 1 casa na tela
+            if (passoTela > 4) {
+                ctx.strokeStyle = foto ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let i = 1; i < N; i++) {
+                    let a = casaParaTela(i, 0), b = casaParaTela(i, N);
+                    ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+                    a = casaParaTela(0, i); b = casaParaTela(N, i);
+                    ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+                }
+                ctx.stroke();
+            }
+
+            // Construções (as de trás primeiro, para a sobreposição ficar natural)
+            const ordem = [...construcoes].sort((a, b) => (a.x + a.y) - (b.x + b.y));
+            for (const c of ordem) {
+                const tam = info(c.tipo).tam;
+                const pts = cantos(c.x, c.y, tam);
+                poligono(pts);
+                ctx.fillStyle = corDe(c.tipo) + (c.tipo === 'muro' ? 'ee' : 'cc');
+                ctx.fill();
+                const ruim = ruins.has(c.id), sel = c.id === selecionadaId;
+                const regra = validacao.destaque.get(c.id);   // 'erro' | 'aviso' do CV18
+                ctx.lineWidth = sel ? 3 : ruim ? 2.5 : 1;
+                ctx.strokeStyle = sel ? '#ffffff' : ruim ? '#ff1f1f' : 'rgba(0,0,0,0.45)';
+                ctx.stroke();
+                if (regra && !sel) {
+                    // Limite do CV18 passado: contorno amarelo tracejado (a construção NÃO é apagada)
+                    ctx.setLineDash(regra === 'erro' ? [6, 4] : [2, 4]);
+                    ctx.lineWidth = regra === 'erro' ? 3 : 2;
+                    ctx.strokeStyle = regra === 'erro' ? '#facc15' : '#fde68a';
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                const sigla = info(c.tipo).sigla;
+                if (sigla && passoTela * tam > 22) {
+                    const centro = casaParaTela(c.x + tam / 2, c.y + tam / 2);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = `800 ${Math.max(9, Math.min(16, passoTela * 0.55))}px Lexend, sans-serif`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(sigla, centro.x, centro.y);
+                }
+            }
+
+            // Prévia ao colocar
+            if (fantasma) {
+                const tam = info(fantasma.tipo).tam;
+                poligono(cantos(fantasma.x, fantasma.y, tam));
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.fill();
+                ctx.setLineDash([5, 4]); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]);
+            }
+
+            // Pontos da calibração
+            if (calibracao) {
+                calibracao.pontos.forEach((p, i) => {
+                    const s = mundoParaTela(p);
+                    ctx.beginPath(); ctx.arc(s.x, s.y, 9, 0, Math.PI * 2);
+                    ctx.fillStyle = '#f9d246'; ctx.fill();
+                    ctx.fillStyle = '#11032c'; ctx.font = '800 11px Lexend, sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(String(i + 1), s.x, s.y);
+                });
+            }
+        }
+
+        // ---------- paleta ----------
+        function desenharPaleta() {
+            const cats = document.getElementById('paletaCats');
+            cats.innerHTML = Object.entries(G.CATEGORIAS).map(([k, c]) =>
+                `<button type="button" class="cat-btn${k === categoriaAtual ? ' ativa' : ''}" data-cat="${k}" style="${k === categoriaAtual ? `background:${c.cor}` : ''}">${c.nome}</button>`).join('');
+            const contagem = validacao.contagem;
+            // Tipos envolvidos numa fusão que passou do limite também ficam marcados
+            const emFusaoRuim = new Set();
+            for (const p of validacao.problemas) if (p.codigo === 'fusao') {
+                const r = CV.REGRAS_FUSAO.find(x => x.id === p.regra);
+                if (r) Object.keys(r.pesos).forEach(t => emFusaoRuim.add(t));
+            }
+            const nota = categoriaAtual === 'armadilha'
+                ? '<div class="nota-cat">🙈 Armadilhas não aparecem em prints de outras vilas. Coloque-as à mão, se souber onde estão.</div>'
+                : '';
+            document.getElementById('paletaItens').innerHTML = nota + Object.entries(G.CATALOGO)
+                .filter(([, i]) => i.cat === categoriaAtual)
+                .map(([k, i]) => {
+                    const n = contagem[k] || 0;
+                    const excedeu = n > i.max || emFusaoRuim.has(k);
+                    const livres = CV.restantes(k, contagem);
+                    const classe = excedeu ? ' excedeu' : (n && livres === 0 ? ' cheio' : '');
+                    const dica = `${i.nome}: ${n} de ${i.max} no CV18` + (livres < i.max - n ? ` (as fusões deixam só mais ${livres})` : '') +
+                        (i.tamStatus === 'pendente' ? ' · tamanho provisório, ainda não confirmado' : '');
+                    return `<button type="button" class="item-btn${k === tipoAtual ? ' ativo' : ''}${excedeu ? ' excedeu' : ''}" data-tipo="${k}" title="${escapar(dica)}">
+                    <span class="cor" style="background:${G.CATEGORIAS[i.cat].cor}">${i.sigla}</span>
+                    <span class="nome">${i.nome} <small class="suave">${i.tam}×${i.tam}</small>${i.tamStatus === 'pendente' ? '<span class="pend">tam?</span>' : ''}</span>
+                    <span class="qtd${classe}">${n}/${i.max}</span>
+                </button>`;
+                }).join('');
+        }
+        document.getElementById('paletaCats').addEventListener('click', e => {
+            const b = e.target.closest('[data-cat]'); if (!b) return;
+            categoriaAtual = b.dataset.cat;
+            const primeiro = Object.entries(G.CATALOGO).find(([, i]) => i.cat === categoriaAtual);
+            if (primeiro) tipoAtual = primeiro[0];
+            if (categoriaAtual === 'muro') escolherFerramenta('muro');
+            desenharPaleta();
+        });
+        document.getElementById('paletaItens').addEventListener('click', e => {
+            const b = e.target.closest('[data-tipo]'); if (!b) return;
+            tipoAtual = b.dataset.tipo;
+            escolherFerramenta(tipoAtual === 'muro' ? 'muro' : 'colocar');
+            desenharPaleta();
+        });
+
+        // ---------- ferramentas ----------
+        function escolherFerramenta(f) {
+            ferramenta = f;
+            calibracao = null; aviso('');
+            document.querySelectorAll('[data-ferramenta]').forEach(b => b.classList.toggle('ativo', b.dataset.ferramenta === f));
+            if (f === 'colocar') status(`Toque na grade para colocar: ${info(tipoAtual).nome}`);
+            else if (f === 'muro') status('Toque ou arraste para desenhar muros.');
+            else if (f === 'apagar') status('Toque ou arraste sobre as construções para apagar.');
+            else status('Arraste uma construção para mover. Arraste o fundo para navegar.');
+            desenhar();
+        }
+        document.getElementById('ferramentas').addEventListener('click', e => {
+            const b = e.target.closest('[data-ferramenta]'); if (b) escolherFerramenta(b.dataset.ferramenta);
+        });
+
+        // ---------- construção selecionada ----------
+        function mostrarSelecionada() {
+            const alvo = document.getElementById('infoSel');
+            const c = construcoes.find(x => x.id === selecionadaId);
+            if (!c) { alvo.innerHTML = '<span class="suave">Toque numa construção (ferramenta Mover) para ver aqui.</span>'; return; }
+            const i = info(c.tipo);
+            const n = validacao.contagem[c.tipo] || 0;
+            const motivos = validacao.problemas.filter(p => p.nivel !== 'info' && p.ids.includes(c.id)).map(p => escapar(p.msg));
+            alvo.innerHTML = `<b>${i.nome}</b><span class="suave">Casa (${c.x}, ${c.y}) · ${i.tam}×${i.tam} · ${n}/${i.max} no CV18</span>
+                ${i.tamStatus === 'pendente' ? '<div class="excesso-txt">📏 Tamanho provisório — ainda não confirmado</div>' : ''}
+                ${ruins.has(c.id) ? '<div class="conflito-txt">⚠️ Em cima de outra construção ou fora da área</div>' : ''}
+                ${motivos.map(m => `<div class="excesso-txt">📋 ${m}</div>`).join('')}
+                <div class="barra" style="margin-top:8px;"><button type="button" class="btn" id="btnApagarSel">🗑️ Remover</button></div>`;
+            document.getElementById('btnApagarSel').onclick = () => {
+                guardarEstado();
+                construcoes = construcoes.filter(x => x.id !== c.id);
+                selecionadaId = null;
+                mudou();
+            };
+        }
+
+        // ---------- toque / mouse ----------
+        const ponteiros = new Map();
+        let gesto = null;
+        function posLocal(e) {
+            const r = tela.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
+        tela.addEventListener('pointerdown', e => {
+            tela.setPointerCapture(e.pointerId);
+            const p = posLocal(e);
+            ponteiros.set(e.pointerId, p);
+
+            if (ponteiros.size === 2) {   // pinça: zoom com dois dedos
+                const [a, b] = [...ponteiros.values()];
+                gesto = { tipo: 'pinca', dist: Math.hypot(a.x - b.x, a.y - b.y), meio: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+                fantasma = null;
+                return;
+            }
+
+            const g = telaParaCasa(p.x, p.y);
+            gesto = { tipo: 'toque', inicio: p, ultimo: p, moveu: false, casa: g };
+
+            if (calibracao) return;
+            if (ferramenta === 'selecionar') {
+                const c = G.construcaoNaCasa(construcoes, Math.floor(g.x), Math.floor(g.y));
+                if (c) {
+                    selecionadaId = c.id;
+                    gesto = { ...gesto, tipo: 'mover', id: c.id, dx: g.x - c.x, dy: g.y - c.y, guardou: false };
+                    mostrarSelecionada(); desenhar();
+                } else {
+                    gesto.tipo = 'arrastar';
+                }
+            } else if (ferramenta === 'muro' || ferramenta === 'apagar') {
+                guardarEstado();
+                gesto.tipo = ferramenta;
+                pintar(g);
+            } else if (ferramenta === 'colocar') {
+                fantasma = { tipo: tipoAtual, ...G.encaixar(g.x, g.y, info(tipoAtual).tam) };
+                desenhar();
+            }
+        });
+
+        function pintar(g) {
+            const gx = Math.floor(g.x), gy = Math.floor(g.y);
+            if (gx < 0 || gy < 0 || gx >= N || gy >= N) return;
+            if (gesto.tipo === 'muro') {
+                if (!G.construcaoNaCasa(construcoes, gx, gy)) {
+                    construcoes.push({ id: proxId++, tipo: 'muro', x: gx, y: gy });
+                    mudou();
+                }
+            } else if (gesto.tipo === 'apagar') {
+                if (apagarNaCasa(gx, gy)) mudou();
+            }
+        }
+
+        tela.addEventListener('pointermove', e => {
+            if (!ponteiros.has(e.pointerId)) return;
+            const p = posLocal(e);
+            ponteiros.set(e.pointerId, p);
+            if (!gesto) return;
+
+            if (gesto.tipo === 'pinca' && ponteiros.size === 2) {
+                const [a, b] = [...ponteiros.values()];
+                const dist = Math.hypot(a.x - b.x, a.y - b.y);
+                const meio = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+                vista.ox += meio.x - gesto.meio.x; vista.oy += meio.y - gesto.meio.y;
+                zoom(dist / gesto.dist, meio.x, meio.y);
+                gesto.dist = dist; gesto.meio = meio;
+                return;
+            }
+
+            const andou = Math.hypot(p.x - gesto.inicio.x, p.y - gesto.inicio.y);
+            if (andou > 6) gesto.moveu = true;
+            const g = telaParaCasa(p.x, p.y);
+
+            if (gesto.tipo === 'mover') {
+                const c = construcoes.find(x => x.id === gesto.id);
+                if (!c) return;
+                const tam = info(c.tipo).tam;
+                const nx = Math.max(0, Math.min(N - tam, Math.round(g.x - gesto.dx)));
+                const ny = Math.max(0, Math.min(N - tam, Math.round(g.y - gesto.dy)));
+                if (nx !== c.x || ny !== c.y) {
+                    if (!gesto.guardou) { guardarEstado(); gesto.guardou = true; }
+                    c.x = nx; c.y = ny;
+                    mudou();
+                }
+            } else if (gesto.tipo === 'muro' || gesto.tipo === 'apagar') {
+                pintar(g);
+            } else if (gesto.tipo === 'arrastar' || (gesto.tipo === 'toque' && gesto.moveu)) {
+                vista.ox += p.x - gesto.ultimo.x; vista.oy += p.y - gesto.ultimo.y;
+                fantasma = null;
+                desenhar();
+            } else if (ferramenta === 'colocar' && !gesto.moveu) {
+                fantasma = { tipo: tipoAtual, ...G.encaixar(g.x, g.y, info(tipoAtual).tam) };
+                desenhar();
+            }
+            gesto.ultimo = p;
+        });
+
+        function fimToque(e) {
+            if (!ponteiros.has(e.pointerId)) return;
+            ponteiros.delete(e.pointerId);
+            if (!gesto) return;
+            if (gesto.tipo === 'pinca') { if (ponteiros.size === 0) gesto = null; return; }
+
+            if (!gesto.moveu) {
+                const g = gesto.casa;
+                if (calibracao) {
+                    calibracao.pontos.push(telaParaMundo(gesto.inicio.x, gesto.inicio.y));
+                    avancarCalibracao();
+                } else if (gesto.tipo === 'toque' && ferramenta === 'colocar') {
+                    if (g.x >= 0 && g.y >= 0 && g.x < N && g.y < N) {
+                        const cabia = CV.restantes(tipoAtual, validacao.contagem) > 0;
+                        guardarEstado();
+                        const c = colocar(tipoAtual, g.x, g.y);
+                        selecionadaId = c.id;
+                        mudou();
+                        if (!cabia) status(`⚠️ ${info(tipoAtual).nome} passou do limite do CV18 — ficou marcada em amarelo (não foi apagada).`);
+                    }
+                } else if (gesto.tipo === 'arrastar') {
+                    selecionadaId = null; mostrarSelecionada(); desenhar();
+                }
+            }
+            fantasma = null;
+            gesto = null;
+            desenhar();
+        }
+        tela.addEventListener('pointerup', fimToque);
+        tela.addEventListener('pointercancel', fimToque);
+        tela.addEventListener('wheel', e => {
+            e.preventDefault();
+            const p = posLocal(e);
+            zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15, p.x, p.y);
+        }, { passive: false });
+
+        // ---------- foto e calibração ----------
+        const PASSOS_CALIBRACAO = [
+            'Toque no canto de CIMA da área de construção (onde a grama clara termina).',
+            'Agora toque no canto da DIREITA da área de construção.',
+            'Agora toque no canto da ESQUERDA da área de construção.'
+        ];
+        function iniciarCalibracao() {
+            if (!foto) return;
+            calibracao = { pontos: [] };
+            aviso(`📐 1/3 · ${PASSOS_CALIBRACAO[0]}`);
+            status('Use o zoom para tocar com precisão. Para cancelar, escolha outra ferramenta.');
+            desenhar();
+        }
+        function avancarCalibracao() {
+            const n = calibracao.pontos.length;
+            if (n < 3) { aviso(`📐 ${n + 1}/3 · ${PASSOS_CALIBRACAO[n]}`); desenhar(); return; }
+            const [cima, direita, esquerda] = calibracao.pontos;
+            try {
+                T = G.afimDosCantos(cima, direita, esquerda);
+                aviso(''); status('✅ Grade ajustada à foto. Agora coloque as construções por cima.');
+            } catch (err) {
+                aviso('');
+                status('❌ Os pontos ficaram alinhados. Toque em "Ajustar grade à foto" e tente de novo.');
+            }
+            calibracao = null;
+            desenhar();
+        }
+        document.getElementById('btnCalibrar').onclick = iniciarCalibracao;
+
+        document.getElementById('arquivoFoto').addEventListener('change', e => {
+            const arq = e.target.files[0];
+            e.target.value = '';
+            if (!arq) return;
+            if (!TIPOS_FOTO.includes(arq.type)) { status('❌ Use uma imagem PNG, JPG ou WEBP.'); return; }
+            if (arq.size > MAX_FOTO_BYTES) { status('❌ Imagem muito grande (máximo 15 MB).'); return; }
+            const url = URL.createObjectURL(arq);
+            const img = new Image();
+            img.onload = () => {
+                if (img.naturalWidth < 300 || img.naturalHeight < 200) {
+                    URL.revokeObjectURL(url);
+                    status('❌ Imagem pequena demais para servir de guia.'); return;
+                }
+                foto = img;
+                mundo = { w: img.naturalWidth, h: img.naturalHeight };
+                // Chute inicial: losango centralizado na foto (o usuário ajusta depois)
+                const larg = Math.min(mundo.w, mundo.h * 2) * 0.8;
+                const cima = { x: mundo.w / 2, y: (mundo.h - larg / 2) / 2 };
+                T = G.afimDosCantos(cima, { x: cima.x + larg / 2, y: cima.y + larg / 4 }, { x: cima.x - larg / 2, y: cima.y + larg / 4 });
+                document.getElementById('btnCalibrar').disabled = false;
+                document.getElementById('btnTirarFoto').disabled = false;
+                ajustarVista();
+                iniciarCalibracao();
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); status('❌ Não consegui abrir essa imagem.'); };
+            img.src = url;
+        });
+        document.getElementById('btnTirarFoto').onclick = () => {
+            if (foto) URL.revokeObjectURL(foto.src);
+            foto = null; calibracao = null; aviso('');
+            mundo = { w: 1000, h: 560 };
+            T = G.afimIsometricaPadrao(1000);
+            document.getElementById('btnCalibrar').disabled = true;
+            document.getElementById('btnTirarFoto').disabled = true;
+            ajustarVista();
+        };
+        document.getElementById('opacidade').addEventListener('input', e => {
+            opacidadeFoto = e.target.value / 100; desenhar();
+        });
+
+        // ---------- salvar / carregar (neste aparelho) ----------
+        function lerSalvos() {
+            try { const v = JSON.parse(localStorage.getItem(CHAVE_SALVOS) || '[]'); return Array.isArray(v) ? v : []; }
+            catch (_) { return []; }
+        }
+        function gravarSalvos(lista) {
+            try { localStorage.setItem(CHAVE_SALVOS, JSON.stringify(lista)); return true; }
+            catch (_) { return false; }
+        }
+        function nomeAtual() { return document.getElementById('nomeLayout').value.trim() || 'Layout sem nome'; }
+        function desenharSalvos() {
+            const lista = lerSalvos();
+            document.getElementById('listaSalvos').innerHTML = lista.length
+                ? lista.map((l, i) => `<div class="salvo"><b title="${escapar(l.nome)}">${escapar(l.nome)}</b>
+                    <span class="suave">${l.construcoes.length}</span>
+                    <button type="button" data-abrir="${i}" title="Abrir">📂</button>
+                    <button type="button" data-apagar="${i}" title="Apagar">🗑️</button></div>`).join('')
+                : '<span class="suave">Nenhum ainda.</span>';
+        }
+        function escapar(t) {
+            return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        function carregarDados(dados) {
+            const v = G.validarLayout(dados);
+            if (!v.construcoes.length && !v.ok) { status('❌ ' + (v.erros[0] || 'Arquivo inválido.')); return; }
+            guardarEstado();
+            construcoes = v.construcoes;
+            proxId = construcoes.length + 1;
+            selecionadaId = null;
+            document.getElementById('nomeLayout').value = dados.nome || '';
+            mudou();
+            const outroCv = dados.cv && Number(dados.cv) !== CV.CV ? ` (era CV${Number(dados.cv) || '?'}; conferido com as regras do CV18)` : '';
+            status((v.ok ? `✅ "${dados.nome || 'Layout'}" aberto.` : `⚠️ Aberto com avisos: ${v.erros.slice(0, 2).join(' ')}`) + outroCv);
+        }
+        document.getElementById('btnSalvar').onclick = () => {
+            if (!construcoes.length) { status('Coloque pelo menos uma construção antes de salvar.'); return; }
+            const dados = G.exportarLayout(nomeAtual(), null, construcoes);
+            const lista = lerSalvos().filter(l => l.nome !== dados.nome);
+            lista.unshift(dados);
+            if (gravarSalvos(lista.slice(0, 30))) { status(`💾 "${dados.nome}" salvo neste aparelho.`); desenharSalvos(); }
+            else status('❌ Não consegui salvar (armazenamento do navegador indisponível). Use ⬇️ JSON.');
+        };
+        document.getElementById('listaSalvos').addEventListener('click', e => {
+            const lista = lerSalvos();
+            const abrir = e.target.closest('[data-abrir]'), apagar = e.target.closest('[data-apagar]');
+            if (abrir) carregarDados(lista[+abrir.dataset.abrir]);
+            if (apagar && confirm('Apagar este layout salvo?')) {
+                lista.splice(+apagar.dataset.apagar, 1); gravarSalvos(lista); desenharSalvos();
+            }
+        });
+        function baixar(nomeArq, blob) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = nomeArq;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        }
+        const nomeArquivo = ext => nomeAtual().replace(/[^\w\-]+/g, '_').slice(0, 40) + ext;
+        document.getElementById('btnExportar').onclick = () => {
+            if (!construcoes.length) { status('Nada para exportar ainda.'); return; }
+            const dados = G.exportarLayout(nomeAtual(), null, construcoes);
+            baixar(nomeArquivo('.json'), new Blob([JSON.stringify(dados, null, 1)], { type: 'application/json' }));
+            status('⬇️ Arquivo JSON gerado.');
+        };
+        document.getElementById('arquivoJson').addEventListener('change', e => {
+            const arq = e.target.files[0]; e.target.value = '';
+            if (!arq) return;
+            if (arq.size > 2 * 1024 * 1024) { status('❌ Arquivo grande demais para um layout.'); return; }
+            arq.text().then(t => { try { carregarDados(JSON.parse(t)); } catch (_) { status('❌ Esse arquivo não é um JSON válido.'); } });
+        });
+        document.getElementById('btnImagem').onclick = () => {
+            if (!construcoes.length) { status('Nada para exportar ainda.'); return; }
+            tela.toBlob(b => { if (b) { baixar(nomeArquivo('.png'), b); status('🖼️ Imagem gerada.'); } }, 'image/png');
+        };
+
+        // ---------- início ----------
+        desenharPaleta();
+        desenharRegras();
+        desenharSalvos();
+        atualizarBotoesHistorico();
+        ajustarVista();
+        escolherFerramenta('selecionar');
+    })();
+    </script>
+</body>
+
+</html>
