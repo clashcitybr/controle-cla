@@ -274,6 +274,20 @@
         .meta-item .meta-nome b { display: block; font-size: 0.88rem; overflow-wrap: anywhere; }
         .meta-item .meta-nome small { font-size: 0.72rem; color: #5b6475; }
         .meta-item .meta-status { flex-shrink: 0; font-size: 0.78rem; font-weight: 800; color: var(--cor-meta); text-align: right; }
+        /* ---------- O QUE FALTA UPAR ---------- */
+        .falta-topo { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .falta-topo b { font-size: 1.5rem; line-height: 1.2; }
+        .falta-topo span { font-size: 0.85rem; color: var(--texto-suave, #5b6475); }
+        .falta-barra { height: 8px; border-radius: 4px; background: #ece8f3; overflow: hidden; margin: 8px 0 14px; }
+        .falta-barra > div { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #f3b13a, #f9d246); }
+        .falta-grupos { display: grid; gap: 8px; }
+        .falta-grupo { background: #fff; border: 1px solid rgba(17, 3, 44, 0.08); border-radius: 12px; padding: 10px 12px; }
+        .falta-grupo-topo { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-weight: 800; font-size: 0.9rem; }
+        .falta-grupo-topo small { font-weight: 700; color: var(--texto-suave, #5b6475); font-size: 0.78rem; white-space: nowrap; }
+        .falta-grupo-topo .ok { color: #16a34a; }
+        .falta-itens { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .falta-item { font-size: 0.76rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; }
+        .falta-nota { font-size: 0.75rem; color: var(--texto-suave, #5b6475); margin-top: 10px; }
         .meta-link {
             display: inline-block;
             font-weight: 800;
@@ -764,6 +778,12 @@
                 <a class="meta-link" id="metaLink" href="ataques.html"><i data-ic="guerra"></i> Ver exércitos recomendados →</a>
             </div>
 
+            <!-- O QUE FALTA UPAR (calculado com os níveis da API do jogo) -->
+            <div class="perfil-section" id="secaoFalta" style="display:none;">
+                <h2><i data-ic="ferramenta"></i> O que falta upar</h2>
+                <div id="faltaConteudo"></div>
+            </div>
+
             <!-- HERÓIS -->
             <div class="perfil-section">
                 <h2><i data-ic="coroa"></i> Heróis</h2>
@@ -1085,6 +1105,7 @@
                 renderEquipMeta(jogador, ataquesMeta);
                 renderTropas(jogador.troops);
                 renderFeiticos(jogador.spells);
+                renderFaltaUpar(jogador);
                 renderHistorico(participacoes);
 
                 document.getElementById('loadingState').style.display = 'none';
@@ -1395,6 +1416,59 @@
             "Inferno Dragon", "Super Minion", "Super Valkyrie", "Super Witch",
             "Ice Hound", "Super Bowler", "Super Miner", "Super Hog Rider", "Super Yeti"
         ]);
+
+        // ---------- O QUE FALTA UPAR ----------
+        // Compara o nível de cada item com o máximo informado pela API do jogo.
+        // Como o CV18 é o maior Centro de Vila, para um CV18 esse máximo é
+        // exatamente o que ainda dá para upar. Não conta super tropas (usam o
+        // nível da tropa normal) nem itens ainda não desbloqueados.
+        function renderFaltaUpar(j) {
+            const secao = document.getElementById('secaoFalta');
+            const casa = lista => (Array.isArray(lista) ? lista : [])
+                .filter(x => x && x.village === 'home' && x.level > 0 && x.maxLevel > 0);
+            const grupos = [
+                { nome: 'Heróis', icone: 'coroa', itens: casa(j.heroes), traduz: traduzirHeroi },
+                { nome: 'Equipamentos', icone: 'escudo', itens: casa(j.heroEquipment), traduz: traduzirEquipamento },
+                { nome: 'Tropas, máquinas e mascotes', icone: 'tropas', itens: casa(j.troops).filter(t => !superTropas.has(t.name)), traduz: traduzirTropa },
+                { nome: 'Feitiços', icone: 'feitico', itens: casa(j.spells), traduz: traduzirFeitico }
+            ].filter(g => g.itens.length);
+            if (!grupos.length) { secao.style.display = 'none'; return; }
+
+            let nivelTotal = 0, maxTotal = 0, faltaTotal = 0, itensFaltando = 0;
+            const blocos = grupos.map(g => {
+                const pendentes = g.itens
+                    .map(x => ({ nome: g.traduz(x.name), nivel: x.level, max: x.maxLevel, falta: Math.max(0, x.maxLevel - x.level) }))
+                    .filter(x => x.falta > 0)
+                    .sort((a, b) => b.falta - a.falta || a.nome.localeCompare(b.nome));
+                const falta = pendentes.reduce((n, x) => n + x.falta, 0);
+                nivelTotal += g.itens.reduce((n, x) => n + Math.min(x.level, x.maxLevel), 0);
+                maxTotal += g.itens.reduce((n, x) => n + x.maxLevel, 0);
+                faltaTotal += falta; itensFaltando += pendentes.length;
+                const visiveis = pendentes.slice(0, 6);
+                const resto = pendentes.length - visiveis.length;
+                return `<div class="falta-grupo">
+                    <div class="falta-grupo-topo"><span>${ic(g.icone)} ${g.nome}</span>
+                        ${falta ? `<small>faltam ${falta} ${falta === 1 ? 'nível' : 'níveis'} · ${pendentes.length} ${pendentes.length === 1 ? 'item' : 'itens'}</small>`
+                                : `<small class="ok">${ic('ok')} tudo no máximo</small>`}</div>
+                    ${pendentes.length ? `<div class="falta-itens">${visiveis.map(x =>
+                        `<span class="falta-item">${escapar(x.nome)} ${x.nivel}/${x.max}</span>`).join('')}${resto > 0 ? `<span class="falta-item" style="background:#f1f5f9;color:#475569;">+${resto}</span>` : ''}</div>` : ''}
+                </div>`;
+            });
+
+            const pct = maxTotal ? Math.floor(nivelTotal / maxTotal * 100) : 100;
+            const cv = Number(j.townHallLevel) || 0;
+            document.getElementById('faltaConteudo').innerHTML = `
+                <div class="falta-topo">
+                    <b>${faltaTotal ? `${pct}% da conta no máximo` : `${ic('trofeu')} Conta no máximo!`}</b>
+                    ${faltaTotal ? `<span>faltam ${faltaTotal} ${faltaTotal === 1 ? 'nível' : 'níveis'} em ${itensFaltando} ${itensFaltando === 1 ? 'item' : 'itens'}</span>` : ''}
+                </div>
+                <div class="falta-barra"><div style="width:${pct}%"></div></div>
+                <div class="falta-grupos">${blocos.join('')}</div>
+                <p class="falta-nota">${cv && cv < 18
+                    ? `Comparado com o máximo do jogo (CV18). No CV${cv} alguns desses níveis ainda não estão liberados.`
+                    : 'Comparado com o nível máximo do CV18. Itens ainda não desbloqueados não entram na conta.'}</p>`;
+            secao.style.display = '';
+        }
 
         function renderTropas(tropas) {
             const container = document.getElementById('tropasList');
