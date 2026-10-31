@@ -461,3 +461,17 @@ button, input, select, textarea { font-family: inherit !important; }
     place-items: center;
 }
 @media (prefers-reduced-motion: reduce) { .convite-avisos { transition: none; } }
+
+/* ============================================================
+   COMPUTADOR: tudo em 80%, como o navegador no zoom de 80%.
+   No zoom 100% o site ficava grande demais na tela do PC.
+   Só vale para tela grande com mouse (celular e tablet não mudam).
+   ============================================================ */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+    html { zoom: 0.8; }
+    /* Alturas em "vh" também encolhem com o zoom: aumenta para o topo
+       ocupar a mesma parte da tela de antes */
+    header#inicio { height: 100vh; }
+    header.hero { height: 75vh; }
+    body > header:not(#inicio):not(.hero) { min-height: 56vh; }
+}
