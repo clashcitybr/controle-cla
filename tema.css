@@ -316,4 +316,97 @@ h2 > .ic, h3 > .ic, .title > .ic, .criterios-titulo > .ic { color: var(--seconda
 .badge .ic, .mvp-badge .ic, .guerra-badge .ic, .liga-selo .ic, .placar-selo .ic, .perfil-badge .ic { width: 1em; height: 1em; }
 
 .atalho-painel-icone .ic { color: var(--primary); width: 1.4em; height: 1.4em; }
-button, input, select, textarea { font-family: inherit; }
+button, input, select, textarea { font-family: inherit !important; }
+
+/* ============================================================
+   CARTÕES ESPECIAIS (Fase 3)
+   Uma família só: fundo roxo profundo + fio de cor no topo.
+   - MVP / guerra: dourado (destaque principal)
+   - Muralha: azul      - Bagre: vermelho
+   - Hall da Fama: claro, com detalhe dourado (é lista, não troféu)
+   ============================================================ */
+:root {
+    --especial-fundo: linear-gradient(155deg, #2b1560 0%, #170838 55%, #11032c 100%);
+    --especial-dentro: rgba(255, 255, 255, 0.07);
+    --especial-sombra: 0 10px 28px rgba(17, 3, 44, 0.18);
+}
+
+.mvp-card,
+.guerra-card {
+    background: var(--especial-fundo) !important;
+    border-width: 1.5px !important;
+    border-radius: 18px;
+    box-shadow: var(--especial-sombra), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+    position: relative;
+    overflow: hidden;
+}
+.mvp-card { border-color: rgba(249, 210, 70, 0.8) !important; }
+
+/* Fio de cor no topo de cada cartão especial */
+.mvp-card::before,
+.guerra-card::before {
+    content: '';
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    top: 0;
+    height: 3px;
+    border-radius: 0 0 6px 6px;
+    background: var(--primary);
+    opacity: 0.9;
+}
+.muralha-card::before { background: #60a5fa; }
+#bagre-container::before,
+#bagreContainer::before,
+.guerra-derrota::before,
+.guerra-erro::before { background: #ef4444; }
+.guerra-vitoria::before { background: #22c55e; }
+.guerra-neutra::before,
+.guerra-empate::before { background: var(--accent, #6aa5ed); }
+
+/* Caixinha de número dentro do cartão: mesma transparência em todos */
+.dashboard-section .mvp-card > div {
+    background: var(--especial-dentro) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Muralha e Bagre: só o acento muda, a base é a mesma do MVP */
+.muralha-card { border-color: rgba(96, 165, 250, 0.8) !important; }
+#bagre-container,
+#bagreContainer { border-color: rgba(239, 68, 68, 0.8) !important; }
+
+/* Etiquetas (MVP, Muralha, Bagre, status da guerra): mesmo formato */
+.mvp-badge,
+.guerra-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    letter-spacing: 0.06em;
+}
+
+/* Hall da Fama: cartão claro com detalhe dourado */
+.temporada-card {
+    background: linear-gradient(180deg, #fbf9ff 0%, #ffffff 60%);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+}
+.temporada-card::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), #f3b13a);
+}
+.temporada-card h4 { color: var(--dark); }
+.temporada-card h4::after {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 2px;
+    margin: 6px auto 0;
+    border-radius: 2px;
+    background: var(--primary);
+}
+.podio-lista .media { color: var(--dark); font-weight: 800; }
