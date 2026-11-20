@@ -1419,10 +1419,12 @@
         ]);
 
         // ---------- O QUE FALTA UPAR ----------
-        // Compara o nível de cada item com o máximo informado pela API do jogo.
-        // Como o CV18 é o maior Centro de Vila, para um CV18 esse máximo é
-        // exatamente o que ainda dá para upar. Não conta super tropas (usam o
-        // nível da tropa normal) nem itens ainda não desbloqueados.
+        // Compara o nível de cada item com o máximo informado pela API do jogo,
+        // que é o máximo do maior Centro de Vila (CV19 desde nov/2026). Para um
+        // CV19 é exatamente o que falta; para CV menores, parte desses níveis
+        // ainda não está liberada (o texto avisa). Não conta super tropas (usam o
+        // nível da tropa normal), Squads (só upam no CV19) nem itens bloqueados.
+        const CV_MAXIMO_DO_JOGO = 19;
         function renderFaltaUpar(j) {
             const secao = document.getElementById('secaoFalta');
             const casa = lista => (Array.isArray(lista) ? lista : [])
@@ -1430,7 +1432,7 @@
             const grupos = [
                 { nome: 'Heróis', icone: 'coroa', itens: casa(j.heroes), traduz: traduzirHeroi },
                 { nome: 'Equipamentos', icone: 'escudo', itens: casa(j.heroEquipment), traduz: traduzirEquipamento },
-                { nome: 'Tropas, máquinas e mascotes', icone: 'tropas', itens: casa(j.troops).filter(t => !superTropas.has(t.name)), traduz: traduzirTropa },
+                { nome: 'Tropas, máquinas e mascotes', icone: 'tropas', itens: casa(j.troops).filter(t => !superTropas.has(t.name) && !/ Squad$/.test(t.name)), traduz: traduzirTropa },
                 { nome: 'Feitiços', icone: 'feitico', itens: casa(j.spells), traduz: traduzirFeitico }
             ].filter(g => g.itens.length);
             if (!grupos.length) { secao.style.display = 'none'; return; }
@@ -1458,16 +1460,17 @@
 
             const pct = maxTotal ? Math.floor(nivelTotal / maxTotal * 100) : 100;
             const cv = Number(j.townHallLevel) || 0;
+            const noTopo = cv >= CV_MAXIMO_DO_JOGO;
             document.getElementById('faltaConteudo').innerHTML = `
                 <div class="falta-topo">
-                    <b>${faltaTotal ? `${pct}% da conta no máximo` : `${ic('trofeu')} Conta no máximo!`}</b>
+                    <b>${faltaTotal ? `${pct}% ${noTopo ? 'da conta no máximo' : `do máximo do jogo (CV${CV_MAXIMO_DO_JOGO})`}` : `${ic('trofeu')} Conta no máximo!`}</b>
                     ${faltaTotal ? `<span>faltam ${faltaTotal} ${faltaTotal === 1 ? 'nível' : 'níveis'} em ${itensFaltando} ${itensFaltando === 1 ? 'item' : 'itens'}</span>` : ''}
                 </div>
                 <div class="falta-barra"><div style="width:${pct}%"></div></div>
                 <div class="falta-grupos">${blocos.join('')}</div>
-                <p class="falta-nota">${cv && cv < 18
-                    ? `Comparado com o máximo do jogo (CV18). No CV${cv} alguns desses níveis ainda não estão liberados.`
-                    : 'Comparado com o nível máximo do CV18. Itens ainda não desbloqueados não entram na conta.'}</p>`;
+                <p class="falta-nota">${cv && !noTopo
+                    ? `Comparado com o máximo do jogo (CV${CV_MAXIMO_DO_JOGO}). No CV${cv}, parte desses níveis ainda não está liberada — quando subir de CV, eles abrem.`
+                    : `Comparado com o nível máximo do CV${CV_MAXIMO_DO_JOGO}. Itens ainda não desbloqueados e Squads não entram na conta.`}</p>`;
             secao.style.display = '';
         }
 
