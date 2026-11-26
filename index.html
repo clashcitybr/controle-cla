@@ -8,6 +8,7 @@
     <title>Clash City BR - Desempenho de Guerra</title>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
     <script src="icones.js"></script>
     <!-- Tema visual comum (carregado por último) -->
     <link rel="stylesheet" href="tema.css?v=1">
@@ -229,12 +230,11 @@
         // FIX 1: ordemAtual agora começa como 'qtd' — consistente com o botão "Por Guerras" ativo no HTML
         let ordemAtual = 'qtd';
 
-        const API_URL = "https://cork-dice-gala.ngrok-free.dev/membros";
 
         // 2. CARREGAMENTO DOS DADOS DO MONGODB
         async function carregarDados() {
             try {
-                const resposta = await fetch(API_URL, {
+                const resposta = await fetch(`${BACKEND_URL}/membros`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const membrosDoBanco = await resposta.json();
@@ -525,7 +525,7 @@
             }
 
             try {
-                const resposta = await fetch(`https://cork-dice-gala.ngrok-free.dev/jogador/${encodeURIComponent(tag)}`, {
+                const resposta = await fetch(`${BACKEND_URL}/jogador/${encodeURIComponent(tag)}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await resposta.json();
@@ -582,111 +582,13 @@
             }
         }
 
-        // NOTIFICAÇÕES PUSH
-        let swRegistration = null;
-
+        // SERVICE WORKER (a inscrição de push fica no convite-avisos.js e no Meu Painel)
         async function iniciarNotificacoes() {
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-
+            if (!('serviceWorker' in navigator)) return;
             try {
-                swRegistration = await navigator.serviceWorker.register('/controle-cla/sw.js');
-                const sub = await swRegistration.pushManager.getSubscription();
-                atualizarBotaoNotificacao(sub !== null);
+                await navigator.serviceWorker.register('/controle-cla/sw.js');
             } catch (err) {
                 console.error('Erro ao registrar Service Worker:', err);
-            }
-        }
-
-        function atualizarBotaoNotificacao(inscrito) {
-            const btn = document.getElementById('btnNotificacao');
-            if (!btn) return;
-            if (inscrito) {
-                btn.innerHTML = `${ic('sino-off')} Notificações ativas`;
-                btn.style.borderColor = '#22c55e';
-                btn.style.color = '#22c55e';
-            } else {
-                btn.innerHTML = `${ic('sino')} Ativar Notificações`;
-                btn.style.borderColor = '#a855f7';
-                btn.style.color = '#a855f7';
-            }
-        }
-
-        async function toggleNotificacao() {
-            if (!swRegistration) return;
-
-            const sub = await swRegistration.pushManager.getSubscription();
-
-            if (sub) {
-                // Desinscreve
-                await sub.unsubscribe();
-                await fetch(`${API_URL}/subscribe`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({ endpoint: sub.endpoint })
-                });
-                atualizarBotaoNotificacao(false);
-            } else {
-                // Inscreve
-                const permissao = await Notification.requestPermission();
-                if (permissao !== 'granted') return;
-
-                const resp = await fetch(`${API_URL}/vapid-public-key`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                const { publicKey } = await resp.json();
-
-                const novaSub = await swRegistration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: publicKey
-                });
-
-                await fetch(`${API_URL}/subscribe`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify(novaSub)
-                });
-
-                atualizarBotaoNotificacao(true);
-            }
-        }
-
-        // BOTÃO ADMIN — SINCRONIZAÇÃO MANUAL
-        async function sincronizarManual() {
-            const btn = document.getElementById('btnSincronizar');
-            const msg = document.getElementById('msgSincronizar');
-
-            btn.disabled = true;
-            btn.innerHTML = `${ic('ampulheta')} Sincronizando...`;
-            msg.style.display = 'none';
-
-            try {
-                const resposta = await fetch('https://cork-dice-gala.ngrok-free.dev/sincronizar-guerra', {
-                    method: 'POST',
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                const data = await resposta.json();
-
-                if (resposta.ok) {
-                    msg.style.display = 'block';
-                    msg.style.color = '#22c55e';
-                    msg.textContent = data.mensagem || 'Sincronizado!';
-                    msg.insertAdjacentHTML('afterbegin', ic('ok') + ' ');
-                    // Recarrega os dados do ranking
-                    await carregarDados();
-                } else {
-                    msg.style.display = 'block';
-                    msg.style.color = '#ef4444';
-                    msg.textContent = data.mensagem || data.erro || 'Erro ao sincronizar';
-                    msg.insertAdjacentHTML('afterbegin', ic('erro') + ' ');
-                }
-            } catch (e) {
-                msg.style.display = 'block';
-                msg.style.color = '#ef4444';
-                msg.innerHTML = `${ic('erro')} Servidor offline`;
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `${ic('sincronizar')} Sincronizar`;
-                setTimeout(() => { msg.style.display = 'none'; }, 4000);
             }
         }
     </script>
